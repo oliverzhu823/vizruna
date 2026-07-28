@@ -29,7 +29,7 @@ test.describe('workspace shell', () => {
       const window = await app.firstWindow({ timeout: 45_000 })
       await window.waitForLoadState('domcontentloaded', { timeout: 45_000 })
       const title = await window.title()
-      expect(title.toLowerCase()).toContain('pi')
+      expect(title).toBe('Vizruna')
     } finally {
       await app.close()
     }

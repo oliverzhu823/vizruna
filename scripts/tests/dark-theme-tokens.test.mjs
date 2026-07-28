@@ -7,11 +7,14 @@ const root = process.cwd()
 const css = readFileSync(join(root, 'src/renderer/src/styles/globals.css'), 'utf8')
 
 function darkBlock(source) {
-  const start = source.indexOf('.dark {')
+  // Git checks files out with CRLF on Windows runners. Normalize newlines so
+  // this structural assertion behaves the same on every supported platform.
+  const normalized = source.replace(/\r\n?/g, '\n')
+  const start = normalized.indexOf('.dark {')
   assert.ok(start >= 0, 'globals.css must define .dark tokens')
-  const end = source.indexOf('\n  }\n', start)
+  const end = normalized.indexOf('\n  }\n', start)
   assert.ok(end > start, 'could not slice .dark block')
-  return source.slice(start, end)
+  return normalized.slice(start, end)
 }
 
 describe('dark theme visual tokens (VS Code Dark Modern)', () => {

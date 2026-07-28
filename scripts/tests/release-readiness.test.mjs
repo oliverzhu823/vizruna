@@ -210,7 +210,7 @@ test('rejects release variables or candidate artifacts not bound to evidence', (
   )
 })
 
-test('CLI status is read-only and reports the current upstream-only checkout as No-Go', () => {
+test('CLI status is read-only and reports an explicit upstream repository as No-Go', () => {
   const directory = mkdtempSync(join(tmpdir(), 'pi-release-readiness-'))
   try {
     const result = spawnSync(
@@ -218,6 +218,7 @@ test('CLI status is read-only and reports the current upstream-only checkout as 
       [
         'scripts/release-readiness.mjs',
         'status',
+        '--repo=justhil/pi-app',
         `--output=${directory}`,
       ],
       {
@@ -253,6 +254,7 @@ test('CLI status is read-only and reports the current upstream-only checkout as 
       [
         'scripts/release-readiness.mjs',
         'check',
+        '--repo=justhil/pi-app',
         `--output=${directory}`,
       ],
       {

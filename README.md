@@ -2,45 +2,91 @@
   <img src="resources/vizruna-lockup.svg" width="520" alt="Vizruna" />
 </p>
 
+<p align="center">
+  A visible, controllable, local-first desktop workspace for Pi-powered AI Agents.
+</p>
+
+<p align="center">
+  <a href="README.zh-CN.md">简体中文</a> · English
+</p>
+
 # Vizruna
 
-Vizruna is a local AI Agent workspace built on the Pi SDK. It makes agent
-execution visible, controllable, and reviewable. It keeps Pi JSONL sessions as
-the conversation source of truth and adds a
-product layer for safe parallel Agents, managed Git worktrees, provider-specific
-network routing, recovery, audit evidence, and bilingual operation.
+Vizruna turns the Pi Agent runtime into a practical desktop product. You can
+chat with an Agent, watch its reasoning and tool activity, switch models and
+thinking levels, inspect changed files, run a terminal, and coordinate parallel
+work without leaving one workspace.
 
-Status: friends-and-family Alpha. The current download target is macOS on Apple
-Silicon and test builds are delivered through GitHub Releases.
+Status: **friends-and-family Alpha**. The current downloadable build supports
+**Apple-silicon Macs (M1/M2/M3/M4 and later)**. It is intended for invited
+testers, not production deployment.
 
-## Download
+![Vizruna desktop workspace](docs/images/vizruna-desktop.png)
 
-1. Open **Releases** on this repository.
-2. Download the file named `Vizruna-*-arm64.dmg`.
-3. Open the DMG and drag Vizruna to Applications.
+## Main features
 
-Test packages do not contain the developer's conversations, credentials,
-recent-project list, or local machine paths.
+- **Chinese and English UI** with Light, Dark, System, and Sage eye-care themes.
+- **Native Pi model workflow**: choose a provider/model and thinking level;
+  use `/login` and `/logout`, OAuth, or an API key where the provider supports it.
+- **Provider-specific network routing**: let overseas providers use a proxy while
+  domestic providers connect directly, without changing the operating-system proxy.
+- **Visible Agent execution**: streamed responses, reasoning status, tool calls,
+  run statistics, context usage, and conversation tree.
+- **Workspace tools**: integrated file browser and terminal, plus project-based sessions.
+- **Review workflow**: inspect changed files and Markdown in the right panel, or
+  open a file in its default macOS application.
+- **Parallel Agent work**: managed Git worktrees, child Agents, task state, and
+  recovery controls share the existing application architecture.
+- **Local-first data**: Pi sessions and authentication remain on the tester's
+  computer; build packages do not contain the developer's history or credentials.
 
-## Architecture
+## Download and install
 
-- Product base: [`justhil/pi-app`](https://github.com/justhil/pi-app)
-- Pinned base commit: `bcef920e3900a858b305c67c42a34e61779f977c`
-- Behavior reference: [`minghinmatthewlam/pi-gui`](https://github.com/minghinmatthewlam/pi-gui)
-- Agent runtime: `@earendil-works/pi-coding-agent@0.82.1`
+1. Open the repository's [Releases](https://github.com/oliverzhu823/vizruna/releases).
+2. Download `Vizruna-*-arm64.dmg` from the newest prerelease.
+3. Open the DMG and drag **Vizruna** into **Applications**.
+4. Launch Vizruna. If macOS blocks this unsigned Alpha build, Control-click the
+   app and choose **Open**, or allow it in **System Settings → Privacy & Security**.
 
-The application retains the Electron Main, Preload, React Renderer, and Utility
-Worker boundaries. It does not merge the two GUI projects or add a second global
-application store.
+The DMG is currently for Apple-silicon Macs only. Windows, Linux, and Intel Mac
+packages have not completed release acceptance.
+
+## Quick start
+
+1. Choose **Open folder** for project work, or start with **New chat** for a
+   temporary conversation.
+2. Click the model control beside the composer and select a provider, model, and
+   thinking level.
+3. Authenticate by typing `/login`, or open **Settings → Models**. Use `/logout`
+   when you want to disconnect a provider account.
+4. Type the outcome you want. Vizruna will show the request immediately and then
+   display thinking, tool, and response activity in chronological order.
+5. Use the right-side **Review**, **Run**, **Context**, and **Tree** panels to
+   inspect the result. Click a changed Markdown file to preview it; use the
+   external-open action when you prefer the default macOS app.
+
+### Proxy and direct connections
+
+Open **Settings → Provider routing** to create a proxy profile and assign a route
+per provider. For example, OpenAI Codex can use the V2Ray profile while a Chinese
+model provider remains on **Direct**. Vizruna applies the route to that Agent
+worker only; it does not rewrite the global system proxy.
+
+## Tester data and privacy
+
+- Pi sessions and authentication are stored under `~/.pi/agent` on each tester's Mac.
+- Vizruna preferences and product metadata use the separate Electron user-data
+  directory named `Vizruna`.
+- The published package is built from a sanitized checkout and does not include
+  conversations, recent projects, tokens, proxy passwords, or local paths from
+  the maintainer's computer.
+- Testers should still avoid placing secrets in prompts or committing credentials
+  to a project repository.
 
 ## Development
 
-Requirements:
-
-- macOS Apple Silicon for the v0.1 release target
-- Node.js 22.19.x
-- npm
-- Git
+Requirements: Node.js 22.19.x, npm, Git, and macOS Apple Silicon for the current
+packaging target.
 
 ```bash
 nvm use
@@ -48,45 +94,37 @@ npm ci
 npm run dev
 ```
 
-Quality checks:
+Run the complete local quality suite:
 
 ```bash
 npm run verify
 ```
 
-Package an internal macOS build:
+Build an internal macOS package:
 
 ```bash
 npm run package -- --mac
 ```
 
-Signing and notarization require the company release credentials and are not
-configured in the repository.
+Signing and notarization require release credentials and are intentionally not
+stored in this repository.
 
-## Documentation
+## Architecture and project documents
 
+- Product base: [`justhil/pi-app`](https://github.com/justhil/pi-app), pinned at
+  `bcef920e3900a858b305c67c42a34e61779f977c`
+- Behavior reference: [`minghinmatthewlam/pi-gui`](https://github.com/minghinmatthewlam/pi-gui)
+- Agent runtime: `@earendil-works/pi-coding-agent@0.82.1`
 - [Development startup package](docs/startup/README.md)
 - [PRD v0.1](docs/startup/01-PRD-v0.1.md)
 - [Architecture RFC-001](docs/startup/02-Architecture-RFC-001.md)
 - [Roadmap](docs/startup/03-Development-Roadmap.md)
 - [Acceptance criteria](docs/startup/04-Acceptance-Criteria.md)
-- [Risk register](docs/startup/05-Risk-Register.md)
-- [M0 baseline evidence](docs/startup/06-M0-Baseline-Report.md)
-- [M1 session lease evidence](docs/startup/07-M1-Session-Lease-Report.md)
-- [M2 managed Worktree evidence](docs/startup/08-M2-Managed-Worktree-Report.md)
-- [M3 multi-Agent orchestration evidence](docs/startup/09-M3-Multi-Agent-Orchestration-Report.md)
-- [M4 stability and diagnostics evidence](docs/startup/10-M4-Stability-Audit-Diagnostics-Report.md)
-- [M5 productization status](docs/startup/11-M5-Productization-Report.md)
 - [Pilot user guide](docs/startup/12-User-Guide.md)
 - [macOS release runbook](docs/startup/13-macOS-Release-Runbook.md)
-- [Pilot kit](docs/startup/14-Pilot-Kit.md)
 - [Upstream strategy](UPSTREAM.md)
 - [Third-party notices](NOTICE.md)
 
-## Data boundaries
-
-- Existing Pi sessions and authentication remain under `~/.pi/agent`.
-- Product configuration and metadata use the dedicated Electron user-data
-  directory `Vizruna`.
-- The application must not modify the operating-system global proxy.
-- A Provider route is resolved for an individual Worker.
+The application keeps the Electron Main, Preload, React Renderer, and Utility
+Worker boundaries. It does not merge two GUI repositories or introduce a second
+global state model.
