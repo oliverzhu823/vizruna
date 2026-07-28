@@ -1,0 +1,74 @@
+{
+  "title": "Worktrees",
+  "labels": {
+    "session": "Linked session"
+  },
+  "status": {
+    "creating": "Creating",
+    "ready": "Ready",
+    "dirty": "Dirty",
+    "missing": "Missing",
+    "error": "Error",
+    "removing": "Removing",
+    "removed": "Removed"
+  },
+  "actions": {
+    "refresh": "Refresh and reconcile",
+    "create": "Create worktree",
+    "createFirst": "Create the first worktree",
+    "creating": "Creating…",
+    "open": "Open",
+    "reveal": "Reveal",
+    "remove": "Safe remove",
+    "forceRemove": "Confirm forced removal",
+    "removing": "Removing…",
+    "cancel": "Cancel"
+  },
+  "create": {
+    "name": "Task name",
+    "placeholder": "For example: customer-api",
+    "branchName": "Branch name (optional)",
+    "branchPlaceholder": "Automatic: pi-agent/task-unique-id",
+    "description": "Leave the branch blank to generate a unique pi-agent/* branch. A custom branch must be a new, valid Git branch; existing branches are never overwritten or deleted."
+  },
+  "empty": {
+    "openProject": "Open a Git project first.",
+    "notGit": "This folder is not a usable Git repository",
+    "localFallback": "Only Local mode is available; the app will not pretend this task is isolated.",
+    "noWorktrees": "This repository has no managed worktrees yet."
+  },
+  "remove": {
+    "title": "Remove this worktree?",
+    "description": "Safety checks passed. The branch is kept unless you explicitly choose to delete it.",
+    "forceTitle": "This worktree cannot be removed safely",
+    "forceDescription": "Uncommitted, unmerged, unpushed, or inconsistent state was found. Normal removal is blocked.",
+    "prohibitedTitle": "This worktree is in use",
+    "prohibitedDescription": "Switch to another project and stop tasks running in this worktree before removing it. An active worktree cannot be force-deleted.",
+    "changedFiles": "Detected file changes",
+    "commandPreview": "Git operation preview",
+    "deleteBranch": "Also delete the associated branch",
+    "confirmRisk": "I confirm forced removal and understand that uncommitted files or unintegrated commits may be permanently lost."
+  },
+  "blockers": {
+    "missing": "The worktree directory is missing",
+    "not-registered": "The path is absent from Git's worktree list",
+    "dirty": "Uncommitted or untracked files exist",
+    "unmerged": "Commits have not been merged into the base",
+    "unpushed": "Commits have not been pushed",
+    "active-workspace": "The current UI or a background task is using this worktree"
+  },
+  "unregistered": {
+    "title": "{{count}} unregistered worktree found",
+    "title_other": "{{count}} unregistered worktrees found",
+    "description": "They may have been created by Git or another tool. The app reports them without adopting or deleting them."
+  },
+  "messages": {
+    "created": "Worktree created and verified",
+    "removed": "Worktree removed"
+  },
+  "errors": {
+    "createFailed": "Worktree creation failed",
+    "inspectFailed": "Removal safety checks failed",
+    "removeFailed": "Worktree removal failed"
+  }
+}

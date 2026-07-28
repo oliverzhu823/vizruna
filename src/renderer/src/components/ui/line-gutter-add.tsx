@@ -1,0 +1,47 @@
+import { Plus } from 'lucide-react'
+import { cn } from '@renderer/lib/utils'
+import { queueComposerLineRefAndFocus } from '@renderer/lib/composer-line-ref'
+import { useTranslation } from 'react-i18next'
+
+/**
+ * Cursor-style gutter “+”: hover on a line, click to send path:line into the composer.
+ */
+export function LineGutterAddButton({
+  path,
+  line,
+  endLine,
+  content,
+  className,
+}: {
+  path: string
+  line: number
+  endLine?: number
+  content?: string
+  className?: string
+}) {
+  const { t } = useTranslation()
+  if (!path || line < 1) return null
+
+  return (
+    <button
+      type="button"
+      className={cn(
+        'line-gutter-add electron-no-drag',
+        'flex h-[1.15em] w-[1.15em] shrink-0 items-center justify-center rounded',
+        'opacity-0 transition-opacity duration-150',
+        'text-foreground-secondary/70 hover:bg-primary/15 hover:text-primary',
+        'group-hover/line:opacity-100 focus-visible:opacity-100',
+        className,
+      )}
+      title={t('common:referenceLineTitle', { path, line })}
+      aria-label={t('common:referenceLineAria', { line })}
+      onClick={(event) => {
+        event.preventDefault()
+        event.stopPropagation()
+        queueComposerLineRefAndFocus({ path, line, endLine, content })
+      }}
+    >
+      <Plus className="h-3 w-3" strokeWidth={2.5} />
+    </button>
+  )
+}

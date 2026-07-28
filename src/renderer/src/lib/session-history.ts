@@ -1,0 +1,101 @@
+import { ipcClient } from '@renderer/lib/ipc-client'
+
+export interface GetMessagesResult {
+  items: unknown[]
+  totalCount: number
+  sessionMeta?: { model?: string; thinkingLevel?: string }
+  error?: string
+}
+
+const sliceCache = new Map<
+  string,
+  { totalCount: number; items: unknown[]; at: number; sessionMeta?: GetMessagesResult['sessionMeta'] }
+>()
+const SLICE_TTL_MS = 120_000
+const INITIAL_TAIL = 80
+const PAGE = 80
+
+function cacheKey(sessionFile: string, offset: number, limit: number) {
+  return `${sessionFile}|${offset}|${limit}`
+}
+
+export async function fetchSessionHistoryTail(
+  sessionFile: string,
+  limit = INITIAL_TAIL,
+  opts?: { bypassCache?: boolean; leafId?: string | null },
+): Promise<GetMessagesResult> {
+  const leafSuffix = opts?.leafId === undefined ? '' : `|leaf:${opts.leafId ?? 'null'}`
+  const key = cacheKey(sessionFile, 0, limit) + leafSuffix
+  if (!opts?.bypassCache) {
+    const hit = sliceCache.get(key)
+    if (hit && Date.now() - hit.at < SLICE_TTL_MS) {
+      return { items: hit.items, totalCount: hit.totalCount, sessionMeta: hit.sessionMeta }
+    }
+  }
+  const res = await ipcClient.invoke('session.getMessages', {
+    sessionFile,
+    offset: 0,
+    limit,
+    ...(opts?.leafId !== undefined ? { leafId: opts.leafId } : {}),
+  })
+  const items = res?.items || []
+  const totalCount = typeof res?.totalCount === 'number' ? res.totalCount : items.length
+  const sessionMeta = res?.sessionMeta
+  const err = (res as { error?: string })?.error
+  if (err) {
+    return { items: [], totalCount: 0, sessionMeta, error: err }
+  }
+  if (items.length > 0 || totalCount > 0) {
+    sliceCache.set(key, { items, totalCount, at: Date.now(), sessionMeta })
+  }
+  return { items, totalCount, sessionMeta }
+}
+
+export async function fetchSessionHistoryOlder(
+  sessionFile: string,
+  offset: number,
+  limit = PAGE,
+): Promise<GetMessagesResult> {
+  const key = cacheKey(sessionFile, offset, limit)
+  const hit = sliceCache.get(key)
+  if (hit && Date.now() - hit.at < SLICE_TTL_MS) {
+    return { items: hit.items, totalCount: hit.totalCount }
+  }
+  const res = await ipcClient.invoke('session.getMessages', { sessionFile, offset, limit })
+  const items = res?.items || []
+  const totalCount = typeof res?.totalCount === 'number' ? res.totalCount : items.length
+  const sessionMeta = res?.sessionMeta
+  sliceCache.set(key, { items, totalCount, at: Date.now() })
+  return { items, totalCount, sessionMeta }
+}
+
+export function clearSessionHistoryCache(sessionFile?: string): void {
+  if (!sessionFile) {
+    sliceCache.clear()
+    return
+  }
+  for (const k of sliceCache.keys()) {
+    if (k.startsWith(sessionFile + '|')) sliceCache.delete(k)
+  }
+}
+
+/** Direct getMessages with leaf tip (used after rewind when cache is cleared). */
+export async function getSessionMessagesFromDiskViaIpc(
+  sessionFile: string,
+  leafId?: string | null,
+): Promise<GetMessagesResult> {
+  const res = await ipcClient.invoke('session.getMessages', {
+    sessionFile,
+    offset: 0,
+    limit: 80,
+    ...(leafId !== undefined ? { leafId } : {}),
+  })
+  const items = res?.items || []
+  const totalCount = typeof res?.totalCount === 'number' ? res.totalCount : items.length
+  const sessionMeta = res?.sessionMeta
+  const err = (res as { error?: string })?.error
+  if (err) return { items: [], totalCount: 0, sessionMeta, error: err }
+  return { items, totalCount, sessionMeta }
+}
+
+export const SESSION_HISTORY_PAGE = PAGE

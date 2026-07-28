@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-07-26T03:18:12.891Z",
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "node": "v22.19.0",
+    "cpu": "Apple M4",
+    "logicalCpuCount": 10,
+    "totalMemoryGiB": 24,
+    "runCount": 20,
+    "mode": "production build with isolated PI_E2E user data"
+  },
+  "baseline": {
+    "evidencePath": "docs/startup/evidence/m0-upstream-performance.json",
+    "sourceRepository": "https://github.com/justhil/pi-app.git",
+    "sourceCommit": "bcef920e3900a858b305c67c42a34e61779f977c",
+    "idleProcessWorkingSetP95MiB": 475.5
+  },
+  "thresholds": {
+    "coldStartP95Ms": 5000,
+    "workspaceSessionListP95Ms": 2000,
+    "sessionSwitchP95Ms": 1000,
+    "composerRenderP95Ms": 100,
+    "mainToUiEventP95Ms": 500,
+    "cancelSignalP95Ms": 1000,
+    "idleProcessWorkingSetMaxGrowthPercent": 20,
+    "idleProcessWorkingSetP95LimitMiB": 570.6
+  },
+  "measurements": {
+    "coldStartP95Ms": 1424.42,
+    "workspaceSessionListP95Ms": 48.14,
+    "sessionSwitchP95Ms": 44.25,
+    "composerRenderP95Ms": 0.2,
+    "mainToUiPaintOpportunityP95Ms": 17.6,
+    "cancelSignalP95Ms": 2.5,
+    "coldIdleProcessWorkingSetP95MiB": 495.28,
+    "coldIdleProcessWorkingSetGrowthPercent": 4.2,
+    "interactiveIdleProcessWorkingSetMiB": 614.9,
+    "oneWorkerProcessWorkingSetMiB": 801
+  },
+  "result": "pass"
+}

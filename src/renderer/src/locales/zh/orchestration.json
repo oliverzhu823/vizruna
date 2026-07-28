@@ -1,0 +1,65 @@
+{
+  "title": "Agents",
+  "summary": "共 {{total}} 个 · {{active}} 个活跃",
+  "status": {
+    "queued": "排队中",
+    "starting": "启动中",
+    "running": "运行中",
+    "waiting": "等待输入",
+    "complete": "已完成",
+    "failed": "失败",
+    "cancelled": "已取消",
+    "interrupted": "已中断",
+    "timed_out": "已超时"
+  },
+  "environment": {
+    "worktree": "隔离工作树",
+    "local": "当前工作区"
+  },
+  "verification": {
+    "unverified": "未验证",
+    "passed": "已通过",
+    "failed": "未通过"
+  },
+  "meta": {
+    "model": "模型",
+    "verification": "验证",
+    "workspace": "工作区"
+  },
+  "form": {
+    "name": "任务名称（可选）",
+    "goal": "给子 Agent 一个明确、可验收的目标",
+    "minutes": "分钟"
+  },
+  "message": {
+    "placeholder": "向子 Agent 追问或补充要求"
+  },
+  "actions": {
+    "create": "创建子 Agent",
+    "creating": "正在创建…",
+    "refresh": "刷新",
+    "open": "打开会话",
+    "stop": "停止",
+    "continue": "继续",
+    "retry": "重试",
+    "send": "发送"
+  },
+  "evidence": {
+    "title": "系统证据",
+    "empty": "暂无系统捕获的命令、测试或文件变更",
+    "status": {
+      "reported": "已记录",
+      "running": "运行中",
+      "passed": "通过",
+      "failed": "失败",
+      "blocked": "受阻",
+      "accepted": "已接受",
+      "unverified": "未验证"
+    }
+  },
+  "empty": {
+    "workspace": "请先打开项目",
+    "session": "打开或新建一个已保存会话后，才能创建子 Agent。",
+    "tasks": "暂无子 Agent。可从当前会话创建一个有明确目标的独立任务。"
+  }
+}

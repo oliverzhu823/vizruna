@@ -1,0 +1,192 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { toast } from 'sonner'
+import { Loader2, RefreshCw, X } from 'lucide-react'
+import { cn } from '@renderer/lib/utils'
+import { useUIStore } from '@renderer/stores/ui-store'
+import { refreshSessionTree } from '@renderer/lib/rewind-metadata'
+import { navigateSessionToEntry } from '@renderer/lib/session-rewind'
+import { capSessionTreeForDisplay } from '@renderer/features/rewind/session-tree-display-cap'
+import {
+  SessionTreeList,
+  filterSessionTreeNodes,
+  type SessionTreeNode,
+  type TreeFilterMode,
+} from '@renderer/features/rewind/session-tree-list'
+import { useTranslation } from 'react-i18next'
+
+const FILTER_OPTS: { key: TreeFilterMode; labelKey: string }[] = [
+  { key: 'default', labelKey: 'tree.filter.default' },
+  { key: 'no-tools', labelKey: 'tree.filter.noTools' },
+  { key: 'user-only', labelKey: 'tree.filter.userOnly' },
+  { key: 'labeled-only', labelKey: 'tree.filter.labeledOnly' },
+  { key: 'all', labelKey: 'tree.filter.all' },
+]
+
+export function SessionTreeOverlay({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { t } = useTranslation('timeline')
+  const sessionFile = useUIStore((s) => s.historySessionFile)
+  const rawTree = useUIStore((s) => s.rewindTreeNodes) as SessionTreeNode[]
+  const loading = useUIStore((s) => s.rewindLoadingTree)
+  const treeError = useUIStore((s) => s.rewindTreeError)
+  const [filter, setFilter] = useState<TreeFilterMode>('default')
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const listRef = useRef<HTMLDivElement>(null)
+
+  const refresh = useCallback(() => {
+    if (sessionFile) void refreshSessionTree(sessionFile)
+  }, [sessionFile])
+
+  useEffect(() => {
+    if (!open) return
+    const tid = window.setTimeout(() => {
+      if (sessionFile) void refreshSessionTree(sessionFile)
+    }, 0)
+    return () => clearTimeout(tid)
+  }, [open, sessionFile])
+
+  const filtered = useMemo(() => filterSessionTreeNodes(rawTree, filter), [rawTree, filter])
+  const { nodes: visible, truncated, hiddenCount } = useMemo(
+    () => capSessionTreeForDisplay(filtered),
+    [filtered],
+  )
+  const showGuides = visible.length <= 400
+
+  useEffect(() => {
+    if (!open) return
+    if (selectedId && visible.some((n) => n.id === selectedId)) return
+    const prefer =
+      [...visible].reverse().find((n) => !n.isLeaf) ?? visible.find((n) => n.isLeaf) ?? visible[0]
+    setSelectedId(prefer?.id ?? null)
+  }, [open, visible, selectedId])
+
+  const activate = useCallback(
+    async (id: string) => {
+      const node = rawTree.find((n) => n.id === id)
+      console.log('[rewind-overlay] activate called:', { id, nodeFound: !!node, isLeaf: node?.isLeaf })
+      if (!node) return
+      if (node.isLeaf) {
+        toast.info(t('tree.currentPosition'))
+        return
+      }
+      onClose()
+      // 延迟一帧再跳转，确保浮层卸载不中断异步链
+      await new Promise((r) => requestAnimationFrame(() => r(null)))
+      await navigateSessionToEntry(id)
+    },
+    [rawTree, onClose, t],
+  )
+
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        e.stopPropagation()
+        onClose()
+        return
+      }
+      if (!visible.length) return
+      const idx = visible.findIndex((n) => n.id === selectedId)
+      if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        const next = visible[Math.min(visible.length - 1, idx < 0 ? 0 : idx + 1)]
+        if (next) setSelectedId(next.id)
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        const next = visible[Math.max(0, idx < 0 ? 0 : idx - 1)]
+        if (next) setSelectedId(next.id)
+      } else if (e.key === 'Enter' && selectedId) {
+        e.preventDefault()
+        void activate(selectedId)
+      }
+    }
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
+  }, [open, visible, selectedId, activate, onClose])
+
+  if (!open) return null
+
+  return (
+    <div
+      data-tree-overlay
+      className="fixed inset-0 z-[120] flex items-center justify-center bg-black/45 p-4 backdrop-blur-[2px]"
+      role="dialog"
+      aria-modal
+      aria-label={t('tree.title')}
+      onMouseDown={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div
+        className="flex max-h-[min(82vh,720px)] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-border/80 bg-background shadow-2xl"
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
+          <div>
+            <h2 className="text-[15px] font-semibold">{t('tree.title')}</h2>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">
+              {t('tree.overlayHint')}
+            </p>
+          </div>
+          <div className="flex items-center gap-1">
+            <button type="button" className="rounded-lg p-2 hover:bg-muted" title={t('common:refresh')} onClick={refresh}>
+              <RefreshCw className="h-4 w-4" />
+            </button>
+            <button type="button" className="rounded-lg p-2 hover:bg-muted" title={t('common:close')} onClick={onClose}>
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-1 border-b border-border/40 px-4 py-2">
+          {FILTER_OPTS.map((o) => (
+            <button
+              key={o.key}
+              type="button"
+              onClick={() => setFilter(o.key)}
+              className={cn(
+                'rounded-md px-2 py-0.5 text-[11px] transition-colors',
+                filter === o.key ? 'bg-primary/15 text-primary font-medium' : 'text-muted-foreground hover:bg-muted',
+              )}
+            >
+              {t(o.labelKey)}
+            </button>
+          ))}
+        </div>
+
+        <div ref={listRef} className="scrollbar-overlay min-h-0 flex-1 overflow-y-auto px-2 py-2">
+          {!sessionFile ? (
+            <p className="px-3 py-8 text-center text-[12px] text-muted-foreground">{t('tree.noSession')}</p>
+          ) : loading && rawTree.length === 0 ? (
+            <div className="flex items-center justify-center gap-2 py-12 text-muted-foreground">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              {t('loadingSession')}
+            </div>
+          ) : treeError ? (
+            <p className="px-3 py-8 text-center text-[12px] text-destructive">
+              {t('tree.loadingFailed', { error: treeError })}
+            </p>
+          ) : visible.length === 0 ? (
+            <p className="px-3 py-8 text-center text-[12px] text-muted-foreground">{t('tree.noMatch')}</p>
+          ) : (
+            <>
+              {truncated && (
+                <p className="mb-2 px-2 text-center text-[11px] text-muted-foreground">
+                  {t('tree.overlayTruncated', {
+                    visible: visible.length,
+                    hidden: hiddenCount,
+                  })}
+                </p>
+              )}
+              <SessionTreeList
+                nodes={visible}
+                selectedId={selectedId}
+                onSelect={setSelectedId}
+                onActivate={(id) => void activate(id)}
+                showGuides={showGuides}
+              />
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}

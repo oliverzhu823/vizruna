@@ -1,0 +1,163 @@
+# v0.1 正式发布仅支持 macOS Apple Silicon。Windows/Linux 继续在 quality.yml
+# 做兼容性构建，但不得进入未经平台验收的正式 Release。
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  actions: read
+  contents: write
+  attestations: write
+  id-token: write
+
+jobs:
+  authorize-release:
+    runs-on: ubuntu-latest
+    environment: v0.1-release
+    outputs:
+      candidate_run_id: ${{ steps.approval.outputs.candidate_run_id }}
+      dmg_sha256: ${{ steps.approval.outputs.dmg_sha256 }}
+      zip_sha256: ${{ steps.approval.outputs.zip_sha256 }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Require approved release-evidence commit
+        id: approval
+        env:
+          APPROVED_COMMIT: ${{ vars.RELEASE_EVIDENCE_COMMIT }}
+          CANDIDATE_RUN_ID: ${{ vars.RELEASE_CANDIDATE_RUN_ID }}
+          APPROVED_DMG_SHA256: ${{ vars.RELEASE_DMG_SHA256 }}
+          APPROVED_ZIP_SHA256: ${{ vars.RELEASE_ZIP_SHA256 }}
+        run: |
+          set -euo pipefail
+          if [[ ! "${APPROVED_COMMIT}" =~ ^[a-f0-9]{40}$ ]]; then
+            echo "::error::RELEASE_EVIDENCE_COMMIT must be a 40-character lowercase commit"
+            exit 1
+          fi
+          if [ "${APPROVED_COMMIT}" != "${GITHUB_SHA}" ]; then
+            echo "::error::Release evidence approves ${APPROVED_COMMIT}, but workflow uses ${GITHUB_SHA}"
+            exit 1
+          fi
+          if [[ ! "${CANDIDATE_RUN_ID}" =~ ^[0-9]+$ ]]; then
+            echo "::error::RELEASE_CANDIDATE_RUN_ID must identify the approved candidate workflow run"
+            exit 1
+          fi
+          if [[ ! "${APPROVED_DMG_SHA256}" =~ ^[a-f0-9]{64}$ ]]; then
+            echo "::error::RELEASE_DMG_SHA256 must be a lowercase SHA-256"
+            exit 1
+          fi
+          if [[ ! "${APPROVED_ZIP_SHA256}" =~ ^[a-f0-9]{64}$ ]]; then
+            echo "::error::RELEASE_ZIP_SHA256 must be a lowercase SHA-256"
+            exit 1
+          fi
+          echo "candidate_run_id=${CANDIDATE_RUN_ID}" >> "${GITHUB_OUTPUT}"
+          echo "dmg_sha256=${APPROVED_DMG_SHA256}" >> "${GITHUB_OUTPUT}"
+          echo "zip_sha256=${APPROVED_ZIP_SHA256}" >> "${GITHUB_OUTPUT}"
+
+      - name: Verify tag matches package version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          set -euo pipefail
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PACKAGE_VERSION="$(node -p "require('./package.json').version")"
+          if [ "${TAG_VERSION}" != "${PACKAGE_VERSION}" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match package version ${PACKAGE_VERSION}"
+            exit 1
+          fi
+
+      - name: Verify approved candidate run
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CANDIDATE_RUN_ID: ${{ steps.approval.outputs.candidate_run_id }}
+        run: |
+          set -euo pipefail
+          RUN_API="repos/${GITHUB_REPOSITORY}/actions/runs/${CANDIDATE_RUN_ID}"
+          RUN_HEAD_SHA="$(gh api "${RUN_API}" --jq '.head_sha')"
+          RUN_EVENT="$(gh api "${RUN_API}" --jq '.event')"
+          RUN_CONCLUSION="$(gh api "${RUN_API}" --jq '.conclusion')"
+          if [ "${RUN_HEAD_SHA}" != "${GITHUB_SHA}" ]; then
+            echo "::error::Candidate run commit ${RUN_HEAD_SHA} does not match ${GITHUB_SHA}"
+            exit 1
+          fi
+          if [ "${RUN_EVENT}" != "workflow_dispatch" ] || [ "${RUN_CONCLUSION}" != "success" ]; then
+            echo "::error::Candidate run must be a successful manually approved build"
+            exit 1
+          fi
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [authorize-release]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download signed macOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          name: pi-desktop-mac-candidate-${{ needs.authorize-release.outputs.candidate_run_id }}
+          run-id: ${{ needs.authorize-release.outputs.candidate_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          merge-multiple: true
+
+      - name: Verify approved artifact hashes
+        env:
+          APPROVED_DMG_SHA256: ${{ needs.authorize-release.outputs.dmg_sha256 }}
+          APPROVED_ZIP_SHA256: ${{ needs.authorize-release.outputs.zip_sha256 }}
+        run: |
+          set -euo pipefail
+          mapfile -t DMG_FILES < <(find release-assets -type f -name '*.dmg')
+          mapfile -t ZIP_FILES < <(find release-assets -type f -name '*.zip')
+          if [ "${#DMG_FILES[@]}" -ne 1 ] || [ "${#ZIP_FILES[@]}" -ne 1 ]; then
+            echo "::error::Approved candidate must contain exactly one DMG and one ZIP"
+            exit 1
+          fi
+          printf '%s  %s\n' "${APPROVED_DMG_SHA256}" "${DMG_FILES[0]}" | sha256sum --check -
+          printf '%s  %s\n' "${APPROVED_ZIP_SHA256}" "${ZIP_FILES[0]}" | sha256sum --check -
+
+      - name: Prepare release assets (no auto-update metadata)
+        run: |
+          find release-assets -type f \( -name 'latest.yml' -o -name 'latest-mac.yml' -o -name 'latest-linux.yml' \) -delete
+          find release-assets -type f | sort
+
+      - name: Generate SBOM
+        run: node scripts/generate-release-sbom.mjs release-assets/sbom.cdx.json
+
+      - name: Generate SHA256SUMS.txt
+        run: node scripts/generate-release-checksums.mjs release-assets
+
+      - name: Attest release artifacts
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: release-assets/**
+
+      # Release body = 用户可读更新说明（应用内弹窗展示）。禁止仅放 CHANGELOG 链接占位。
+      - name: Draft release notes from CHANGELOG
+        id: notes
+        run: |
+          set -euo pipefail
+          VER="${GITHUB_REF_NAME#v}"
+          if ! node scripts/generate-release-notes.mjs "$VER" > release-body.md; then
+            echo "::error::CHANGELOG.md missing section for ${VER}. Add user-facing notes before tagging."
+            exit 1
+          fi
+          if ! grep -q '[^[:space:]]' release-body.md; then
+            echo "::error::Generated release body is empty"
+            exit 1
+          fi
+          echo "Release body preview:"
+          head -n 60 release-body.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          body_path: release-body.md
+          files: release-assets/**
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

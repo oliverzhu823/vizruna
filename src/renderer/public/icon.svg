@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="Vizruna">
+  <rect width="1024" height="1024" rx="224" fill="#111216"/>
+  <g fill="#F7F4EC">
+    <rect x="96" y="260" width="76" height="76"/>
+    <rect x="164" y="328" width="76" height="76"/>
+    <rect x="232" y="396" width="76" height="76"/>
+    <rect x="300" y="464" width="76" height="76"/>
+    <rect x="368" y="532" width="76" height="76"/>
+    <rect x="436" y="600" width="76" height="76"/>
+    <rect x="504" y="532" width="76" height="76"/>
+    <rect x="572" y="464" width="76" height="76"/>
+    <rect x="640" y="396" width="76" height="76"/>
+    <rect x="708" y="328" width="76" height="76"/>
+    <rect x="776" y="396" width="76" height="76"/>
+    <rect x="844" y="464" width="76" height="76"/>
+    <rect x="844" y="532" width="76" height="76"/>
+    <rect x="844" y="600" width="76" height="76"/>
+    <rect x="640" y="464" width="76" height="76"/>
+    <rect x="708" y="464" width="76" height="76"/>
+    <rect x="776" y="464" width="76" height="76"/>
+  </g>
+  <rect x="708" y="464" width="76" height="76" fill="#9DBA86"/>
+</svg>

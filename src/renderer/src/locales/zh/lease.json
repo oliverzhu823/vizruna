@@ -1,0 +1,29 @@
+{
+  "title": "此会话正在被其他进程写入",
+  "description": "为避免同一个 JSONL 会话被同时写坏，当前会话已切换为只读模式。",
+  "staleDescription": "检测到未正常释放或已经过期的会话租约。恢复写入仍需要你的明确确认。",
+  "holder": "持有者",
+  "hostAndPid": "主机 / 进程",
+  "lastHeartbeat": "最近心跳",
+  "reason": "判定依据",
+  "unknown": "无法识别",
+  "takeoverRisk": "强制接管会让原进程立即失去写入权。如果原进程不支持租约协议，它仍可能继续写入；请先确认原任务已经停止。",
+  "goBack": "返回",
+  "keepReadOnly": "保持只读",
+  "forceTakeover": "确认强制接管",
+  "takingOver": "正在接管…",
+  "readOnly": "只读",
+  "readOnlyBanner": "其他进程持有此会话的写入权。你仍可浏览历史，但不能发送消息或修改会话。",
+  "readOnlyPlaceholder": "当前会话为只读模式",
+  "sendBlocked": "发送已阻止：会话写入权已被其他进程持有，草稿已恢复。",
+  "reasons": {
+    "missing": "没有租约",
+    "same-instance": "当前应用实例持有",
+    "same-host-live-pid": "同一主机上的进程仍在运行",
+    "same-host-dead-pid": "同一主机上的原进程已退出",
+    "cross-host-fresh": "其他主机的心跳仍有效",
+    "cross-host-expired": "其他主机的心跳已过期",
+    "invalid-record": "租约文件损坏或格式无效"
+  }
+}
+

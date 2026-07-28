@@ -1,0 +1,65 @@
+{
+  "title": "Agents",
+  "summary": "{{total}} total · {{active}} active",
+  "status": {
+    "queued": "Queued",
+    "starting": "Starting",
+    "running": "Running",
+    "waiting": "Waiting",
+    "complete": "Complete",
+    "failed": "Failed",
+    "cancelled": "Cancelled",
+    "interrupted": "Interrupted",
+    "timed_out": "Timed out"
+  },
+  "environment": {
+    "worktree": "Isolated worktree",
+    "local": "Current workspace"
+  },
+  "verification": {
+    "unverified": "Unverified",
+    "passed": "Passed",
+    "failed": "Failed"
+  },
+  "meta": {
+    "model": "Model",
+    "verification": "Verification",
+    "workspace": "Workspace"
+  },
+  "form": {
+    "name": "Task name (optional)",
+    "goal": "Give the child agent a concrete, verifiable goal",
+    "minutes": "min"
+  },
+  "message": {
+    "placeholder": "Ask or steer the child agent"
+  },
+  "actions": {
+    "create": "Create child agent",
+    "creating": "Creating…",
+    "refresh": "Refresh",
+    "open": "Open session",
+    "stop": "Stop",
+    "continue": "Continue",
+    "retry": "Retry",
+    "send": "Send"
+  },
+  "evidence": {
+    "title": "System evidence",
+    "empty": "No system-captured commands, tests, or file changes yet",
+    "status": {
+      "reported": "Recorded",
+      "running": "Running",
+      "passed": "Passed",
+      "failed": "Failed",
+      "blocked": "Blocked",
+      "accepted": "Accepted",
+      "unverified": "Unverified"
+    }
+  },
+  "empty": {
+    "workspace": "Open a project first",
+    "session": "Open or create a persisted session before creating a child agent.",
+    "tasks": "No child agents yet. Create an independent task with a concrete goal from the current session."
+  }
+}

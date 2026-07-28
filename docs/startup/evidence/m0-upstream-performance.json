@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-07-26T02:43:36.300Z",
+  "source": {
+    "repository": "https://github.com/justhil/pi-app.git",
+    "commit": "bcef920e3900a858b305c67c42a34e61779f977c",
+    "captureMethod": "temporary Git worktree at the exact commit; removed after capture"
+  },
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "node": "v22.19.0",
+    "cpu": "Apple M4",
+    "logicalCpuCount": 10,
+    "totalMemoryGiB": 24,
+    "runCount": 20,
+    "mode": "production build with isolated app and Pi data"
+  },
+  "measurements": {
+    "coldStartMs": {
+      "samples": 20,
+      "min": 1212.88,
+      "median": 1244.31,
+      "p95": 1456.96,
+      "max": 3034.69
+    },
+    "idleProcessWorkingSetMiB": {
+      "samples": 20,
+      "min": 453.55,
+      "median": 472.58,
+      "p95": 475.5,
+      "max": 477.55
+    }
+  }
+}

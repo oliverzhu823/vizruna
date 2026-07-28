@@ -1,0 +1,29 @@
+{
+  "title": "This session is being written by another process",
+  "description": "To prevent concurrent writes from corrupting the JSONL session, this view is now read-only.",
+  "staleDescription": "An abandoned or expired session lease was found. Restoring write access still requires your explicit confirmation.",
+  "holder": "Holder",
+  "hostAndPid": "Host / process",
+  "lastHeartbeat": "Last heartbeat",
+  "reason": "Reason",
+  "unknown": "Unknown",
+  "takeoverRisk": "A forced takeover immediately revokes the original process. A process that does not support this lease protocol may still write, so confirm that the original task has stopped.",
+  "goBack": "Go back",
+  "keepReadOnly": "Keep read-only",
+  "forceTakeover": "Confirm forced takeover",
+  "takingOver": "Taking over…",
+  "readOnly": "Read-only",
+  "readOnlyBanner": "Another process owns write access to this session. You can browse history, but cannot send messages or modify the session.",
+  "readOnlyPlaceholder": "This session is read-only",
+  "sendBlocked": "Send blocked: another process owns this session. Your draft was restored.",
+  "reasons": {
+    "missing": "No lease exists",
+    "same-instance": "Owned by this app instance",
+    "same-host-live-pid": "The process is still alive on this host",
+    "same-host-dead-pid": "The original process has exited",
+    "cross-host-fresh": "Another host has a fresh heartbeat",
+    "cross-host-expired": "The other host heartbeat expired",
+    "invalid-record": "The lease file is corrupt or invalid"
+  }
+}
+

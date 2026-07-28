@@ -1,0 +1,74 @@
+{
+  "title": "Worktrees",
+  "labels": {
+    "session": "关联会话"
+  },
+  "status": {
+    "creating": "创建中",
+    "ready": "就绪",
+    "dirty": "有改动",
+    "missing": "缺失",
+    "error": "错误",
+    "removing": "移除中",
+    "removed": "已移除"
+  },
+  "actions": {
+    "refresh": "刷新并对账",
+    "create": "创建 Worktree",
+    "createFirst": "创建第一个 Worktree",
+    "creating": "创建中…",
+    "open": "打开",
+    "reveal": "显示位置",
+    "remove": "安全移除",
+    "forceRemove": "确认强制移除",
+    "removing": "移除中…",
+    "cancel": "取消"
+  },
+  "create": {
+    "name": "任务名称",
+    "placeholder": "例如：customer-api",
+    "branchName": "分支名称（可选）",
+    "branchPlaceholder": "自动生成：pi-agent/任务-唯一编号",
+    "description": "留空时系统自动生成唯一的 pi-agent/* 分支；自定义名称必须是尚不存在的合法 Git 分支，系统不会覆盖或删除已有分支。"
+  },
+  "empty": {
+    "openProject": "请先打开一个 Git 项目。",
+    "notGit": "当前目录不是可用的 Git 仓库",
+    "localFallback": "此项目只能使用 Local 模式，系统不会伪装为已经隔离。",
+    "noWorktrees": "当前仓库还没有受管 Worktree。"
+  },
+  "remove": {
+    "title": "移除这个 Worktree？",
+    "description": "安全检查已通过。默认不会删除分支；勾选后使用 Git 的安全分支删除。",
+    "forceTitle": "这个 Worktree 不能安全移除",
+    "forceDescription": "检测到未提交、未合并、未推送或登记异常。默认操作已阻止。",
+    "prohibitedTitle": "这个 Worktree 正在使用",
+    "prohibitedDescription": "请先切换到其他项目并停止该工作树中的运行任务，然后再移除。正在使用的工作树不允许强制删除。",
+    "changedFiles": "检测到的文件改动",
+    "commandPreview": "将执行的 Git 操作预览",
+    "deleteBranch": "同时删除对应分支",
+    "confirmRisk": "我确认需要强制移除，并理解未提交文件或未整合提交可能永久丢失。"
+  },
+  "blockers": {
+    "missing": "工作树目录不存在",
+    "not-registered": "Git worktree 列表中没有该路径",
+    "dirty": "存在未提交或未跟踪文件",
+    "unmerged": "存在尚未合并到基线的提交",
+    "unpushed": "存在尚未推送的提交",
+    "active-workspace": "当前界面或后台任务正在使用这个工作树"
+  },
+  "unregistered": {
+    "title": "发现 {{count}} 个未登记工作树",
+    "title_other": "发现 {{count}} 个未登记工作树",
+    "description": "它们可能由命令行或其他工具创建。系统只报告差异，不会自动接管或删除。"
+  },
+  "messages": {
+    "created": "Worktree 已创建并验证",
+    "removed": "Worktree 已移除"
+  },
+  "errors": {
+    "createFailed": "Worktree 创建失败",
+    "inspectFailed": "无法完成删除安全检查",
+    "removeFailed": "Worktree 移除失败"
+  }
+}

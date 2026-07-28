@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" role="img" aria-label="Vizruna">
+  <rect x="24" y="24" width="272" height="272" rx="60" fill="#111216"/>
+  <g transform="translate(24 24) scale(.265625)" fill="#F7F4EC">
+    <rect x="96" y="260" width="76" height="76"/>
+    <rect x="164" y="328" width="76" height="76"/>
+    <rect x="232" y="396" width="76" height="76"/>
+    <rect x="300" y="464" width="76" height="76"/>
+    <rect x="368" y="532" width="76" height="76"/>
+    <rect x="436" y="600" width="76" height="76"/>
+    <rect x="504" y="532" width="76" height="76"/>
+    <rect x="572" y="464" width="76" height="76"/>
+    <rect x="640" y="396" width="76" height="76"/>
+    <rect x="708" y="328" width="76" height="76"/>
+    <rect x="776" y="396" width="76" height="76"/>
+    <rect x="844" y="464" width="76" height="76"/>
+    <rect x="844" y="532" width="76" height="76"/>
+    <rect x="844" y="600" width="76" height="76"/>
+    <rect x="640" y="464" width="76" height="76"/>
+    <rect x="708" y="464" width="76" height="76"/>
+    <rect x="776" y="464" width="76" height="76"/>
+    <rect x="708" y="464" width="76" height="76" fill="#9DBA86"/>
+  </g>
+  <text x="348" y="210" fill="#111216" font-family="Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" font-size="152" font-weight="650" letter-spacing="-6">Vizruna</text>
+</svg>
