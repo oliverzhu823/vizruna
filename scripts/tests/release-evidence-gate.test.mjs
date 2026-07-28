@@ -21,6 +21,13 @@ const packageVersion = JSON.parse(readFileSync('package.json', 'utf8')).version
 const sha = (character) => character.repeat(64)
 const at = (day) => `2026-07-${String(day).padStart(2, '0')}T08:00:00.000Z`
 
+function assertPrivateMode(path) {
+  // POSIX permission bits are not enforced by Windows filesystems. The CLI
+  // still requests 0600; validate the effective mode only where it is meaningful.
+  if (process.platform === 'win32') return
+  assert.equal(statSync(path).mode & 0o777, 0o600)
+}
+
 function validEvidence() {
   return {
     schemaVersion: 1,
@@ -274,7 +281,7 @@ test('CLI initializes private local evidence, reports No-Go, and blocks strict c
       { cwd: process.cwd(), encoding: 'utf8' },
     )
     assert.equal(initialized.status, 0, initialized.stderr)
-    assert.equal(statSync(evidencePath).mode & 0o777, 0o600)
+    assertPrivateMode(evidencePath)
     assert.equal(JSON.parse(readFileSync(evidencePath, 'utf8')).schemaVersion, 1)
 
     chmodSync(evidencePath, 0o644)
@@ -289,7 +296,7 @@ test('CLI initializes private local evidence, reports No-Go, and blocks strict c
       { cwd: process.cwd(), encoding: 'utf8' },
     )
     assert.equal(forced.status, 0, forced.stderr)
-    assert.equal(statSync(evidencePath).mode & 0o777, 0o600)
+    assertPrivateMode(evidencePath)
 
     const status = spawnSync(
       process.execPath,
@@ -303,14 +310,8 @@ test('CLI initializes private local evidence, reports No-Go, and blocks strict c
     )
     assert.equal(status.status, 0, status.stderr)
     assert.match(status.stdout, /decision=no-go/)
-    assert.equal(
-      statSync(join(outputPath, `${packageVersion}-release-gate.json`)).mode & 0o777,
-      0o600,
-    )
-    assert.equal(
-      statSync(join(outputPath, `${packageVersion}-release-gate.md`)).mode & 0o777,
-      0o600,
-    )
+    assertPrivateMode(join(outputPath, `${packageVersion}-release-gate.json`))
+    assertPrivateMode(join(outputPath, `${packageVersion}-release-gate.md`))
 
     const strict = spawnSync(
       process.execPath,

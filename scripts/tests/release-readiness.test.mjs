@@ -22,6 +22,13 @@ const dmgSha256 = 'b'.repeat(64)
 const zipSha256 = 'c'.repeat(64)
 const candidateRunId = '123456789'
 
+function assertPrivateMode(path) {
+  // POSIX permission bits are not enforced by Windows filesystems. The CLI
+  // still requests 0600; validate the effective mode only where it is meaningful.
+  if (process.platform === 'win32') return
+  assert.equal(statSync(path).mode & 0o777, 0o600)
+}
+
 function validSnapshot() {
   return {
     local: {
@@ -240,14 +247,8 @@ test('CLI status is read-only and reports an explicit upstream repository as No-
       report.checks.find((check) => check.id === 'companyRepository').status,
       'fail',
     )
-    assert.equal(
-      statSync(join(directory, 'formal-release-readiness.json')).mode & 0o777,
-      0o600,
-    )
-    assert.equal(
-      statSync(join(directory, 'formal-release-readiness.md')).mode & 0o777,
-      0o600,
-    )
+    assertPrivateMode(join(directory, 'formal-release-readiness.json'))
+    assertPrivateMode(join(directory, 'formal-release-readiness.md'))
 
     const strict = spawnSync(
       process.execPath,
