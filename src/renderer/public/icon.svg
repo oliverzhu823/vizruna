@@ -1,23 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="Vizruna">
-  <rect width="1024" height="1024" rx="224" fill="#111216"/>
-  <g fill="#F7F4EC">
-    <rect x="96" y="260" width="76" height="76"/>
-    <rect x="164" y="328" width="76" height="76"/>
-    <rect x="232" y="396" width="76" height="76"/>
-    <rect x="300" y="464" width="76" height="76"/>
-    <rect x="368" y="532" width="76" height="76"/>
-    <rect x="436" y="600" width="76" height="76"/>
-    <rect x="504" y="532" width="76" height="76"/>
-    <rect x="572" y="464" width="76" height="76"/>
-    <rect x="640" y="396" width="76" height="76"/>
-    <rect x="708" y="328" width="76" height="76"/>
-    <rect x="776" y="396" width="76" height="76"/>
-    <rect x="844" y="464" width="76" height="76"/>
-    <rect x="844" y="532" width="76" height="76"/>
-    <rect x="844" y="600" width="76" height="76"/>
-    <rect x="640" y="464" width="76" height="76"/>
-    <rect x="708" y="464" width="76" height="76"/>
-    <rect x="776" y="464" width="76" height="76"/>
-  </g>
-  <rect x="708" y="464" width="76" height="76" fill="#9DBA86"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 700" role="img" aria-label="Vizruna">
+  <defs>
+    <linearGradient id="vizruna-surface" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1A1B1F"/>
+      <stop offset="1" stop-color="#111216"/>
+    </linearGradient>
+  </defs>
+  <rect x="37" y="46" width="625" height="611" rx="82" fill="url(#vizruna-surface)"/>
+  <path fill="#FDFAF3" d="M109 171v69h45v68h31v68h36v68h36v69h35v31h69v-31h34v-39h31v-45h49v-52h-31v16h-54v51h-32v26h-62v-93h-34v-69h-34v-68h-49v-69z"/>
+  <path fill="#FDFAF3" d="M415 171v70h-44v68h-36v71h-26v65h33v-34h31v-66h42v-53h71v53h42v129h32v70h32V377h-27v-68h-37v-68h-44v-70z"/>
+  <rect x="474" y="377" width="53" height="53" fill="#8DA575"/>
 </svg>

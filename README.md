@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="resources/vizruna-lockup.svg" width="520" alt="Vizruna" />
+  <img src="resources/icon.svg" width="180" alt="Vizruna" />
 </p>
 
 <p align="center">
@@ -17,9 +17,10 @@ chat with an Agent, watch its reasoning and tool activity, switch models and
 thinking levels, inspect changed files, run a terminal, and coordinate parallel
 work without leaving one workspace.
 
-Status: **friends-and-family Alpha**. The current downloadable build supports
-**Apple-silicon Macs (M1/M2/M3/M4 and later)**. It is intended for invited
-testers, not production deployment.
+Status: **Public Alpha**. Everyone is welcome to download and use Vizruna. The
+current build supports **Apple-silicon Macs (M1/M2/M3/M4 and later)**. We are
+actively looking for early users and feedback; avoid mission-critical work while
+the product is still in Alpha.
 
 ![Vizruna desktop workspace](docs/images/vizruna-desktop.png)
 
@@ -37,7 +38,7 @@ testers, not production deployment.
   open a file in its default macOS application.
 - **Parallel Agent work**: managed Git worktrees, child Agents, task state, and
   recovery controls share the existing application architecture.
-- **Local-first data**: Pi sessions and authentication remain on the tester's
+- **Local-first data**: Pi sessions and authentication remain on the user's
   computer; build packages do not contain the developer's history or credentials.
 
 ## Download and install
@@ -72,16 +73,23 @@ per provider. For example, OpenAI Codex can use the V2Ray profile while a Chines
 model provider remains on **Direct**. Vizruna applies the route to that Agent
 worker only; it does not rewrite the global system proxy.
 
-## Tester data and privacy
+## User data and privacy
 
-- Pi sessions and authentication are stored under `~/.pi/agent` on each tester's Mac.
+- Pi sessions and authentication are stored under `~/.pi/agent` on each user's Mac.
 - Vizruna preferences and product metadata use the separate Electron user-data
   directory named `Vizruna`.
 - The published package is built from a sanitized checkout and does not include
   conversations, recent projects, tokens, proxy passwords, or local paths from
   the maintainer's computer.
-- Testers should still avoid placing secrets in prompts or committing credentials
+- Users should still avoid placing secrets in prompts or committing credentials
   to a project repository.
+
+## Feedback
+
+Vizruna welcomes early users. Use [GitHub Issues](https://github.com/oliverzhu823/vizruna/issues)
+to report a bug, suggest an improvement, or describe a workflow you want the Agent
+to support. Include the Vizruna version, macOS version, Mac model, and model provider
+when relevant, but never post API keys, OAuth tokens, or private conversation content.
 
 ## Development
 
@@ -120,7 +128,7 @@ stored in this repository.
 - [Architecture RFC-001](docs/startup/02-Architecture-RFC-001.md)
 - [Roadmap](docs/startup/03-Development-Roadmap.md)
 - [Acceptance criteria](docs/startup/04-Acceptance-Criteria.md)
-- [Pilot user guide](docs/startup/12-User-Guide.md)
+- [User guide](docs/startup/12-User-Guide.md)
 - [macOS release runbook](docs/startup/13-macOS-Release-Runbook.md)
 - [Upstream strategy](UPSTREAM.md)
 - [Third-party notices](NOTICE.md)

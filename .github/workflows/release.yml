@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   authorize-release:
-    # Friends-and-family alpha tags are uploaded manually as prereleases. Only
+    # Public alpha tags are uploaded manually as prereleases. Only
     # stable tags enter the signed, notarized production release gate below.
     if: ${{ !contains(github.ref_name, '-') }}
     runs-on: ubuntu-latest

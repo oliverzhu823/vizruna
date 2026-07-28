@@ -8,7 +8,8 @@ describe('Vizruna brand asset coverage', () => {
   it('keeps the desktop and renderer icons identical', () => {
     assert.equal(read('resources/icon.svg'), read('src/renderer/public/icon.svg'))
     assert.match(read('resources/icon.svg'), /aria-label="Vizruna"/)
-    assert.match(read('resources/icon.svg'), /#9DBA86/)
+    assert.match(read('resources/icon.svg'), /#8DA575/)
+    assert.doesNotMatch(read('resources/vizruna-lockup.svg'), /<text\b/)
   })
 
   it('uses the exported icon for every packaged desktop platform', () => {

@@ -124,7 +124,7 @@ export function SessionOpenLoadingView() {
                 height: 'var(--session-pixel-size)',
                 borderRadius: 'var(--session-pixel-radius)',
                 background: cell.accent
-                  ? '#9DBA86'
+                  ? '#8DA575'
                   : cell.on
                     ? 'var(--session-pixel-ink)'
                     : 'transparent',

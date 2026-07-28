@@ -1,7 +1,7 @@
 {
   "name": "vizruna",
   "productName": "Vizruna",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.2",
   "description": "A visible, controllable, and reviewable desktop workspace for AI agents",
   "main": "./out/main/index.js",
   "author": "Vizruna Team",

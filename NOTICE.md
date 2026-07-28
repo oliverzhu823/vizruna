@@ -1,7 +1,8 @@
 # Third-party notices
 
-Vizruna is an internal product under active development. The
-product package itself is not licensed for redistribution at this stage.
+Vizruna is a public Alpha under active development. Its source is visible for
+transparency and collaboration. Unless a separate license is published,
+Vizruna-specific source code and binaries are not licensed for redistribution.
 
 ## justhil/pi-app
 

@@ -2,9 +2,24 @@
 
 面向仓库的完整版本记录。发版时由 `scripts/generate-release-notes.mjs` 从对应章节生成 **GitHub Release 正文**（用户可读更新说明，应用内「发现新版本」弹窗展示）。发布与应用内更新流程见 [doc/RELEASE.md](doc/RELEASE.md)。
 
+## [0.1.0-alpha.2] — 2026-07-28
+
+### 品牌与公开发布
+
+- 按确认稿重绘无文字像素 Logo，保留完整的 V 形运行轨迹、Agent/A 结构与鼠尾草色检查点
+- 新 Logo 覆盖应用窗口、Dock、安装包、favicon、加载动画及中英文仓库首页
+- 仓库转为公开 Alpha，所有用户均可下载使用，并通过 GitHub Issues 提交问题和需求
+- 中英文 README 改为面向公开早期用户，补充安装、核心功能、隐私和反馈说明
+
+### Alpha 说明
+
+- 当前安装包仅支持 Apple Silicon Mac
+- 本版本未使用 Apple Developer ID 签名或公证，首次打开可能需要在“系统设置 → 隐私与安全性”中手动确认
+- 安装包不包含开发者的会话、OAuth 凭据、项目列表或本机路径
+
 ## [0.1.0-alpha.1] — 2026-07-28
 
-### 首个朋友测试版
+### 首个 Alpha 版本
 
 - 正式启用 **Vizruna** 品牌与像素 Logo，覆盖应用窗口、Dock、安装包、favicon、加载动画和仓库展示
 - 提供中文优先的 Pi Agent 桌面界面，内嵌 `@earendil-works/pi-coding-agent@0.82.1`

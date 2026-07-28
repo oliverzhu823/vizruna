@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="resources/vizruna-lockup.svg" width="520" alt="Vizruna" />
+  <img src="resources/icon.svg" width="180" alt="Vizruna" />
 </p>
 
 <p align="center">
@@ -16,8 +16,9 @@ Vizruna 把 Pi Agent Runtime 变成一个可以日常使用的桌面产品。你
 工作台里和 Agent 对话、观察思考与工具执行、切换模型和思考强度、检查改动文件、
 使用终端，并组织多个 Agent 并行工作。
 
-当前状态：**朋友测试 Alpha**。现阶段可下载安装的版本仅支持
-**Apple 芯片 Mac（M1/M2/M3/M4 及后续型号）**，用于邀请测试，还不是企业生产版。
+当前状态：**公开 Alpha**。所有人都可以下载和使用 Vizruna。现阶段可下载安装的
+版本支持 **Apple 芯片 Mac（M1/M2/M3/M4 及后续型号）**。我们正在寻找早期用户和
+真实反馈；Alpha 阶段请暂时不要把它用于不可中断的关键生产任务。
 
 ![Vizruna 桌面工作台](docs/images/vizruna-desktop.png)
 
@@ -35,7 +36,7 @@ Vizruna 把 Pi Agent Runtime 变成一个可以日常使用的桌面产品。你
   打开文件。
 - **多 Agent 协作**：支持受管 Git Worktree、子 Agent、任务状态和异常恢复，同时
   继续使用现有的进程、状态与 UI 架构。
-- **本地优先**：Pi 会话和授权留在测试者自己的电脑上，安装包不会携带开发者的
+- **本地优先**：Pi 会话和授权留在用户自己的电脑上，安装包不会携带开发者的
   对话记录或凭据。
 
 ## 下载和安装
@@ -67,13 +68,20 @@ Vizruna 把 Pi Agent Runtime 变成一个可以日常使用的桌面产品。你
 **直连**。该配置只作用于对应的 Agent Worker，不会改写系统全局代理，因此不会
 影响其他软件。
 
-## 测试者数据与隐私
+## 用户数据与隐私
 
-- 每位测试者的 Pi 会话和认证信息保存在自己 Mac 的 `~/.pi/agent`。
+- 每位用户的 Pi 会话和认证信息保存在自己 Mac 的 `~/.pi/agent`。
 - Vizruna 的偏好设置和产品元数据使用独立的 `Vizruna` 用户数据目录。
 - 发布包来自经过清理的构建目录，不包含维护者的对话、最近项目、Token、代理密码
   或本机路径。
-- 测试者仍应避免在提示词中发送敏感信息，也不要把凭据提交进项目仓库。
+- 用户仍应避免在提示词中发送敏感信息，也不要把凭据提交进项目仓库。
+
+## 反馈与参与
+
+Vizruna 欢迎早期用户。你可以通过 [GitHub Issues](https://github.com/oliverzhu823/vizruna/issues)
+报告问题、提出改进建议，或者描述你希望 Agent 支持的真实工作流程。反馈时建议提供
+Vizruna 版本、macOS 版本、Mac 型号和所用模型 Provider，但不要公开 API Key、OAuth
+Token 或私人对话内容。
 
 ## 本地开发
 
@@ -110,7 +118,7 @@ npm run package -- --mac
 - [架构 RFC-001](docs/startup/02-Architecture-RFC-001.md)
 - [开发路线图](docs/startup/03-Development-Roadmap.md)
 - [验收标准](docs/startup/04-Acceptance-Criteria.md)
-- [朋友测试使用指南](docs/startup/12-User-Guide.md)
+- [使用指南](docs/startup/12-User-Guide.md)
 - [macOS 发布手册](docs/startup/13-macOS-Release-Runbook.md)
 - [上游维护策略](UPSTREAM.md)
 - [第三方声明](NOTICE.md)
