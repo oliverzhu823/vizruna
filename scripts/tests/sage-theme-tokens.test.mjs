@@ -6,11 +6,12 @@ import { join } from 'node:path'
 const css = readFileSync(join(process.cwd(), 'src/renderer/src/styles/globals.css'), 'utf8')
 
 function sageBlock(source) {
-  const start = source.indexOf('.sage {')
+  const normalized = source.replace(/\r\n?/g, '\n')
+  const start = normalized.indexOf('.sage {')
   assert.ok(start >= 0, 'globals.css must define .sage tokens')
-  const end = source.indexOf('\n  }\n', start)
+  const end = normalized.indexOf('\n  }\n', start)
   assert.ok(end > start, 'could not slice .sage block')
-  return source.slice(start, end)
+  return normalized.slice(start, end)
 }
 
 describe('sage eye-care theme visual tokens', () => {
