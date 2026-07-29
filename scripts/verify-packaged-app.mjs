@@ -70,10 +70,12 @@ try {
     name: app.getName(),
     version: app.getVersion(),
     userData: app.getPath('userData'),
+    piAgentDirectory: process.env.PI_CODING_AGENT_DIR,
   }))
   assert.equal(runtimeIdentity.name, 'Vizruna')
   assert.equal(runtimeIdentity.version, sourceManifest.version)
   assert.equal(runtimeIdentity.userData, testUserData)
+  assert.equal(runtimeIdentity.piAgentDirectory, join(testUserData, 'pi-agent'))
 
   console.log(
     `[package-smoke] verified ${runtimeIdentity.name} ${runtimeIdentity.version} at ${appPath}`,

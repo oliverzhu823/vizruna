@@ -180,6 +180,15 @@ Pi JSONL 是对话事实来源，位于 `~/.pi/agent`。SQLite 只保存产品�
 - Pi 会话与认证：`~/.pi/agent`
 - 受管 Worktree：`~/.vizruna/worktrees`
 
+源码开发模式显示为 `Vizruna Dev`，并使用以下隔离目录：
+
+- 开发数据：`~/Library/Application Support/Vizruna Dev`
+- 开发 Pi 会话与认证：`~/Library/Application Support/Vizruna Dev/pi-agent`
+
+因此，正式安装版会复用本机 Pi 用户自己的全局登录，而开发版和自动化测试不会读取
+这些真实凭据。开发时运行 `npm run dev`；不要直接双击 `dist/mac-arm64` 中的候选
+`.app`，该文件仍使用正式产品身份。
+
 升级前在“可靠性与诊断”中创建元数据备份，然后退出应用并安装新版本。v0.1 不依赖自动更新元数据，使用公司提供的新版 DMG 手动覆盖应用。
 
 把应用从“应用程序”移到废纸篓不会自动删除上述用户数据、项目、Pi JSONL 或 Worktree。需要清理时先由负责人确认备份和 Worktree 状态。

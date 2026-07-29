@@ -1,12 +1,11 @@
-import './bootstrap-path'
+import { runtimeIdentity } from './bootstrap-path'
 import { app, shell, BrowserWindow, dialog, session, Menu } from 'electron'
-import { createWindow } from './window'
+import { createWindow, resolveWindowIcon } from './window'
 import { refreshGitWorkspaceWatch } from './git-workspace-watch'
 import { registerAllHandlers } from './ipc'
 import { workerManager } from './worker-manager'
 import { configStore } from './config-store'
 import { is } from '@electron-toolkit/utils'
-import { PRODUCT_NAME } from '@shared/product-identity'
 import { getManagedWorktreeService } from './worktree/managed-worktree-instance'
 import { getOrchestrationService } from './orchestration/orchestration-instance'
 import { getTerminalService } from './terminal/terminal-service'
@@ -22,7 +21,7 @@ process.on('uncaughtException', (err) => {
     const msg = err instanceof Error ? err.message : String(err)
     const opts = {
       type: 'error' as const,
-      title: PRODUCT_NAME,
+      title: runtimeIdentity.appName,
       message: 'A critical error occurred. Please restart the app.',
       detail: msg.slice(0, 500),
     }
@@ -65,6 +64,15 @@ if (!gotLock) {
 
 app.whenReady().then(() => {
   if (!gotLock) return
+  if (
+    runtimeIdentity.channel === 'development' &&
+    process.platform === 'darwin' &&
+    app.dock
+  ) {
+    const icon = resolveWindowIcon()
+    if (icon) app.dock.setIcon(icon)
+    app.dock.setBadge('DEV')
+  }
   if (process.env.PI_AUDIO_TRACE === '1' || process.env.PI_ALERT_TRACE === '1') {
     void import('./audio-trace').then(({ getAudioTraceLogHint }) => {
       console.log('[audio-trace] enabled — log file:', getAudioTraceLogHint())

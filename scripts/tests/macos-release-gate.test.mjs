@@ -23,6 +23,7 @@ test('macOS builder enables hardened runtime, entitlements, and notarization', (
 
 test('release workflow cannot publish an unsigned macOS artifact', () => {
   const workflow = read('.github/workflows/release.yml')
+  const prereleaseWorkflow = read('.github/workflows/prerelease.yml')
   const candidateWorkflow = read('.github/workflows/release-candidate.yml')
   const runner = read('scripts/run-macos-release.mjs')
   const verifier = read('scripts/verify-macos-release.mjs')
@@ -49,6 +50,13 @@ test('release workflow cannot publish an unsigned macOS artifact', () => {
     /build-mac:[\s\S]*CSC_IDENTITY_AUTO_DISCOVERY:\s*false/,
   )
   assert.doesNotMatch(workflow, /npm run package:mac:release/)
+  assert.match(prereleaseWorkflow, /npm run package:mac:release/)
+  assert.match(prereleaseWorkflow, /environment:\s*v0\.1-candidate/)
+  assert.match(prereleaseWorkflow, /MAC_CSC_LINK/)
+  assert.match(prereleaseWorkflow, /APPLE_APP_SPECIFIC_PASSWORD/)
+  assert.match(prereleaseWorkflow, /prerelease:\s*true/)
+  assert.match(prereleaseWorkflow, /actions\/attest-build-provenance@v2/)
+  assert.doesNotMatch(prereleaseWorkflow, /CSC_IDENTITY_AUTO_DISCOVERY:\s*false/)
   assert.match(workflow, /actions\/download-artifact@v4/)
   assert.match(workflow, /run-id:.*candidate_run_id/)
   assert.match(workflow, /sha256sum --check/)
@@ -88,4 +96,5 @@ test('release verification covers app, DMG, and ZIP artifacts', () => {
   assert.match(verifier, /DMG notarization ticket/)
   assert.match(hook, /\.endsWith\('\.dmg'\)/)
   assert.match(hook, /await notarize/)
+  assert.match(hook, /stapler', 'staple'/)
 })

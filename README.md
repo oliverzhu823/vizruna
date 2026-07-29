@@ -46,8 +46,12 @@ the product is still in Alpha.
 1. Open the repository's [Releases](https://github.com/oliverzhu823/vizruna/releases).
 2. Download `Vizruna-*-arm64.dmg` from the newest prerelease.
 3. Open the DMG and drag **Vizruna** into **Applications**.
-4. Launch Vizruna. If macOS blocks this unsigned Alpha build, Control-click the
-   app and choose **Open**, or allow it in **System Settings → Privacy & Security**.
+4. Launch Vizruna normally. Public macOS packages are required to be Developer ID
+   signed and Apple-notarized before they are uploaded.
+
+If macOS says Vizruna is damaged, do not disable Gatekeeper or run a quarantine
+removal command from an untrusted source. Verify that you downloaded the newest
+release and report the release version plus its SHA-256 in GitHub Issues.
 
 The DMG is currently for Apple-silicon Macs only. Windows, Linux, and Intel Mac
 packages have not completed release acceptance.
@@ -96,11 +100,22 @@ when relevant, but never post API keys, OAuth tokens, or private conversation co
 Requirements: Node.js 22.19.x, npm, Git, and macOS Apple Silicon for the current
 packaging target.
 
+Source development is intentionally isolated from the installed product. It
+runs as **Vizruna Dev**, stores application state under
+`~/Library/Application Support/Vizruna Dev`, and redirects Pi credentials and
+sessions to that directory's `pi-agent` folder. It does not inherit the
+installed user's `~/.pi/agent` OAuth or API keys. An explicit
+`PI_CODING_AGENT_DIR` still takes precedence for controlled fixtures.
+
 ```bash
 nvm use
 npm ci
 npm run dev
 ```
+
+Do not launch `dist/mac-arm64/Vizruna.app` as a development workflow. That is a
+packaged release candidate with the production identity. Use `npm run dev` for
+source work and a DMG installed in `/Applications` for product acceptance.
 
 Run the complete local quality suite:
 
@@ -108,14 +123,17 @@ Run the complete local quality suite:
 npm run verify
 ```
 
-Build an internal macOS package:
+Build a local-only macOS package:
 
 ```bash
 npm run package -- --mac
 ```
 
-Signing and notarization require release credentials and are intentionally not
-stored in this repository.
+This generic package is for local development and must never be uploaded to a
+GitHub Release. Every public prerelease and stable release must use
+`npm run package:mac:release`, which fails unless Developer ID signing,
+notarization, stapling, and Gatekeeper verification all succeed. Release
+credentials are intentionally stored only in the protected GitHub environment.
 
 ## Architecture and project documents
 

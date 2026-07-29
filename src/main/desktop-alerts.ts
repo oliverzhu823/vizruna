@@ -2,7 +2,7 @@ import { app, Notification, BrowserWindow } from 'electron'
 import { execFile } from 'child_process'
 import { configStore } from './config-store'
 import { traceAudio } from './audio-trace'
-import { PRODUCT_APP_ID } from '@shared/product-identity'
+import { runtimeIdentity } from './bootstrap-path'
 
 export type DesktopAlertKind = 'extension_ui' | 'run_idle'
 
@@ -60,7 +60,7 @@ function ensureNotificationIdentity(): void {
   if (appUserModelIdSet) return
   appUserModelIdSet = true
   if (process.platform === 'win32') {
-    app.setAppUserModelId(PRODUCT_APP_ID)
+    app.setAppUserModelId(runtimeIdentity.appId)
   }
 }
 

@@ -25,9 +25,24 @@ describe('Vizruna product identity', () => {
 
   it('sets a dedicated userData directory before Main services initialize', () => {
     const bootstrap = read('src/main/bootstrap-path.ts')
-    assert.match(bootstrap, /app\.setName\(PRODUCT_NAME\)/)
+    const runtime = read('src/main/runtime-identity.ts')
+    assert.match(bootstrap, /app\.setName\(runtimeIdentity\.appName\)/)
     assert.match(bootstrap, /app\.setPath\('userData'/)
-    assert.match(bootstrap, /PRODUCT_USER_DATA_DIRECTORY/)
+    assert.match(bootstrap, /PI_CODING_AGENT_DIRECTORY_ENV/)
+    assert.match(runtime, /PRODUCT_DEVELOPMENT_USER_DATA_DIRECTORY/)
+    assert.match(runtime, /join\(userDataPath, 'pi-agent'\)/)
+    assert.match(runtime, /isDevelopment \|\| options\.isE2E/)
+  })
+
+  it('keeps development and packaged identities visibly distinct', () => {
+    const identity = read('packages/shared/product-identity.ts')
+    const index = read('src/main/index.ts')
+    assert.match(identity, /PRODUCT_DEVELOPMENT_NAME = 'Vizruna Dev'/)
+    assert.match(
+      identity,
+      /PRODUCT_DEVELOPMENT_APP_ID = 'com\.vizruna\.desktop\.dev'/,
+    )
+    assert.match(index, /app\.dock\.setBadge\('DEV'\)/)
   })
 
   it('uses versioned product-local renderer persistence', () => {

@@ -1,23 +1,33 @@
 import fixPath from 'fix-path'
 import { shellEnvSync } from 'shell-env'
 import { app } from 'electron'
-import { join } from 'node:path'
 import {
-  PRODUCT_NAME,
-  PRODUCT_USER_DATA_DIRECTORY,
-} from '@shared/product-identity'
+  PI_CODING_AGENT_DIRECTORY_ENV,
+  VIZRUNA_RUNTIME_CHANNEL_ENV,
+  resolveRuntimeIdentity,
+} from './runtime-identity'
 import { mergeLoginShellEnvironment } from './login-shell-environment'
 
-app.setName(PRODUCT_NAME)
-const e2eUserData =
+const isE2E =
   process.env.PI_E2E === '1' || process.env.PI_E2E === 'true'
-    ? join(app.getPath('temp'), `${PRODUCT_USER_DATA_DIRECTORY}-e2e-${process.pid}`)
-    : null
-const productUserDataPath =
-  process.env.PI_E2E_USER_DATA ||
-  e2eUserData ||
-  join(app.getPath('appData'), PRODUCT_USER_DATA_DIRECTORY)
-app.setPath('userData', productUserDataPath)
+
+export const runtimeIdentity = resolveRuntimeIdentity({
+  isPackaged: app.isPackaged,
+  isE2E,
+  appDataPath: app.getPath('appData'),
+  tempPath: app.getPath('temp'),
+  pid: process.pid,
+  explicitUserData: process.env.PI_E2E_USER_DATA,
+  explicitPiAgentDirectory: process.env[PI_CODING_AGENT_DIRECTORY_ENV],
+})
+
+app.setName(runtimeIdentity.appName)
+app.setPath('userData', runtimeIdentity.userDataPath)
+process.env[VIZRUNA_RUNTIME_CHANNEL_ENV] = runtimeIdentity.channel
+if (runtimeIdentity.piAgentDirectory) {
+  process.env[PI_CODING_AGENT_DIRECTORY_ENV] =
+    runtimeIdentity.piAgentDirectory
+}
 
 if (process.platform === 'darwin') {
   try {

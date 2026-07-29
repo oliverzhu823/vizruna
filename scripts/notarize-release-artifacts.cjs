@@ -51,9 +51,12 @@ module.exports = async function notarizeReleaseArtifacts(context) {
     return []
   }
   const { notarize } = await import('@electron/notarize')
+  const { execFileSync } = await import('node:child_process')
   for (const image of images) {
     console.log(`[mac-release] notarizing disk image ${image}`)
     await notarize({ ...options, appPath: image })
+    console.log(`[mac-release] stapling notarization ticket to ${image}`)
+    execFileSync('xcrun', ['stapler', 'staple', image], { stdio: 'inherit' })
   }
   return []
 }

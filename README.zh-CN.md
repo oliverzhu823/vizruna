@@ -44,8 +44,12 @@ Vizruna 把 Pi Agent Runtime 变成一个可以日常使用的桌面产品。你
 1. 打开仓库的 [Releases 页面](https://github.com/oliverzhu823/vizruna/releases)。
 2. 在最新的预发布版本中下载 `Vizruna-*-arm64.dmg`。
 3. 打开 DMG，把 **Vizruna** 拖到“应用程序”文件夹。
-4. 启动 Vizruna。如果 macOS 阻止打开这个尚未签名的 Alpha 包，请按住 Control
-   点击应用并选择“打开”，或者前往“系统设置 → 隐私与安全性”确认打开。
+4. 正常启动 Vizruna。所有公开提供的 macOS 安装包在上传前都必须完成
+   Developer ID 签名和 Apple 公证。
+
+如果 macOS 提示 Vizruna“已损坏”，不要关闭 Gatekeeper，也不要执行来源不明的
+隔离属性清除命令。请先确认下载的是最新 Release，并在 GitHub Issues 中提交版本号
+和安装包 SHA-256。
 
 当前 DMG 只适用于 Apple 芯片 Mac。Windows、Linux 和 Intel Mac 尚未完成发布验收。
 
@@ -87,11 +91,20 @@ Token 或私人对话内容。
 
 环境要求：Node.js 22.19.x、npm、Git；当前安装包目标为 macOS Apple Silicon。
 
+源码开发环境与已安装的正式产品会自动隔离。开发模式显示为 **Vizruna Dev**，应用
+设置保存在 `~/Library/Application Support/Vizruna Dev`，Pi 凭据和会话使用该目录
+下独立的 `pi-agent` 文件夹，不会继承正式版用户在 `~/.pi/agent` 中的 OAuth 或
+API Key。需要构造受控测试数据时，显式设置的 `PI_CODING_AGENT_DIR` 仍具有最高
+优先级。
+
 ```bash
 nvm use
 npm ci
 npm run dev
 ```
+
+不要把 `dist/mac-arm64/Vizruna.app` 当成开发入口；它是使用正式产品身份的打包候选
+产物。源码开发使用 `npm run dev`，产品验收则使用安装到“应用程序”的 DMG。
 
 执行完整质量检查：
 
@@ -99,13 +112,16 @@ npm run dev
 npm run verify
 ```
 
-生成内部 macOS 安装包：
+本地开发测试包可以使用：
 
 ```bash
 npm run package -- --mac
 ```
 
-正式签名和 Apple 公证需要发布凭据，仓库中不会保存这些敏感信息。
+这个通用产物只能用于本机开发，禁止上传到 GitHub Release。任何公开预发布版或
+正式版都必须使用 `npm run package:mac:release`；只要 Developer ID 签名、Apple
+公证、票据装订或 Gatekeeper 校验有一项未通过，命令就会失败。发布凭据只保存在
+GitHub 受保护环境中，不进入仓库。
 
 ## 架构与开发文档
 

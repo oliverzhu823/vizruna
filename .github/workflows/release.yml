@@ -15,8 +15,8 @@ permissions:
 
 jobs:
   authorize-release:
-    # Public alpha tags are uploaded manually as prereleases. Only
-    # stable tags enter the signed, notarized production release gate below.
+    # Signed/notarized prereleases are handled by prerelease.yml. Only stable
+    # tags enter the evidence-bound production promotion gate below.
     if: ${{ !contains(github.ref_name, '-') }}
     runs-on: ubuntu-latest
     environment: v0.1-release

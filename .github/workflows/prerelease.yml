@@ -1,0 +1,102 @@
+# Public macOS prereleases must pass the same signing and notarization checks as
+# stable builds. Local/ad-hoc packages are never uploaded by this workflow.
+name: Release macOS Prerelease
+
+on:
+  push:
+    tags:
+      - 'v*-alpha.*'
+      - 'v*-beta.*'
+      - 'v*-rc.*'
+
+permissions:
+  contents: write
+  attestations: write
+  id-token: write
+
+jobs:
+  release-mac-prerelease:
+    runs-on: macos-15
+    timeout-minutes: 90
+    environment: v0.1-candidate
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Require tag and package versions to match
+        run: |
+          set -euo pipefail
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PACKAGE_VERSION="$(node -p "require('./package.json').version")"
+          if [ "${TAG_VERSION}" != "${PACKAGE_VERSION}" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match package version ${PACKAGE_VERSION}"
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: |
+          for i in 1 2 3; do
+            npm ci && exit 0
+            echo "npm ci failed (attempt $i), retry in 20s..."
+            sleep 20
+          done
+          exit 1
+
+      - name: Complete repository quality gate
+        run: npm run verify
+
+      - name: Run desktop end-to-end tests
+        run: npm run test:e2e
+
+      - name: Audit complete and production dependency trees
+        run: |
+          npm audit --audit-level=low
+          npm audit --omit=dev --audit-level=low
+
+      - name: Package, Developer ID sign, notarize, staple, and verify
+        run: npm run package:mac:release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+      - name: Prepare public release assets
+        run: |
+          set -euo pipefail
+          mkdir -p release-assets
+          find dist -maxdepth 1 -type f \( -name '*.dmg' -o -name '*.zip' \) -exec cp '{}' release-assets/ \;
+          test "$(find release-assets -maxdepth 1 -type f -name '*.dmg' | wc -l | tr -d ' ')" = "1"
+          test "$(find release-assets -maxdepth 1 -type f -name '*.zip' | wc -l | tr -d ' ')" = "1"
+          node scripts/generate-release-sbom.mjs release-assets/sbom.cdx.json
+          node scripts/generate-release-checksums.mjs release-assets
+          find release-assets -maxdepth 1 -type f -print | sort
+
+      - name: Attest prerelease artifacts
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: release-assets/**
+
+      - name: Build user-facing release notes
+        run: |
+          set -euo pipefail
+          node scripts/generate-release-notes.mjs "${GITHUB_REF_NAME#v}" > release-body.md
+          test -s release-body.md
+
+      - name: Publish signed and notarized prerelease
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          body_path: release-body.md
+          files: release-assets/**
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

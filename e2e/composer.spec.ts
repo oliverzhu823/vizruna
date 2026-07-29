@@ -39,7 +39,7 @@ test.describe('composer', () => {
     }
   })
 
-  test('window title has the product identity after launch', async () => {
+  test('development runtime has an isolated visible identity', async () => {
     const app = await electron.launch({
       executablePath: electronExecutable,
       args: [mainEntry],
@@ -49,7 +49,20 @@ test.describe('composer', () => {
     try {
       const window = await app.firstWindow({ timeout: 45_000 })
       await window.waitForLoadState('domcontentloaded', { timeout: 45_000 })
-      expect(await window.title()).toBe('Vizruna')
+      const identity = await app.evaluate(({ app, BrowserWindow }) => ({
+        appName: app.getName(),
+        nativeWindowTitle: BrowserWindow.getAllWindows()[0]?.getTitle(),
+        userDataPath: app.getPath('userData'),
+        piAgentDirectory: process.env.PI_CODING_AGENT_DIR,
+        runtimeChannel: process.env.VIZRUNA_RUNTIME_CHANNEL,
+      }))
+      expect(identity.appName).toBe('Vizruna Dev')
+      expect(identity.nativeWindowTitle).toBe('Vizruna Dev')
+      expect(identity.runtimeChannel).toBe('development')
+      expect(identity.userDataPath).toMatch(/Vizruna Dev-e2e-\d+$/)
+      expect(identity.piAgentDirectory).toBe(
+        path.join(identity.userDataPath, 'pi-agent'),
+      )
     } finally {
       await app.close()
     }

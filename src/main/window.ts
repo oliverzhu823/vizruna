@@ -6,7 +6,7 @@ const isMac = process.platform === 'darwin'
 const isLinux = process.platform === 'linux'
 const useFrameless = process.platform === 'win32' || isMac || isLinux
 
-function resolveWindowIcon() {
+export function resolveWindowIcon() {
   const candidates = [
     join(process.resourcesPath, 'build', 'icon.png'),
     join(__dirname, '../../build/icon.png'),
@@ -23,7 +23,7 @@ function resolveWindowIcon() {
 import { is } from '@electron-toolkit/utils'
 import { configStore } from './config-store'
 import { workerManager } from './worker-manager'
-import { PRODUCT_NAME } from '@shared/product-identity'
+import { runtimeIdentity } from './bootstrap-path'
 import { getTerminalService } from './terminal/terminal-service'
 
 const MIN_W = 900
@@ -102,7 +102,7 @@ export function createWindow(): BrowserWindow {
     ...(isMac && useFrameless
       ? { titleBarStyle: 'hiddenInset' as const, trafficLightPosition: { x: 12, y: 10 } }
       : {}),
-    title: PRODUCT_NAME,
+    title: runtimeIdentity.appName,
     icon: resolveWindowIcon(),
     webPreferences: {
       preload: join(__dirname, '../preload/index.cjs'),
@@ -110,6 +110,11 @@ export function createWindow(): BrowserWindow {
       contextIsolation: true,
       nodeIntegration: false,
     },
+  })
+
+  mainWindow.webContents.on('page-title-updated', (event) => {
+    event.preventDefault()
+    mainWindow?.setTitle(runtimeIdentity.appName)
   })
 
   mainWindow.on('ready-to-show', () => {

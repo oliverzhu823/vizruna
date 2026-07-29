@@ -132,6 +132,21 @@ Artifact，否则最终发布无法证明与验收包完全相同。
 - `dist/Vizruna-<version>-arm64.dmg`
 - `dist/Vizruna-<version>-arm64.zip`
 
+### 5.1 公开 Alpha/Beta/RC
+
+公开预发布版也属于对外分发，不得使用 `npm run package` 生成的本地开发包，更不得
+通过手工上传绕过签名门禁。预发布 Tag（`v*-alpha.*`、`v*-beta.*`、`v*-rc.*`）由
+`.github/workflows/prerelease.yml` 在 `v0.1-candidate` 受保护环境中自动执行：
+
+1. 完整质量检查与桌面 E2E。
+2. `npm run package:mac:release`。
+3. Developer ID 签名、Apple 公证、票据装订和 Gatekeeper 验证。
+4. 生成 SBOM、SHA-256 和构建来源证明。
+5. 仅在全部通过后创建 GitHub Prerelease。
+
+凭据缺失或任何签名检查失败时，工作流必须失败且不得创建 Release。看到“已损坏”
+提示时，应撤下问题产物并修复发布流程，不能把 `xattr` 绕过命令当作公共安装步骤。
+
 ## 6. 独立验证
 
 构建脚本已自动运行；测试负责人还应独立运行：
