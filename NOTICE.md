@@ -8,11 +8,17 @@ Vizruna-specific source code and binaries are not licensed for redistribution.
 
 - Source: <https://github.com/justhil/pi-app>
 - Pinned baseline: `bcef920e3900a858b305c67c42a34e61779f977c`
-- The upstream `package.json` declares the package license as MIT.
-- The pinned repository snapshot does not contain a standalone `LICENSE` file.
+- License: MIT.
+- The pinned baseline declares MIT in `package.json`. Upstream later added the
+  repository-level MIT license in commit
+  [`0ae02be2e5e09586aa89c35358f1aab952705e6c`](https://github.com/justhil/pi-app/commit/0ae02be2e5e09586aa89c35358f1aab952705e6c).
+- The upstream author also confirmed the clarification in
+  [Issue #38](https://github.com/justhil/pi-app/issues/38).
 
-Commercial distribution remains blocked until the company records a satisfactory
-license conclusion or receives clarification from the upstream author.
+The MIT license permits commercial use, modification, distribution,
+sublicensing and sale, subject to retaining its copyright and permission
+notice. Vizruna packages a verbatim copy at
+`THIRD_PARTY_LICENSES/justhil-pi-app-MIT.txt`.
 
 ## minghinmatthewlam/pi-gui
 
@@ -27,7 +33,8 @@ and must be recorded in this file.
 ## Pi coding agent
 
 - Package: `@earendil-works/pi-coding-agent`
-- Pinned version: `0.80.7`
+- Pinned version: `0.82.1`
+- Declared license: MIT.
 
 The generated software bill of materials is maintained separately and does not
 replace this source-level notice.
@@ -37,5 +44,5 @@ replace this source-level notice.
 [`THIRD_PARTY_DEPENDENCIES.md`](./THIRD_PARTY_DEPENDENCIES.md) is generated from
 the installed production dependency tree together with the CycloneDX SBOM. It
 records package, version and declared license for every production component.
-This inventory does not clear the unresolved `justhil/pi-app` source-license
-question above.
+This inventory supports dependency review but does not replace each applicable
+license notice or a release-specific compliance review.

@@ -330,7 +330,8 @@ v0.1 的目标不是构建多租户 SaaS，而是提供一个可以稳定交付�
 
 ## 11. 依赖与约束
 
-- `pi-app` 的 `package.json` 声明 MIT，但当前研究快照缺少独立 LICENSE 文件；正式商用前需取得合规结论。
+- `pi-app` 已通过上游 MIT `LICENSE`、提交 `0ae02be2e5e09586aa89c35358f1aab952705e6c`
+  和作者在 Issue #38 的确认明确商业使用与再分发边界；分发时必须保留版权和许可声明。
 - `pi-gui` 仓库包含 MIT LICENSE；如复制代码，仍需保留许可证和版权声明。
 - Pi SDK 快速更新，必须固定版本。
 - macOS 分发需要 Developer ID 和 notarization。

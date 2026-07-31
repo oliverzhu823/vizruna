@@ -223,22 +223,3 @@ Gatekeeper 会按文档所述拦截首次启动。GitHub 预发布工作流还�
 
 未来的正式版仍使用 `npm run package:mac:release`；只要 Developer ID 签名、Apple
 公证、票据装订或 Gatekeeper 校验有一项未通过，命令就会失败。
-
-## 架构与开发文档
-
-- 产品底座：[`justhil/pi-app`](https://github.com/justhil/pi-app)，固定提交
-  `bcef920e3900a858b305c67c42a34e61779f977c`
-- 行为参考：[`minghinmatthewlam/pi-gui`](https://github.com/minghinmatthewlam/pi-gui)
-- Agent Runtime：`@earendil-works/pi-coding-agent@0.82.1`
-- [开发启动包](docs/startup/README.md)
-- [PRD v0.1](docs/startup/01-PRD-v0.1.md)
-- [架构 RFC-001](docs/startup/02-Architecture-RFC-001.md)
-- [开发路线图](docs/startup/03-Development-Roadmap.md)
-- [验收标准](docs/startup/04-Acceptance-Criteria.md)
-- [使用指南](docs/startup/12-User-Guide.md)
-- [macOS 发布手册](docs/startup/13-macOS-Release-Runbook.md)
-- [上游维护策略](UPSTREAM.md)
-- [第三方声明](NOTICE.md)
-
-产品保留 Electron Main、Preload、React Renderer 和 Utility Worker 边界；不会硬合并
-两个 GUI 仓库，也不会引入第二套全局状态模型。

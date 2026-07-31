@@ -19,8 +19,8 @@
 2. 证据文件不包含 API Key、密码、Token、Authorization、Cookie、代理认证
    URL 或私钥。
 3. 安全/法务已经对冻结的 `pi-app` 与 `pi-gui` 快照、行为重实现边界、
-   `NOTICE.md`、第三方依赖清单和 SBOM 做书面复核；`pi-app` 商业使用及
-   再分发已经批准。
+   随包 `NOTICE.md`/MIT 正文、第三方依赖清单和 SBOM 做发布批次复核；
+   `pi-app` 的上游 MIT 许可与作者确认已经留档。
 4. Developer ID 签名、公证、票据装订和 Gatekeeper 全部通过。
 5. 独立干净设备完成下载校验、安装、核心流程、升级和卸载。
 6. 国际 Provider 通过显式 Profile、中国 Provider 通过 direct 各取得一次

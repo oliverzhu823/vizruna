@@ -192,11 +192,13 @@ SBOM 从实际安装后的生产依赖树生成，而不是只读取上游 Pi SD
 
 解除 No-Go 的最短路径：
 
-1. 安全/法务解除源码许可证阻断。
-2. 发布负责人配置 Apple Secrets，运行 `Build macOS Release Candidate`
+1. 发布负责人配置 Apple Secrets，运行 `Build macOS Release Candidate`
    工作流，留存候选 Run ID、正式签名产物和哈希。
-3. 测试负责人按发布手册在干净设备完成 G8。
-4. 使用测试账户完成两类 Provider 的真实首轮调用。
-5. 完成 7 天内部试运行、真实异常恢复演练和 3–5 人试点。
-6. 产品、工程、测试和安全/法务负责人完成签署，确认无 S0/S1 问题。
-7. 运行 `npm run release:evidence:check`，严格结果必须为 `decision=go`。
+2. 测试负责人按发布手册在干净设备完成 G8。
+3. 使用测试账户完成两类 Provider 的真实首轮调用。
+4. 完成 7 天内部试运行、真实异常恢复演练和 3–5 人试点。
+5. 产品、工程、测试和安全/法务负责人完成签署，确认随包声明完整且无 S0/S1 问题。
+6. 运行 `npm run release:evidence:check`，严格结果必须为 `decision=go`。
+
+pi-app 源码许可阻断已于 2026-07-30 由上游 MIT LICENSE 和作者确认解除，
+不再列入本阶段 No-Go 缺项。

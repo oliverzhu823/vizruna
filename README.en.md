@@ -220,23 +220,3 @@ generates SHA-256 checksums, an SBOM, and build provenance.
 
 Future stable releases use `npm run package:mac:release`, which fails unless
 Developer ID signing, notarization, stapling, and Gatekeeper verification succeed.
-
-## Architecture and project documents
-
-- Product base: [`justhil/pi-app`](https://github.com/justhil/pi-app), pinned at
-  `bcef920e3900a858b305c67c42a34e61779f977c`
-- Behavior reference: [`minghinmatthewlam/pi-gui`](https://github.com/minghinmatthewlam/pi-gui)
-- Agent runtime: `@earendil-works/pi-coding-agent@0.82.1`
-- [Development startup package](docs/startup/README.md)
-- [PRD v0.1](docs/startup/01-PRD-v0.1.md)
-- [Architecture RFC-001](docs/startup/02-Architecture-RFC-001.md)
-- [Roadmap](docs/startup/03-Development-Roadmap.md)
-- [Acceptance criteria](docs/startup/04-Acceptance-Criteria.md)
-- [User guide](docs/startup/12-User-Guide.md)
-- [macOS release runbook](docs/startup/13-macOS-Release-Runbook.md)
-- [Upstream strategy](UPSTREAM.md)
-- [Third-party notices](NOTICE.md)
-
-Vizruna keeps the Electron Main, Preload, React Renderer, and Utility Worker
-boundaries. It does not merge two GUI repositories or introduce a second global
-state model.

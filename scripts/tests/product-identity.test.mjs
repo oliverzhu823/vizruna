@@ -74,8 +74,14 @@ describe('Vizruna product identity', () => {
   it('keeps product planning and compliance evidence versioned', () => {
     const ignore = read('.gitignore')
     const notice = read('NOTICE.md')
+    const upstreamLicense = read(
+      'THIRD_PARTY_LICENSES/justhil-pi-app-MIT.txt',
+    )
     assert.match(ignore, /!docs\/startup\//)
     assert.match(notice, /bcef920e3900a858b305c67c42a34e61779f977c/)
-    assert.match(notice, /Commercial distribution remains blocked/)
+    assert.match(notice, /0ae02be2e5e09586aa89c35358f1aab952705e6c/)
+    assert.match(notice, /permits commercial use/)
+    assert.match(upstreamLicense, /^MIT License$/m)
+    assert.match(upstreamLicense, /Copyright \(c\) 2026 justhil/)
   })
 })

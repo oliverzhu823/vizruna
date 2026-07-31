@@ -34,6 +34,14 @@ extraResources:
     to: codex-asr
     filter:
       - "**/*"
+  - from: NOTICE.md
+    to: legal/NOTICE.md
+  - from: THIRD_PARTY_DEPENDENCIES.md
+    to: legal/THIRD_PARTY_DEPENDENCIES.md
+  - from: THIRD_PARTY_LICENSES
+    to: legal/THIRD_PARTY_LICENSES
+    filter:
+      - "**/*"
 
 win:
   target:

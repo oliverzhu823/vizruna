@@ -18,11 +18,35 @@ const contentsPath = join(appPath, 'Contents')
 const executablePath = join(contentsPath, 'MacOS', 'Vizruna')
 const asarPath = join(contentsPath, 'Resources', 'app.asar')
 const infoPlistPath = join(contentsPath, 'Info.plist')
+const legalPath = join(contentsPath, 'Resources', 'legal')
+const noticePath = join(legalPath, 'NOTICE.md')
+const dependencyInventoryPath = join(
+  legalPath,
+  'THIRD_PARTY_DEPENDENCIES.md',
+)
+const piAppLicensePath = join(
+  legalPath,
+  'THIRD_PARTY_LICENSES',
+  'justhil-pi-app-MIT.txt',
+)
 const testUserData = mkdtempSync(join(tmpdir(), 'pi-enterprise-package-smoke-'))
 
-for (const path of [appPath, executablePath, asarPath, infoPlistPath]) {
+for (const path of [
+  appPath,
+  executablePath,
+  asarPath,
+  infoPlistPath,
+  noticePath,
+  dependencyInventoryPath,
+  piAppLicensePath,
+]) {
   assert.ok(existsSync(path), `missing packaged artifact: ${path}`)
 }
+
+const piAppLicense = readFileSync(piAppLicensePath, 'utf8')
+assert.match(piAppLicense, /^MIT License$/m)
+assert.match(piAppLicense, /Copyright \(c\) 2026 justhil/)
+assert.match(piAppLicense, /use, copy, modify, merge, publish, distribute/)
 
 function readAsarJson(path) {
   return JSON.parse(extractFile(asarPath, path).toString('utf8'))

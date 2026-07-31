@@ -19,6 +19,11 @@ test('macOS builder enables hardened runtime, entitlements, and notarization', (
     builder,
     /afterAllArtifactBuild:\s*scripts\/notarize-release-artifacts\.cjs/,
   )
+  assert.match(builder, /from:\s*NOTICE\.md[\s\S]*to:\s*legal\/NOTICE\.md/)
+  assert.match(
+    builder,
+    /from:\s*THIRD_PARTY_LICENSES[\s\S]*to:\s*legal\/THIRD_PARTY_LICENSES/,
+  )
 })
 
 test('stable release workflow cannot publish an unsigned macOS artifact', () => {

@@ -30,7 +30,10 @@
 - 有效的 `Developer ID Application` 证书。
 - Apple 公证凭据。
 - 版本对应的 `CHANGELOG.md` 条目。
-- 安全/法务已对 `NOTICE.md`、`THIRD_PARTY_DEPENDENCIES.md` 和 CycloneDX SBOM 完成书面复核，并解除 `justhil/pi-app` 源码许可证阻断。当前仓库尚未取得该结论，因此此项仍是硬门禁。
+- 安全/法务已对随包 `NOTICE.md`、`THIRD_PARTY_LICENSES`、
+  `THIRD_PARTY_DEPENDENCIES.md` 和 CycloneDX SBOM 完成发布批次复核。`justhil/pi-app`
+  的源码许可已由上游 MIT LICENSE（提交 `0ae02be`）和作者在 Issue #38 的确认解除，
+  无需再次等待授权，但必须验证版权和许可正文已进入安装包。
 
 检查本地签名身份：
 

@@ -63,7 +63,8 @@
 
 - alpha.3 仍处于 Agent Studio 阶段；尚未实现 Agent Version、自动评测、
   `.vizagent` 导出或客户 Runtime
-- 正式版和商业交付仍受上游许可证结论、Apple 签名/公证与真实设备验收门禁约束
+- pi-app 已补充 MIT LICENSE 并确认欢迎二次开发，源码许可不再阻断商业使用；
+  正式客户版仍受 Apple 签名/公证与真实设备验收门禁约束
 
 ## [0.1.0-alpha.2] — 2026-07-28
 
