@@ -20,6 +20,7 @@ export type GitHubReleaseCheckResult = {
   releaseNotes: string
   downloadUrl: string | null
   downloadName: string | null
+  checksumUrl: string | null
   assets: AppUpdateAsset[]
   error?: string
 }
@@ -259,6 +260,7 @@ export async function checkGitHubReleaseUpdate(): Promise<GitHubReleaseCheckResu
       releaseNotes: '',
       downloadUrl: null,
       downloadName: null,
+      checksumUrl: null,
       assets: [],
       error: `未配置更新仓库环境变量 ${PRODUCT_UPDATE_REPOSITORY_ENV}`,
     }
@@ -281,12 +283,14 @@ export async function checkGitHubReleaseUpdate(): Promise<GitHubReleaseCheckResu
         releaseNotes: '',
         downloadUrl: null,
         downloadName: null,
+        checksumUrl: null,
         assets: [],
         error: '无法读取 GitHub Releases',
       }
     }
     const assets = mapAssets(latest.assets)
     const preferred = pickDownloadAsset(assets)
+    const checksum = assets.find((asset) => asset.name === 'SHA256SUMS.txt') ?? null
     const hasUpdate = isVersionNewer(latest.tag_name, currentVersion)
     const releaseUrl =
       latest.html_url || `https://github.com/${slug}/releases/tag/${latest.tag_name}`
@@ -304,6 +308,7 @@ export async function checkGitHubReleaseUpdate(): Promise<GitHubReleaseCheckResu
       releaseNotes: sanitizeReleaseNotes(latest.body),
       downloadUrl: preferred?.url ?? null,
       downloadName: preferred?.name ?? null,
+      checksumUrl: checksum?.url ?? null,
       assets,
     }
   } catch (error: unknown) {
@@ -324,6 +329,7 @@ export async function checkGitHubReleaseUpdate(): Promise<GitHubReleaseCheckResu
       releaseNotes: '',
       downloadUrl: null,
       downloadName: null,
+      checksumUrl: null,
       assets: [],
       error: message,
     }

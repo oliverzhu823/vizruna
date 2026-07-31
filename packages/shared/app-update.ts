@@ -18,11 +18,13 @@ export type AppUpdateAvailableInfo = {
   /** Preferred download for this platform, if any */
   downloadUrl: string | null
   downloadName: string | null
+  /** SHA256SUMS.txt from the same GitHub Release as the preferred download */
+  checksumUrl: string | null
   assets: AppUpdateAsset[]
 }
 
 export type AppUpdateDownloadProgress = {
-  phase: 'downloading' | 'launching' | 'done' | 'error'
+  phase: 'verifying' | 'downloading' | 'preparing' | 'launching' | 'done' | 'error'
   receivedBytes: number
   totalBytes: number
   /** 0–100 when total known, else -1 */

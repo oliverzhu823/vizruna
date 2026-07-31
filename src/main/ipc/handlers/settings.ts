@@ -78,6 +78,7 @@ export function registerSettingsHandlers(): void {
     return downloadAndLaunchUpdate({
       url: String(req.url || ''),
       fileName: String(req.fileName || 'update.bin'),
+      checksumUrl: String(req.checksumUrl || ''),
     })
   })
 

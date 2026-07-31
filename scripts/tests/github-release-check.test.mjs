@@ -127,6 +127,8 @@ describe('github release update helpers', () => {
     assert.match(src, /export function sanitizeReleaseNotes/)
     assert.match(src, /releaseNotes/)
     assert.match(src, /downloadUrl/)
+    assert.match(src, /checksumUrl/)
+    assert.match(src, /asset\.name === 'SHA256SUMS\.txt'/)
   })
 
   it('sanitizeReleaseNotes drops legacy link-only placeholders', () => {
@@ -200,5 +202,14 @@ Release 说明：**[doc/RELEASE.md](https://github.com/justhil/pi-app/blob/v0.4.
     assert.match(channels, /ipc:app\.dismissUpdatePrompt/)
     assert.match(channels, /ipc:app\.downloadUpdate/)
     assert.match(channels, /ipc:app\.ignoreUpdateVersion/)
+  })
+
+  it('verified updater requires checksum metadata across the typed IPC boundary', () => {
+    const contract = readFileSync(join(root, 'packages/shared/ipc-contract.ts'), 'utf8')
+    const shared = readFileSync(join(root, 'packages/shared/app-update.ts'), 'utf8')
+    const handler = readFileSync(join(root, 'src/main/ipc/handlers/settings.ts'), 'utf8')
+    assert.match(contract, /AppDownloadUpdateRequest[\s\S]*checksumUrl: string/)
+    assert.match(shared, /AppUpdateAvailableInfo[\s\S]*checksumUrl: string \| null/)
+    assert.match(handler, /downloadAndLaunchUpdate[\s\S]*checksumUrl:/)
   })
 })

@@ -10,6 +10,23 @@
   "updating": "正在下载安装包…",
   "downloading": "下载中…",
   "downloadingPercent": "下载中 {{percent}}%",
+  "verifyingPackage": "正在核对官方发布信息和安装包 SHA-256…",
+  "preparingInstaller": "校验通过，正在准备安装包…",
   "launchingInstaller": "安装包已打开。请退出 Vizruna，将新版拖入“应用程序”并选择“替换”。",
-  "downloadFailed": "下载失败：{{error}}"
+  "securityVerifiedHint": "安全说明：只从 Vizruna 官方 GitHub Release 下载，并使用同一版本的 SHA256SUMS.txt 校验。校验通过后，仅处理这次下载的 DMG 隔离属性，不会关闭或修改系统 Gatekeeper。",
+  "securityManualHint": "本版本缺少应用内安全校验所需的安装包或 SHA256SUMS.txt，将改为打开官方发布页，请按页面说明手动核对。",
+  "downloadFailed": "更新失败：{{error}}",
+  "errors": {
+    "downloadInProgress": "已有更新正在下载",
+    "untrustedReleaseSource": "更新来源不是 Vizruna 官方同版本 Release",
+    "checksumDownloadFailed": "无法读取官方 SHA-256 校验文件",
+    "checksumManifestInvalid": "官方校验文件格式无效",
+    "checksumEntryMissing": "校验文件中没有当前安装包的记录",
+    "checksumMismatch": "安装包校验不一致，文件已删除且不会打开",
+    "quarantineInspectionFailed": "无法检查本次下载文件的隔离状态",
+    "quarantineRemoveFailed": "无法处理本次下载文件的隔离属性",
+    "installerDownloadFailed": "安装包下载失败",
+    "installerOpenFailed": "安装包已下载但无法打开",
+    "unknown": "发生未知错误"
+  }
 }

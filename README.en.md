@@ -23,7 +23,7 @@ mission-critical work while the product is still in Alpha.
 
 ![Vizruna desktop workspace](docs/images/vizruna-desktop.png)
 
-## Highlights in v0.1.0-alpha.3
+## Highlights in v0.1.0-alpha.4
 
 - **Agent Profile Library** for named, scenario-specific Agents with a fixed
   System Prompt.
@@ -38,8 +38,9 @@ mission-critical work while the product is still in Alpha.
 - Improved message action spacing, composer typography, and immediate
   “Thinking…” feedback.
 - Complete isolation between source development and the installed product.
-- Update notifications for unsigned test builds: Vizruna downloads and opens
-  the DMG, and the user manually replaces the application.
+- Hardened unsigned-build updates: Vizruna accepts only assets from the matching
+  official Release, verifies `SHA256SUMS.txt`, and handles quarantine only for
+  that downloaded DMG before the user manually replaces the application.
 
 See [CHANGELOG.md](CHANGELOG.md) for the complete release notes.
 
@@ -98,7 +99,7 @@ See [CHANGELOG.md](CHANGELOG.md) for the complete release notes.
 
 1. Open the repository's [Releases](https://github.com/oliverzhu823/vizruna/releases).
 2. Download `Vizruna-*-arm64.dmg` from the newest prerelease.
-3. We recommend downloading `SHA256SUMS.txt` and verifying the package.
+3. Download `SHA256SUMS.txt` and verify the package.
 4. Open the DMG and drag **Vizruna** into **Applications**.
 5. Launch Vizruna.
 
@@ -159,9 +160,21 @@ Unsigned Alpha builds use an assisted update flow:
 
 1. Vizruna checks for releases after launch, or check under
    **Settings → General → App version**.
-2. Choose **Download and open installer**.
-3. Quit the old Vizruna completely.
-4. Drag the new app to Applications and choose **Replace**.
+2. Choose **Download and open installer**. Vizruna requires the installer and
+   `SHA256SUMS.txt` to come from the same official Release, then verifies the
+   downloaded file locally.
+3. After verification, Vizruna handles quarantine only for that DMG in its own
+   temporary update directory and opens it. It never disables or changes system
+   Gatekeeper and does not touch other files.
+4. Quit the old Vizruna completely.
+5. Drag the new app to Applications and choose **Replace**.
+
+The **first installation** still requires the manual approval described above;
+an unsigned Alpha cannot bypass that macOS boundary from inside the app. Once
+alpha.4 or later is installed, use Vizruna's in-app updater for future versions
+instead of downloading them in a browser. This enables automatic verification
+and avoids a browser adding download quarantine again. If verification metadata
+is absent, Vizruna stops the assisted flow and opens the official Release page.
 
 Replacing `/Applications/Vizruna.app` preserves data stored outside the app:
 

@@ -5,6 +5,19 @@ import type { AppUpdateAvailableInfo, AppUpdateDownloadProgress } from '@shared/
 import { ipcClient, onAppUpdateDownloadProgress } from '@renderer/lib/ipc-client'
 import { cn } from '@renderer/lib/utils'
 
+const UPDATE_ERROR_KEYS: Record<string, string> = {
+  download_in_progress: 'update:errors.downloadInProgress',
+  untrusted_release_source: 'update:errors.untrustedReleaseSource',
+  checksum_download_failed: 'update:errors.checksumDownloadFailed',
+  checksum_manifest_invalid: 'update:errors.checksumManifestInvalid',
+  checksum_entry_missing: 'update:errors.checksumEntryMissing',
+  checksum_mismatch: 'update:errors.checksumMismatch',
+  quarantine_inspection_failed: 'update:errors.quarantineInspectionFailed',
+  quarantine_remove_failed: 'update:errors.quarantineRemoveFailed',
+  installer_download_failed: 'update:errors.installerDownloadFailed',
+  installer_open_failed: 'update:errors.installerOpenFailed',
+}
+
 function plainReleaseNotes(markdown: string): string {
   const text = String(markdown || '')
     .replace(/\r\n/g, '\n')
@@ -27,6 +40,7 @@ export function AppUpdateDialog({
   const { t } = useTranslation()
   const [busy, setBusy] = useState(false)
   const [progress, setProgress] = useState<AppUpdateDownloadProgress | null>(null)
+  const canInstallInApp = Boolean(info.downloadUrl && info.downloadName && info.checksumUrl)
 
   const notes = useMemo(() => {
     const plain = plainReleaseNotes(info.releaseNotes)
@@ -57,21 +71,22 @@ export function AppUpdateDialog({
   }
 
   const startUpdate = async () => {
-    if (!info.downloadUrl) {
+    if (!canInstallInApp || !info.downloadUrl || !info.downloadName || !info.checksumUrl) {
       void ipcClient.invoke('app.openRelease', { url: info.releaseUrl })
       return
     }
     setBusy(true)
     setProgress({
-      phase: 'downloading',
+      phase: 'verifying',
       receivedBytes: 0,
       totalBytes: 0,
-      percent: 0,
-      fileName: info.downloadName || undefined,
+      percent: -1,
+      fileName: info.downloadName,
     })
     const result = await ipcClient.invoke('app.downloadUpdate', {
       url: info.downloadUrl,
-      fileName: info.downloadName || undefined,
+      fileName: info.downloadName,
+      checksumUrl: info.checksumUrl,
     })
     if (!result?.ok) {
       setBusy(false)
@@ -88,11 +103,14 @@ export function AppUpdateDialog({
   const progressLabel = (() => {
     if (!progress) return null
     if (progress.phase === 'error') {
-      return t('update:downloadFailed', { error: progress.error || '' })
+      const errorKey = UPDATE_ERROR_KEYS[progress.error || ''] || 'update:errors.unknown'
+      return t('update:downloadFailed', { error: t(errorKey) })
     }
     if (progress.phase === 'launching' || progress.phase === 'done') {
       return t('update:launchingInstaller')
     }
+    if (progress.phase === 'verifying') return t('update:verifyingPackage')
+    if (progress.phase === 'preparing') return t('update:preparingInstaller')
     if (progress.percent >= 0) {
       return t('update:downloadingPercent', { percent: progress.percent })
     }
@@ -129,6 +147,11 @@ export function AppUpdateDialog({
           <pre className="whitespace-pre-wrap break-words font-sans text-[13px] leading-relaxed text-foreground/90">
             {notes}
           </pre>
+          <p className="mt-4 rounded-lg border border-border/70 bg-muted/35 px-3 py-2 text-[12px] leading-relaxed text-muted-foreground">
+            {canInstallInApp
+              ? t('update:securityVerifiedHint')
+              : t('update:securityManualHint')}
+          </p>
           {progressLabel ? (
             <p
               className={cn(
@@ -174,7 +197,7 @@ export function AppUpdateDialog({
           >
             {busy
               ? t('update:updating')
-              : info.downloadUrl
+              : canInstallInApp
                 ? t('update:updateNow')
                 : t('update:openRelease')}
           </button>

@@ -84,6 +84,26 @@ test('alpha prerelease publishes a verified unsigned tester build', () => {
   assert.match(verifier, /Gatekeeper rejection confirmed/)
 })
 
+test('unsigned in-app updates verify official assets before targeted quarantine handling', () => {
+  const downloader = read('src/main/app-update-download.ts')
+  const security = read('src/main/app-update-security.ts')
+
+  assert.match(security, /hostname\.toLowerCase\(\) !== 'github\.com'/)
+  assert.match(security, /checksum\.fileName !== UPDATE_CHECKSUM_FILE_NAME/)
+  assert.match(security, /asset\.tag !== checksum\.tag/)
+  assert.match(downloader, /fetchExpectedChecksum/)
+  assert.match(downloader, /sha256Matches/)
+  assert.match(downloader, /checksum_mismatch/)
+  assert.ok(downloader.indexOf('sha256Matches') < downloader.indexOf('shell.openPath(dest)'))
+  assert.ok(
+    downloader.indexOf('clearVerifiedDmgQuarantine(dest') <
+      downloader.indexOf('shell.openPath(dest)'),
+  )
+  assert.match(downloader, /spawnSync\('\/usr\/bin\/xattr'/)
+  assert.match(downloader, /\['-d', 'com\.apple\.quarantine', path\]/)
+  assert.doesNotMatch(downloader, /spctl|--master-disable|\/Applications\/Vizruna\.app/)
+})
+
 test('v0.1 release publishes only macOS and requires exact evidence approval', () => {
   const workflow = read('.github/workflows/release.yml')
 

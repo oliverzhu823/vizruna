@@ -63,6 +63,7 @@ export function initUpdater(mainWindow: BrowserWindow): void {
           releaseNotes: result.releaseNotes || '',
           downloadUrl: result.downloadUrl,
           downloadName: result.downloadName,
+          checksumUrl: result.checksumUrl,
           assets: result.assets,
         }
         pendingAppUpdate = payload

@@ -208,8 +208,16 @@ shasum -a 256 dist/*.dmg dist/*.zip
 
 ## 8. 升级验证
 
-v0.1 Alpha 使用应用内 GitHub Release 检查、下载并打开 DMG，安装动作仍由用户
-手动覆盖完成；不使用 Electron/Squirrel 自动替换。
+v0.1 Alpha 使用应用内 GitHub Release 检查、校验、下载并打开 DMG，安装动作仍由用户
+手动覆盖完成；不使用 Electron/Squirrel 自动替换。alpha.4 起，Main 进程必须：
+
+- 只接受配置的官方 GitHub 仓库中、同一个 Tag 下的 DMG 和 `SHA256SUMS.txt`。
+- 在本机计算 DMG 的 SHA-256；不一致时删除临时文件且禁止打开。
+- 校验成功后，只对自身临时更新目录内的该 DMG 删除 `com.apple.quarantine`。
+- 不得调用 `spctl --master-disable`，不得改系统 Gatekeeper，不得对已安装应用或任意
+  用户文件递归运行 `xattr`。
+- 若缺少校验文件或任何安全步骤失败，停止应用内流程并保留明确错误，不降级为未经
+  校验的自动打开。
 
 1. 在旧试点版创建会话、Provider 路由、代理 Profile、Worktree 登记和 SQLite 元数据备份。
 2. 完全退出旧应用。

@@ -450,6 +450,7 @@ export interface AppCheckUpdateResponse {
   releaseNotes?: string
   downloadUrl?: string | null
   downloadName?: string | null
+  checksumUrl?: string | null
   assets?: import('./app-update').AppUpdateAsset[]
   error?: string
 }
@@ -466,6 +467,7 @@ export interface AppIgnoreUpdateVersionResponse { ok: boolean }
 export interface AppDownloadUpdateRequest {
   url: string
   fileName?: string
+  checksumUrl: string
 }
 export interface AppDownloadUpdateResponse {
   ok: boolean

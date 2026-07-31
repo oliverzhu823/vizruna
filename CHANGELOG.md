@@ -2,6 +2,27 @@
 
 面向仓库的完整版本记录。发版时由 `scripts/generate-release-notes.mjs` 从对应章节生成 **GitHub Release 正文**（用户可读更新说明，应用内「发现新版本」弹窗展示）。发布与应用内更新流程见 [doc/RELEASE.md](doc/RELEASE.md)。
 
+## [0.1.0-alpha.4] — 2026-07-31
+
+### macOS 无签名版更新体验
+
+- 应用内更新只接受 `oliverzhu823/vizruna` 官方 GitHub Release 的安装包，并要求
+  安装包与 `SHA256SUMS.txt` 来自同一个版本
+- 下载前验证更新来源，下载后在本机计算 SHA-256；校验不一致时立即删除安装包，
+  不会继续打开
+- 校验通过后，仅对 Vizruna 本次下载到临时目录的 DMG 处理
+  `com.apple.quarantine`，不修改系统全局 Gatekeeper，也不处理其他应用或文件
+- 更新弹窗新增“核对发布信息、下载、校验、准备安装包、打开”完整进度和中文错误说明
+- 若 Release 缺少安装包或 `SHA256SUMS.txt`，应用不会走自动处理，而是退回官方发布页
+
+### 当前边界
+
+- Alpha 安装包仍未使用 Apple Developer ID 签名和公证；第一次通过浏览器安装 Vizruna
+  仍可能需要在“隐私与安全性”中选择“仍要打开”，或在校验后执行 README 中的定向
+  `xattr` 命令
+- 安装 alpha.4 后，后续版本应优先从 Vizruna 内更新；真正免除首次安全提示仍需未来
+  完成 Developer ID 签名和 Apple 公证
+
 ## [0.1.0-alpha.3] — 2026-07-31
 
 ### Agent Studio

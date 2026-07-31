@@ -61,6 +61,7 @@ export function GeneralSettings() {
           releaseNotes: r.releaseNotes || '',
           downloadUrl: r.downloadUrl ?? null,
           downloadName: r.downloadName ?? null,
+          checksumUrl: r.checksumUrl ?? null,
           assets: r.assets || [],
         }
         showAppUpdateDialog(dialogInfo)

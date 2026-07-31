@@ -10,6 +10,23 @@
   "updating": "Downloading installer…",
   "downloading": "Downloading…",
   "downloadingPercent": "Downloading {{percent}}%",
+  "verifyingPackage": "Verifying the official release and installer SHA-256…",
+  "preparingInstaller": "Verification passed. Preparing the installer…",
   "launchingInstaller": "Installer opened. Quit Vizruna, drag the new app to Applications, and choose Replace.",
-  "downloadFailed": "Download failed: {{error}}"
+  "securityVerifiedHint": "Security: Vizruna downloads only from its official GitHub Release and verifies the installer against SHA256SUMS.txt from the same version. After verification, it handles quarantine only for this downloaded DMG; system Gatekeeper is never disabled or changed.",
+  "securityManualHint": "This release is missing an installer or SHA256SUMS.txt required for verified in-app updating. The official release page will open for manual verification.",
+  "downloadFailed": "Update failed: {{error}}",
+  "errors": {
+    "downloadInProgress": "Another update is already downloading",
+    "untrustedReleaseSource": "The update is not from the matching official Vizruna Release",
+    "checksumDownloadFailed": "The official SHA-256 manifest could not be downloaded",
+    "checksumManifestInvalid": "The official checksum manifest is invalid",
+    "checksumEntryMissing": "The installer is missing from the checksum manifest",
+    "checksumMismatch": "Installer verification failed; the file was deleted and will not be opened",
+    "quarantineInspectionFailed": "The downloaded file's quarantine state could not be inspected",
+    "quarantineRemoveFailed": "Quarantine could not be handled for this downloaded file",
+    "installerDownloadFailed": "The installer download failed",
+    "installerOpenFailed": "The installer was downloaded but could not be opened",
+    "unknown": "An unknown error occurred"
+  }
 }
