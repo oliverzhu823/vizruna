@@ -20,7 +20,8 @@ import { ensureWorkspaceWorkerOnBoot } from '@renderer/lib/ensure-workspace-work
 import { refreshComposerRunDisplay } from '@renderer/lib/composer-run-display'
 import { useExtensionUIStore } from '@renderer/stores/extension-ui-store'
 import { useTranslation } from 'react-i18next'
-import { Settings as SettingsIcon } from 'lucide-react'
+import { Bot, BriefcaseBusiness, Settings as SettingsIcon } from 'lucide-react'
+import type { AgentCase } from '@shared/agent-case'
 import { buildRightPanelTabs } from '@renderer/lib/right-panel-catalog'
 import { RightPanelTabs } from '@renderer/features/shell/right-panel-tabs'
 import { loadNormalizedRightPanelPrefs } from '@renderer/lib/right-panel-runtime'
@@ -35,10 +36,13 @@ import { EmptyState } from '@renderer/components/ui/empty-state'
 import { AppUpdateHost } from '@renderer/lib/app-update-notify'
 import { SessionLeaseConflictDialog } from '@renderer/features/session-lease/session-lease-conflict-dialog'
 import { ProviderAuthFlowHost } from '@renderer/features/auth/provider-auth-flow-host'
+import { useAgentProfileStore } from '@renderer/stores/agent-profile-store'
+import { enterNewSessionPlaceholder } from '@renderer/lib/new-session'
+import type { SettingsPageKey } from '@renderer/features/settings/settings-page'
 
 import { useDoubleEscapeTree } from '@renderer/hooks/use-double-escape-tree'
 
-type View = 'main' | 'settings'
+type View = 'main' | 'agents' | 'cases' | 'settings'
 type ProviderAuthManagerRequest = {
   mode: 'login' | 'logout'
   providerId?: string
@@ -67,6 +71,16 @@ const SessionForkOverlay = lazy(() =>
 const ProjectHomeView = lazy(() =>
   import('@renderer/components/app/project-home-view').then((m) => ({ default: m.ProjectHomeView })),
 )
+const AgentCasesPage = lazy(() =>
+  import('@renderer/features/agent-cases/agent-cases-page').then((m) => ({
+    default: m.AgentCasesPage,
+  })),
+)
+const AgentProfilesPage = lazy(() =>
+  import('@renderer/features/agent-profiles/agent-profiles-page').then((m) => ({
+    default: m.AgentProfilesPage,
+  })),
+)
 
 function ShellSuspenseFallback({ label }: { label: string }) {
   return <EmptyState compact title={label} className="min-h-[12rem]" />
@@ -75,6 +89,8 @@ function ShellSuspenseFallback({ label }: { label: string }) {
 export default function App() {
   const { t } = useTranslation()
   const [view, setView] = useState<View>('main')
+  const [settingsInitialPage, setSettingsInitialPage] =
+    useState<SettingsPageKey>('general')
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const [providerAuthManager, setProviderAuthManager] =
@@ -145,6 +161,29 @@ export default function App() {
   }, [])
 
   useEffect(() => {
+    const openAgentProfiles = () => setView('agents')
+    window.addEventListener('vizruna:open-agent-profiles', openAgentProfiles)
+    return () => window.removeEventListener('vizruna:open-agent-profiles', openAgentProfiles)
+  }, [])
+
+  useEffect(() => {
+    const openSystemPrompts = () => {
+      setSettingsInitialPage('prompts')
+      setView('settings')
+    }
+    const useSystemPrompt = () => {
+      enterNewSessionPlaceholder()
+      setView('main')
+    }
+    window.addEventListener('vizruna:open-system-prompts', openSystemPrompts)
+    window.addEventListener('vizruna:use-system-prompt', useSystemPrompt)
+    return () => {
+      window.removeEventListener('vizruna:open-system-prompts', openSystemPrompts)
+      window.removeEventListener('vizruna:use-system-prompt', useSystemPrompt)
+    }
+  }, [])
+
+  useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase()
       const mod = event.metaKey || event.ctrlKey
@@ -167,6 +206,8 @@ export default function App() {
     useExtensionUIStore.getState().resetForSessionContext()
     void ensureWorkspaceWorkerOnBoot()
     void hydrateThemeFromSettings().catch(() => {})
+    void useAgentProfileStore.getState().loadProfiles().catch(() => {})
+    void useAgentProfileStore.getState().loadPromptPresets().catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -284,12 +325,31 @@ export default function App() {
     await activateWorkspace(path, { preferHome: true })
   }
 
+  const handleOpenAgentCaseSource = async (agentCase: AgentCase) => {
+    setView('main')
+    await activateWorkspace(agentCase.workspacePath, {
+      sessionId: agentCase.sourceSessionId,
+      sessionFile: agentCase.sourceSessionFile,
+    })
+  }
+
+  const handleUseAgent = (profileId: string) => {
+    useAgentProfileStore.getState().selectProfile(profileId)
+    enterNewSessionPlaceholder()
+    setView('main')
+  }
+
   const paletteAndShortcuts = (
     <>
       <CommandPalette
         open={commandPaletteOpen}
         onClose={() => setCommandPaletteOpen(false)}
-        onOpenSettings={() => setView('settings')}
+        onOpenSettings={() => {
+          setSettingsInitialPage('general')
+          setView('settings')
+        }}
+        onOpenAgentProfiles={() => setView('agents')}
+        onOpenAgentCases={() => setView('cases')}
         onOpenSessionTree={canUseTree ? () => setTreeOpen(true) : undefined}
         onOpenShortcuts={() => setShortcutsOpen(true)}
       />
@@ -315,13 +375,49 @@ export default function App() {
           <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
             <ErrorBoundary label="settings">
               <Suspense fallback={<ShellSuspenseFallback label={t('common:loadingSettings')} />}>
-                <SettingsPage />
+                <SettingsPage initialPage={settingsInitialPage} />
               </Suspense>
             </ErrorBoundary>
           </div>
         </div>
         <AppToaster />
         <ProviderAuthFlowHost onFlowStarted={handleProviderAuthFlowStarted} />
+        {paletteAndShortcuts}
+        <AppUpdateHost />
+      </ErrorBoundary>
+    )
+  }
+
+  if (view === 'cases') {
+    return (
+      <ErrorBoundary>
+        <div className="flex h-screen flex-col overflow-hidden text-foreground bg-background">
+          <TopBar onBack={() => setView('main')} title={t('cases:title')} />
+          <ErrorBoundary label="agent-cases">
+            <Suspense fallback={<ShellSuspenseFallback label={t('common:loading')} />}>
+              <AgentCasesPage onOpenSource={handleOpenAgentCaseSource} />
+            </Suspense>
+          </ErrorBoundary>
+        </div>
+        <AppToaster />
+        {paletteAndShortcuts}
+        <AppUpdateHost />
+      </ErrorBoundary>
+    )
+  }
+
+  if (view === 'agents') {
+    return (
+      <ErrorBoundary>
+        <div className="flex h-screen flex-col overflow-hidden bg-background text-foreground">
+          <TopBar onBack={() => setView('main')} title={t('agents:title')} />
+          <ErrorBoundary label="agent-profiles">
+            <Suspense fallback={<ShellSuspenseFallback label={t('common:loading')} />}>
+              <AgentProfilesPage onUseAgent={handleUseAgent} />
+            </Suspense>
+          </ErrorBoundary>
+        </div>
+        <AppToaster />
         {paletteAndShortcuts}
         <AppUpdateHost />
       </ErrorBoundary>
@@ -346,9 +442,22 @@ export default function App() {
               </SidebarContent>
               <div className="border-t border-border/50 p-1.5">
                 <SidebarItem
+                  label={t('agents:title')}
+                  icon={<Bot className="h-4 w-4" />}
+                  onClick={() => setView('agents')}
+                />
+                <SidebarItem
+                  label={t('cases:title')}
+                  icon={<BriefcaseBusiness className="h-4 w-4" />}
+                  onClick={() => setView('cases')}
+                />
+                <SidebarItem
                   label={t('sidebar.settings')}
                   icon={<SettingsIcon className="h-4 w-4" />}
-                  onClick={() => setView('settings')}
+                  onClick={() => {
+                    setSettingsInitialPage('general')
+                    setView('settings')
+                  }}
                 />
               </div>
             </Sidebar>

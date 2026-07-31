@@ -1,6 +1,37 @@
 // IPC Contract - Complete typed method signatures for Renderer/Main/Worker
 
 import type { AppEvent } from './app-events'
+import type {
+  AgentCaseArchiveRequest,
+  AgentCaseCreateRequest,
+  AgentCaseListRequest,
+  AgentCaseListResponse,
+  AgentCaseMutationResponse,
+  AgentCaseUpdateRequest,
+} from './agent-case'
+import type {
+  AgentProfileArchiveRequest,
+  AgentProfileCreateRequest,
+  AgentProfileListRequest,
+  AgentProfileListResponse,
+  AgentProfileMutationResponse,
+  AgentProfileUpdateRequest,
+  SessionAgentBinding,
+  SessionAgentBindingGetRequest,
+  SessionAgentBindingGetResponse,
+} from './agent-profile'
+import type {
+  ConversationConfigBinding,
+  ConversationConfigBindingGetRequest,
+  ConversationConfigBindingGetResponse,
+  ConversationConfigSelection,
+  SystemPromptPresetArchiveRequest,
+  SystemPromptPresetCreateRequest,
+  SystemPromptPresetListRequest,
+  SystemPromptPresetListResponse,
+  SystemPromptPresetMutationResponse,
+  SystemPromptPresetUpdateRequest,
+} from './system-prompt-preset'
 import type { DiffResult } from './diff-model'
 import type { CompatibilityLevel } from './extension-types'
 import type { SessionLeaseSnapshot } from './session-lease'
@@ -155,11 +186,19 @@ export interface SessionOpenResponse { session: SessionInfo }
 export interface SessionNewRequest {
   workspaceId: string
   title?: string
+  /** One mutually-exclusive configuration selected before the first message. */
+  conversationConfig?: ConversationConfigSelection
+  /** Optional reusable Agent selected before the first message is sent. */
+  agentProfileId?: string
   /** Full provider/model key inherited from the last active conversation. */
   modelId?: string
   thinkingLevel?: string
 }
-export interface SessionNewResponse { session: SessionInfo }
+export interface SessionNewResponse {
+  session: SessionInfo
+  agentBinding?: SessionAgentBinding
+  conversationConfigBinding?: ConversationConfigBinding
+}
 export interface SessionForkRequest {
   sessionId?: string
   sessionFile: string
@@ -245,7 +284,7 @@ export interface ModelInfo {
 }
 export interface ModelListRequest {
   workspaceId?: string
-  /** catalog=~/.pi/agent/models.json 全部条目（设置默认模型）；available=已配置鉴权（Composer） */
+  /** catalog=当前 Pi agent 目录的 models.json；available=已配置鉴权（Composer） */
   scope?: 'catalog' | 'available'
 }
 export interface ModelListResponse { models: ModelInfo[] }
@@ -313,6 +352,24 @@ export interface PiModelsFetchResponse {
   ok: boolean
   ids?: string[]
   error?: string
+}
+
+export interface PiConfigImportInspectRequest {}
+export interface PiConfigImportInspectResponse {
+  available: boolean
+  sourceDir: string
+  targetDir: string
+  files: Array<'auth.json' | 'models.json' | 'settings.json'>
+  providers: string[]
+  targetHasConfig: boolean
+  reason?: 'same-directory' | 'source-empty'
+}
+export interface PiConfigImportRunRequest { confirmed: true }
+export interface PiConfigImportRunResponse {
+  ok: true
+  imported: Array<'auth.json' | 'models.json' | 'settings.json'>
+  backupFiles: string[]
+  targetDir: string
 }
 
 // ── ThinkingLevel ──
@@ -422,6 +479,62 @@ export interface EventsSubscribeResponse { subscriptionId: string }
 
 // ── IPC Method Map ──
 export interface IpcMethodMap {
+  'systemPromptPreset.list': {
+    request: SystemPromptPresetListRequest
+    response: SystemPromptPresetListResponse
+  }
+  'systemPromptPreset.create': {
+    request: SystemPromptPresetCreateRequest
+    response: SystemPromptPresetMutationResponse
+  }
+  'systemPromptPreset.update': {
+    request: SystemPromptPresetUpdateRequest
+    response: SystemPromptPresetMutationResponse
+  }
+  'systemPromptPreset.archive': {
+    request: SystemPromptPresetArchiveRequest
+    response: SystemPromptPresetMutationResponse
+  }
+  'conversationConfig.binding.get': {
+    request: ConversationConfigBindingGetRequest
+    response: ConversationConfigBindingGetResponse
+  }
+  'agentProfile.list': {
+    request: AgentProfileListRequest
+    response: AgentProfileListResponse
+  }
+  'agentProfile.create': {
+    request: AgentProfileCreateRequest
+    response: AgentProfileMutationResponse
+  }
+  'agentProfile.update': {
+    request: AgentProfileUpdateRequest
+    response: AgentProfileMutationResponse
+  }
+  'agentProfile.archive': {
+    request: AgentProfileArchiveRequest
+    response: AgentProfileMutationResponse
+  }
+  'agentProfile.binding.get': {
+    request: SessionAgentBindingGetRequest
+    response: SessionAgentBindingGetResponse
+  }
+  'agentCase.list': {
+    request: AgentCaseListRequest
+    response: AgentCaseListResponse
+  }
+  'agentCase.create': {
+    request: AgentCaseCreateRequest
+    response: AgentCaseMutationResponse
+  }
+  'agentCase.update': {
+    request: AgentCaseUpdateRequest
+    response: AgentCaseMutationResponse
+  }
+  'agentCase.archive': {
+    request: AgentCaseArchiveRequest
+    response: AgentCaseMutationResponse
+  }
   'workspace.open': { request: WorkspaceOpenRequest; response: WorkspaceOpenResponse }
   'workspace.ensureWorker': { request: WorkspaceEnsureWorkerRequest; response: WorkspaceEnsureWorkerResponse }
   'workspace.switch': { request: WorkspaceSwitchRequest; response: WorkspaceSwitchResponse }
@@ -541,6 +654,14 @@ export interface IpcMethodMap {
   'pi.models.get': { request: PiModelsGetRequest; response: PiModelsGetResponse }
   'pi.models.set': { request: PiModelsSetRequest; response: PiModelsSetResponse }
   'pi.models.fetch': { request: PiModelsFetchRequest; response: PiModelsFetchResponse }
+  'pi.configImport.inspect': {
+    request: PiConfigImportInspectRequest
+    response: PiConfigImportInspectResponse
+  }
+  'pi.configImport.run': {
+    request: PiConfigImportRunRequest
+    response: PiConfigImportRunResponse
+  }
   'thinkingLevel.set': { request: ThinkingLevelSetRequest; response: ThinkingLevelSetResponse }
   'commands.list': { request: CommandsListRequest; response: CommandsListResponse }
   'review.getDiff': { request: ReviewGetDiffRequest; response: ReviewGetDiffResponse }

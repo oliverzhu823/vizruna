@@ -77,4 +77,86 @@ test.describe('Vizruna smoke', () => {
       await app.close()
     }
   })
+
+  test('opens the Agent Case library and keeps creation disabled without a source conversation', async () => {
+    const app = await launchApp()
+    try {
+      const window = await app.firstWindow({ timeout: 45_000 })
+      await window.waitForLoadState('domcontentloaded', { timeout: 45_000 })
+      const casesEntry = window.getByRole('button', { name: /^(Agent Cases|Agent 案例)$/ })
+      await expect(casesEntry).toBeVisible()
+      await casesEntry.click()
+      await expect(
+        window.getByRole('heading', { name: /^(Agent Cases|Agent 案例)$/ }),
+      ).toBeVisible()
+      await expect(
+        window.getByRole('button', {
+          name: /^(Save current conversation|沉淀当前对话)$/,
+        }),
+      ).toBeDisabled()
+    } finally {
+      await app.close()
+    }
+  })
+
+  test('keeps message chrome clear and uses the composer type scale', async () => {
+    const app = await launchApp()
+    try {
+      const window = await app.firstWindow({ timeout: 45_000 })
+      await window.waitForLoadState('domcontentloaded', { timeout: 45_000 })
+      const layout = await window.evaluate(() => {
+        // The no-project smoke state intentionally has no chat column. Mount a
+        // deterministic probe that uses the production classes instead of
+        // depending on persisted user/project data.
+        const host = document.createElement('div')
+        host.className = 'main-chat-column relative'
+        host.style.cssText =
+          'position:fixed;left:0;top:0;width:800px;height:600px;overflow:hidden;visibility:hidden'
+        document.body.appendChild(host)
+
+        const controls = document.createElement('div')
+        controls.className =
+          'main-col-floating-controls absolute right-3 top-2 z-20 flex flex-col gap-1'
+        controls.style.width = '28px'
+        controls.style.height = '60px'
+        host.appendChild(controls)
+        const composerProbe = document.createElement('div')
+        composerProbe.className = 'composer-shell'
+        composerProbe.innerHTML =
+          '<div class="rich-input"></div><span class="composer-meta-text"></span>'
+        host.appendChild(composerProbe)
+        const input = composerProbe.querySelector<HTMLElement>('.rich-input')!
+        const meta = composerProbe.querySelector<HTMLElement>('.composer-meta-text')!
+
+        const content = document.createElement('div')
+        content.className = 'chat-content-column'
+        content.style.position = 'absolute'
+        content.style.inset = '0'
+        content.style.pointerEvents = 'none'
+        content.innerHTML =
+          '<div class="timeline-user-row"><div class="message-hover-shell items-end"><div class="timeline-user-bubble">UI probe</div></div></div>'
+        host.appendChild(content)
+
+        const bubble = content.querySelector<HTMLElement>('.timeline-user-bubble')!
+        const contentStyle = getComputedStyle(content)
+        const result = {
+          bodyFontSize: getComputedStyle(input).fontSize,
+          metaFontSize: getComputedStyle(meta).fontSize,
+          leftPadding: Number.parseFloat(contentStyle.paddingLeft),
+          rightPadding: Number.parseFloat(contentStyle.paddingRight),
+          bubbleRight: bubble.getBoundingClientRect().right,
+          controlsLeft: controls.getBoundingClientRect().left,
+        }
+        host.remove()
+        return result
+      })
+
+      expect(layout.bodyFontSize).toBe('15px')
+      expect(layout.metaFontSize).toBe('12px')
+      expect(layout.rightPadding - layout.leftPadding).toBeGreaterThanOrEqual(60)
+      expect(layout.bubbleRight).toBeLessThanOrEqual(layout.controlsLeft - 8)
+    } finally {
+      await app.close()
+    }
+  })
 })

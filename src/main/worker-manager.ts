@@ -52,6 +52,8 @@ import {
   SessionFileMonitor,
 } from './lease/session-file-monitor'
 import type { ProviderRoutingRuntime } from '@shared/provider-routing'
+import type { ConversationRuntimeSnapshot } from '@shared/system-prompt-preset'
+import { getConversationConfigBinding } from './system-prompt-preset-service'
 import {
   isDeferredAuthenticationReloadError,
   isInvalidAuthenticationRuntimeError,
@@ -270,11 +272,18 @@ export class WorkerManager {
   private async ensureSessionWorkerUnlocked(
     sessionFile: string,
     cwd: string,
-    options?: { foreground?: boolean },
+    options?: {
+      foreground?: boolean
+      conversationConfigSnapshot?: ConversationRuntimeSnapshot | null
+    },
   ): Promise<InitResult> {
     const makeForeground = options?.foreground !== false
     const sk = normalizeSessionKey(sessionFile)
     if (!sk) throw new Error('sessionFile required')
+    const conversationConfigSnapshot =
+      options?.conversationConfigSnapshot === undefined
+        ? getConversationConfigBinding({ sessionFile: sk })?.snapshot ?? null
+        : options.conversationConfigSnapshot
     const disposing = this.pool.get(sk)
     if (disposing?.stopping) {
       const deadline = Date.now() + 3_000
@@ -302,7 +311,10 @@ export class WorkerManager {
       }
       if (existing.initPromise) await existing.initPromise
       // Bind live session on worker
-      await this.requestOnSlot(existing, 'loadSession', { sessionFile: sk })
+      await this.requestOnSlot(existing, 'loadSession', {
+        sessionFile: sk,
+        conversationConfigSnapshot,
+      })
       this.bindSlotLease(existing, sk)
       return this.initResultFromSlot(existing)
     }
@@ -318,7 +330,10 @@ export class WorkerManager {
       if (makeForeground) this.setForeground(wsSlot)
       try {
         if (wsSlot.initPromise) await wsSlot.initPromise
-        await this.requestOnSlot(wsSlot, 'loadSession', { sessionFile: sk })
+        await this.requestOnSlot(wsSlot, 'loadSession', {
+          sessionFile: sk,
+          conversationConfigSnapshot,
+        })
       } catch (error) {
         this.pool.delete(sk)
         wsSlot.poolKey = wsKey
@@ -362,7 +377,10 @@ export class WorkerManager {
 
     try {
       await init
-      await this.requestOnSlot(slot, 'loadSession', { sessionFile: sk })
+      await this.requestOnSlot(slot, 'loadSession', {
+        sessionFile: sk,
+        conversationConfigSnapshot,
+      })
     } catch (error) {
       if (this.pool.get(sk) === slot) this.pool.delete(sk)
       if (makeForeground && this.foregroundPoolKey === sk) this.foregroundPoolKey = null
@@ -1152,9 +1170,13 @@ export class WorkerManager {
       this.request('setThinkingLevel', { level }),
     )
   }
-  async newSession(): Promise<{ sessionId: string; sessionFile?: string }> {
+  async newSession(
+    conversationConfigSnapshot?: ConversationRuntimeSnapshot,
+  ): Promise<{ sessionId: string; sessionFile?: string }> {
     await this.ensureWriteLease(this.foregroundSessionFile ?? undefined)
-    const r = await this.request('newSession')
+    const r = await this.request('newSession', {
+      conversationConfigSnapshot: conversationConfigSnapshot ?? null,
+    })
     const sessionId = String(r.sessionId ?? '')
     const sessionFile = r.sessionFile ? String(r.sessionFile) : undefined
     if (sessionFile) {
@@ -1361,7 +1383,12 @@ export class WorkerManager {
   }
   async loadSession(
     sessionFile: string,
-    opts?: { force?: boolean; cwd?: string; leafId?: string | null },
+    opts?: {
+      force?: boolean
+      cwd?: string
+      leafId?: string | null
+      conversationConfigSnapshot?: ConversationRuntimeSnapshot | null
+    },
   ): Promise<{
     sessionId: string
     model?: string
@@ -1386,9 +1413,14 @@ export class WorkerManager {
         leafId = undefined
       }
     }
+    const storedConversationConfig =
+      opts?.conversationConfigSnapshot === undefined
+        ? getConversationConfigBinding({ sessionFile })?.snapshot ?? null
+        : opts.conversationConfigSnapshot
     const r = await this.request('loadSession', {
       sessionFile,
       force: opts?.force === true,
+      conversationConfigSnapshot: storedConversationConfig,
       ...(leafId !== undefined ? { leafId } : {}),
     })
     const sk = normalizeSessionKey(sessionFile)

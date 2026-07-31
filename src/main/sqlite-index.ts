@@ -12,6 +12,17 @@ import {
 import { basename, join } from 'path'
 import { PRODUCT_PACKAGE_NAME } from '@shared/product-identity'
 import type { ManagedWorktree } from '@shared/managed-worktree'
+import type { AgentCase } from '@shared/agent-case'
+import type {
+  AgentProfile,
+  AgentProfileSnapshot,
+  SessionAgentBinding,
+} from '@shared/agent-profile'
+import type {
+  SessionPromptBinding,
+  SystemPromptPreset,
+  SystemPromptSnapshot,
+} from '@shared/system-prompt-preset'
 import type { AuditEventRecord } from '@shared/audit-events'
 import type {
   AgentRelationship,
@@ -46,7 +57,7 @@ type SqliteDb = {
 let DatabaseCtor: (new (path: string) => SqliteDb) | null = null
 let db: SqliteDb | null = null
 let loadFailed = false
-const SCHEMA_VERSION = 4
+const SCHEMA_VERSION = 7
 const MAX_BACKUPS = 20
 
 function databasePath(): string {
@@ -326,6 +337,69 @@ function initSchema(d: SqliteDb): void {
     );
     CREATE INDEX IF NOT EXISTS idx_orchestration_evidence_relationship
       ON orchestration_evidence(relationship_id, created_at);
+    CREATE TABLE IF NOT EXISTS agent_case (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      summary TEXT,
+      tags_json TEXT NOT NULL DEFAULT '[]',
+      status TEXT NOT NULL,
+      workspace_path TEXT NOT NULL,
+      source_session_id TEXT NOT NULL,
+      source_session_file TEXT NOT NULL,
+      model_id TEXT,
+      thinking_level TEXT,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_agent_case_status_updated
+      ON agent_case(status, updated_at);
+    CREATE INDEX IF NOT EXISTS idx_agent_case_workspace_updated
+      ON agent_case(workspace_path, updated_at);
+    CREATE TABLE IF NOT EXISTS agent_profile (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      description TEXT,
+      system_prompt TEXT NOT NULL,
+      prompt_mode TEXT NOT NULL,
+      model_id TEXT,
+      thinking_level TEXT,
+      tools_json TEXT,
+      status TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_agent_profile_status_updated
+      ON agent_profile(status, updated_at);
+    CREATE TABLE IF NOT EXISTS session_agent_binding (
+      session_file TEXT PRIMARY KEY,
+      session_id TEXT NOT NULL UNIQUE,
+      profile_id TEXT NOT NULL,
+      snapshot_json TEXT NOT NULL,
+      created_at INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_session_agent_binding_profile
+      ON session_agent_binding(profile_id, created_at);
+    CREATE TABLE IF NOT EXISTS system_prompt_preset (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      description TEXT,
+      system_prompt TEXT NOT NULL,
+      prompt_mode TEXT NOT NULL,
+      status TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_system_prompt_preset_status_updated
+      ON system_prompt_preset(status, updated_at);
+    CREATE TABLE IF NOT EXISTS session_prompt_binding (
+      session_file TEXT PRIMARY KEY,
+      session_id TEXT NOT NULL UNIQUE,
+      preset_id TEXT,
+      snapshot_json TEXT NOT NULL,
+      created_at INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_session_prompt_binding_preset
+      ON session_prompt_binding(preset_id, created_at);
   `)
   try {
     d.exec(
@@ -364,6 +438,114 @@ function mapAuditEventRow(row: unknown): AuditEventRecord | null {
     sessionFile: value.session_file ? String(value.session_file) : undefined,
     details,
     timestamp: Number(value.timestamp || 0),
+  }
+}
+
+function mapAgentCaseRow(row: unknown): AgentCase | null {
+  if (!row || typeof row !== 'object') return null
+  const value = row as Record<string, unknown>
+  let tags: string[] = []
+  try {
+    const parsed = JSON.parse(String(value.tags_json || '[]')) as unknown
+    if (Array.isArray(parsed)) tags = parsed.filter((tag): tag is string => typeof tag === 'string')
+  } catch {
+    tags = []
+  }
+  return {
+    id: String(value.id || ''),
+    name: String(value.name || ''),
+    summary: value.summary ? String(value.summary) : undefined,
+    tags,
+    status: String(value.status || 'draft') as AgentCase['status'],
+    workspacePath: String(value.workspace_path || ''),
+    sourceSessionId: String(value.source_session_id || ''),
+    sourceSessionFile: String(value.source_session_file || ''),
+    modelId: value.model_id ? String(value.model_id) : undefined,
+    thinkingLevel: value.thinking_level ? String(value.thinking_level) : undefined,
+    createdAt: Number(value.created_at || 0),
+    updatedAt: Number(value.updated_at || 0),
+  }
+}
+
+function mapAgentProfileRow(row: unknown): AgentProfile | null {
+  if (!row || typeof row !== 'object') return null
+  const value = row as Record<string, unknown>
+  let tools: string[] | undefined
+  if (value.tools_json != null) {
+    try {
+      const parsed = JSON.parse(String(value.tools_json)) as unknown
+      if (Array.isArray(parsed)) {
+        tools = parsed.filter((tool): tool is string => typeof tool === 'string')
+      }
+    } catch {
+      tools = undefined
+    }
+  }
+  return {
+    id: String(value.id || ''),
+    name: String(value.name || ''),
+    description: value.description ? String(value.description) : undefined,
+    systemPrompt: String(value.system_prompt || ''),
+    promptMode: String(value.prompt_mode || 'append') as AgentProfile['promptMode'],
+    modelId: value.model_id ? String(value.model_id) : undefined,
+    thinkingLevel: value.thinking_level ? String(value.thinking_level) : undefined,
+    tools,
+    status: String(value.status || 'active') as AgentProfile['status'],
+    createdAt: Number(value.created_at || 0),
+    updatedAt: Number(value.updated_at || 0),
+  }
+}
+
+function mapSessionAgentBindingRow(row: unknown): SessionAgentBinding | null {
+  if (!row || typeof row !== 'object') return null
+  const value = row as Record<string, unknown>
+  let snapshot: AgentProfileSnapshot
+  try {
+    snapshot = JSON.parse(String(value.snapshot_json || '')) as AgentProfileSnapshot
+  } catch {
+    return null
+  }
+  if (!snapshot?.profileId || !snapshot.name || !snapshot.systemPrompt) return null
+  return {
+    sessionId: String(value.session_id || ''),
+    sessionFile: String(value.session_file || ''),
+    profileId: String(value.profile_id || snapshot.profileId),
+    snapshot,
+    createdAt: Number(value.created_at || 0),
+  }
+}
+
+function mapSystemPromptPresetRow(row: unknown): SystemPromptPreset | null {
+  if (!row || typeof row !== 'object') return null
+  const value = row as Record<string, unknown>
+  return {
+    id: String(value.id || ''),
+    name: String(value.name || ''),
+    description: value.description ? String(value.description) : undefined,
+    systemPrompt: String(value.system_prompt || ''),
+    promptMode: String(value.prompt_mode || 'append') as SystemPromptPreset['promptMode'],
+    status: String(value.status || 'active') as SystemPromptPreset['status'],
+    createdAt: Number(value.created_at || 0),
+    updatedAt: Number(value.updated_at || 0),
+  }
+}
+
+function mapSessionPromptBindingRow(row: unknown): SessionPromptBinding | null {
+  if (!row || typeof row !== 'object') return null
+  const value = row as Record<string, unknown>
+  let snapshot: SystemPromptSnapshot
+  try {
+    snapshot = JSON.parse(String(value.snapshot_json || '')) as SystemPromptSnapshot
+  } catch {
+    return null
+  }
+  if (!snapshot?.name || !snapshot.systemPrompt || !snapshot.promptMode) return null
+  return {
+    sessionId: String(value.session_id || ''),
+    sessionFile: String(value.session_file || ''),
+    presetId: value.preset_id ? String(value.preset_id) : undefined,
+    snapshot,
+    createdAt: Number(value.created_at || 0),
   }
 }
 
@@ -451,6 +633,256 @@ function mapOrchestrationEvidenceRow(row: unknown): OrchestrationEvidence | null
 }
 
 export const sqliteIndex = {
+  saveSystemPromptPreset(preset: SystemPromptPreset): boolean {
+    const d = getDb()
+    if (!d) return false
+    d.prepare(
+      `INSERT INTO system_prompt_preset
+        (id, name, description, system_prompt, prompt_mode, status, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET
+         name = excluded.name,
+         description = excluded.description,
+         system_prompt = excluded.system_prompt,
+         prompt_mode = excluded.prompt_mode,
+         status = excluded.status,
+         updated_at = excluded.updated_at`,
+    ).run(
+      preset.id,
+      preset.name,
+      preset.description ?? null,
+      preset.systemPrompt,
+      preset.promptMode,
+      preset.status,
+      preset.createdAt,
+      preset.updatedAt,
+    )
+    return true
+  },
+
+  getSystemPromptPreset(id: string): SystemPromptPreset | null {
+    const d = getDb()
+    if (!d) return null
+    return mapSystemPromptPresetRow(
+      d.prepare('SELECT * FROM system_prompt_preset WHERE id = ?').get(id),
+    )
+  },
+
+  listSystemPromptPresets(options?: { includeArchived?: boolean }): SystemPromptPreset[] {
+    const d = getDb()
+    if (!d) return []
+    const where = options?.includeArchived === true ? '' : " WHERE status != 'archived'"
+    return d
+      .prepare(`SELECT * FROM system_prompt_preset${where} ORDER BY updated_at DESC`)
+      .all()
+      .map(mapSystemPromptPresetRow)
+      .filter((preset): preset is SystemPromptPreset => preset != null)
+  },
+
+  bindSessionPrompt(binding: SessionPromptBinding): boolean {
+    const d = getDb()
+    if (!d) return false
+    d.prepare(
+      `INSERT INTO session_prompt_binding
+        (session_file, session_id, preset_id, snapshot_json, created_at)
+       VALUES (?, ?, ?, ?, ?)
+       ON CONFLICT(session_file) DO UPDATE SET
+         session_id = excluded.session_id,
+         preset_id = excluded.preset_id,
+         snapshot_json = excluded.snapshot_json,
+         created_at = excluded.created_at`,
+    ).run(
+      binding.sessionFile,
+      binding.sessionId,
+      binding.presetId ?? null,
+      JSON.stringify(binding.snapshot),
+      binding.createdAt,
+    )
+    return true
+  },
+
+  getSessionPromptBinding(options: {
+    sessionId?: string
+    sessionFile?: string
+  }): SessionPromptBinding | null {
+    const d = getDb()
+    if (!d) return null
+    if (options.sessionFile) {
+      return mapSessionPromptBindingRow(
+        d
+          .prepare('SELECT * FROM session_prompt_binding WHERE session_file = ?')
+          .get(options.sessionFile),
+      )
+    }
+    if (options.sessionId) {
+      return mapSessionPromptBindingRow(
+        d
+          .prepare('SELECT * FROM session_prompt_binding WHERE session_id = ?')
+          .get(options.sessionId),
+      )
+    }
+    return null
+  },
+
+  saveAgentProfile(profile: AgentProfile): boolean {
+    const d = getDb()
+    if (!d) return false
+    d.prepare(
+      `INSERT INTO agent_profile
+        (id, name, description, system_prompt, prompt_mode, model_id, thinking_level,
+         tools_json, status, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET
+         name = excluded.name,
+         description = excluded.description,
+         system_prompt = excluded.system_prompt,
+         prompt_mode = excluded.prompt_mode,
+         model_id = excluded.model_id,
+         thinking_level = excluded.thinking_level,
+         tools_json = excluded.tools_json,
+         status = excluded.status,
+         updated_at = excluded.updated_at`,
+    ).run(
+      profile.id,
+      profile.name,
+      profile.description ?? null,
+      profile.systemPrompt,
+      profile.promptMode,
+      profile.modelId ?? null,
+      profile.thinkingLevel ?? null,
+      profile.tools === undefined ? null : JSON.stringify(profile.tools),
+      profile.status,
+      profile.createdAt,
+      profile.updatedAt,
+    )
+    return true
+  },
+
+  getAgentProfile(id: string): AgentProfile | null {
+    const d = getDb()
+    if (!d) return null
+    return mapAgentProfileRow(d.prepare('SELECT * FROM agent_profile WHERE id = ?').get(id))
+  },
+
+  listAgentProfiles(options?: { includeArchived?: boolean }): AgentProfile[] {
+    const d = getDb()
+    if (!d) return []
+    const where = options?.includeArchived === true ? '' : " WHERE status != 'archived'"
+    return d
+      .prepare(`SELECT * FROM agent_profile${where} ORDER BY updated_at DESC`)
+      .all()
+      .map(mapAgentProfileRow)
+      .filter((profile): profile is AgentProfile => profile != null)
+  },
+
+  bindSessionAgent(binding: SessionAgentBinding): boolean {
+    const d = getDb()
+    if (!d) return false
+    d.prepare(
+      `INSERT INTO session_agent_binding
+        (session_file, session_id, profile_id, snapshot_json, created_at)
+       VALUES (?, ?, ?, ?, ?)
+       ON CONFLICT(session_file) DO UPDATE SET
+         session_id = excluded.session_id,
+         profile_id = excluded.profile_id,
+         snapshot_json = excluded.snapshot_json,
+         created_at = excluded.created_at`,
+    ).run(
+      binding.sessionFile,
+      binding.sessionId,
+      binding.profileId,
+      JSON.stringify(binding.snapshot),
+      binding.createdAt,
+    )
+    return true
+  },
+
+  getSessionAgentBinding(options: {
+    sessionId?: string
+    sessionFile?: string
+  }): SessionAgentBinding | null {
+    const d = getDb()
+    if (!d) return null
+    if (options.sessionFile) {
+      return mapSessionAgentBindingRow(
+        d
+          .prepare('SELECT * FROM session_agent_binding WHERE session_file = ?')
+          .get(options.sessionFile),
+      )
+    }
+    if (options.sessionId) {
+      return mapSessionAgentBindingRow(
+        d
+          .prepare('SELECT * FROM session_agent_binding WHERE session_id = ?')
+          .get(options.sessionId),
+      )
+    }
+    return null
+  },
+
+  saveAgentCase(agentCase: AgentCase): boolean {
+    const d = getDb()
+    if (!d) return false
+    d.prepare(
+      `INSERT INTO agent_case
+        (id, name, summary, tags_json, status, workspace_path, source_session_id,
+         source_session_file, model_id, thinking_level, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET
+         name = excluded.name,
+         summary = excluded.summary,
+         tags_json = excluded.tags_json,
+         status = excluded.status,
+         workspace_path = excluded.workspace_path,
+         source_session_id = excluded.source_session_id,
+         source_session_file = excluded.source_session_file,
+         model_id = excluded.model_id,
+         thinking_level = excluded.thinking_level,
+         updated_at = excluded.updated_at`,
+    ).run(
+      agentCase.id,
+      agentCase.name,
+      agentCase.summary ?? null,
+      JSON.stringify(agentCase.tags),
+      agentCase.status,
+      agentCase.workspacePath,
+      agentCase.sourceSessionId,
+      agentCase.sourceSessionFile,
+      agentCase.modelId ?? null,
+      agentCase.thinkingLevel ?? null,
+      agentCase.createdAt,
+      agentCase.updatedAt,
+    )
+    return true
+  },
+
+  getAgentCase(id: string): AgentCase | null {
+    const d = getDb()
+    if (!d) return null
+    return mapAgentCaseRow(d.prepare('SELECT * FROM agent_case WHERE id = ?').get(id))
+  },
+
+  listAgentCases(options?: {
+    workspacePath?: string
+    includeArchived?: boolean
+  }): AgentCase[] {
+    const d = getDb()
+    if (!d) return []
+    const clauses: string[] = []
+    const args: unknown[] = []
+    if (options?.workspacePath) {
+      clauses.push('workspace_path = ?')
+      args.push(options.workspacePath)
+    }
+    if (options?.includeArchived !== true) clauses.push("status != 'archived'")
+    const where = clauses.length ? ` WHERE ${clauses.join(' AND ')}` : ''
+    return d
+      .prepare(`SELECT * FROM agent_case${where} ORDER BY updated_at DESC`)
+      .all(...args)
+      .map(mapAgentCaseRow)
+      .filter((agentCase): agentCase is AgentCase => agentCase != null)
+  },
+
   upsertWorkspace(workspaceId: string, name: string, path: string): void {
     const d = getDb()
     if (!d) return

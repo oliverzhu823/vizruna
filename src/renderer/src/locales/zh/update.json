@@ -5,11 +5,11 @@
   "noNotes": "本次发布未附带详细说明。可打开发布页查看。",
   "remindLater": "本次忽略",
   "ignoreVersion": "忽略本版本",
-  "updateNow": "更新",
+  "updateNow": "下载并打开安装包",
   "openRelease": "打开发布页",
-  "updating": "更新中…",
+  "updating": "正在下载安装包…",
   "downloading": "下载中…",
   "downloadingPercent": "下载中 {{percent}}%",
-  "launchingInstaller": "正在启动安装程序…",
+  "launchingInstaller": "安装包已打开。请退出 Vizruna，将新版拖入“应用程序”并选择“替换”。",
   "downloadFailed": "下载失败：{{error}}"
 }

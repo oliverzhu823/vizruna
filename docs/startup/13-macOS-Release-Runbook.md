@@ -1,6 +1,13 @@
 # Vizruna macOS 发布手册
 
-本文档是 v0.1 Apple Silicon 试点版的可复现发布流程。任何一步失败都视为发布失败，禁止把未签名包重命名为正式包。
+本文档同时定义两条互不混淆的发布路径：
+
+- Alpha/Beta/RC：供早期用户验证的**无 Developer ID 测试版**，必须明确标注未签名、
+  未公证，并提供 SHA-256、SBOM、构建来源证明和首次启动说明。
+- 正式版：必须通过 Developer ID 签名、Apple 公证、票据装订、Gatekeeper 和
+  发布证据门禁。
+
+任何一步失败都视为对应发布失败。禁止把无签名测试包重命名为正式包。
 
 ## 1. 发布角色
 
@@ -13,7 +20,7 @@
 
 发布负责人和测试负责人不得由同一份未经复核的日志同时代替。
 
-## 2. 前置条件
+## 2. 正式版前置条件
 
 - macOS Apple Silicon。
 - Node.js 22.19.x 和 npm。
@@ -134,18 +141,24 @@ Artifact，否则最终发布无法证明与验收包完全相同。
 
 ### 5.1 公开 Alpha/Beta/RC
 
-公开预发布版也属于对外分发，不得使用 `npm run package` 生成的本地开发包，更不得
-通过手工上传绕过签名门禁。预发布 Tag（`v*-alpha.*`、`v*-beta.*`、`v*-rc.*`）由
-`.github/workflows/prerelease.yml` 在 `v0.1-candidate` 受保护环境中自动执行：
+当前早期预发布版不使用 Developer ID 或 Apple 公证，但仍不得上传本地开发目录中的
+临时产物。预发布 Tag（`v*-alpha.*`、`v*-beta.*`、`v*-rc.*`）由干净的
+`.github/workflows/prerelease.yml` 自动执行：
 
 1. 完整质量检查与桌面 E2E。
-2. `npm run package:mac:release`。
-3. Developer ID 签名、Apple 公证、票据装订和 Gatekeeper 验证。
-4. 生成 SBOM、SHA-256 和构建来源证明。
-5. 仅在全部通过后创建 GitHub Prerelease。
+2. `npm run package:mac:unsigned`，显式关闭签名身份自动发现和公证凭据。
+3. 验证包内身份为 `com.vizruna.desktop`、不存在 Developer ID Authority，并确认
+   Gatekeeper 会按无签名路径拦截。
+4. 使用隔离的 E2E userData 启动打包应用，确认不会读取维护者本机数据。
+5. 生成 SBOM、SHA-256 和构建来源证明。
+6. 仅在全部通过后创建名称含 `Unsigned macOS Test Build` 的 GitHub Prerelease。
 
-凭据缺失或任何签名检查失败时，工作流必须失败且不得创建 Release。看到“已损坏”
-提示时，应撤下问题产物并修复发布流程，不能把 `xattr` 绕过命令当作公共安装步骤。
+Release 正文和 README 必须说明“系统设置 → 隐私与安全性 → 仍要打开”。如果 macOS
+直接提示“已损坏”，用户仅可在核对 SHA-256 且确认来源后，对
+`/Applications/Vizruna.app` 执行定向 `xattr -dr com.apple.quarantine`；不得全局
+关闭 Gatekeeper。
+
+正式版仍严格执行第 2–6 节的证书、公证和发布证据门禁。
 
 ## 6. 独立验证
 
@@ -173,7 +186,7 @@ shasum -a 256 dist/*.dmg dist/*.zip
 
 将提交号、版本、哈希、证书 Team ID、公证 Request ID 和验证日志写入发布记录。不得记录密码、API Key 或代理凭据。
 
-## 7. 干净设备 G8
+## 7. 正式版干净设备 G8
 
 在未安装 Node.js、开发版应用和本仓库的受支持 Apple Silicon Mac 上：
 
@@ -192,7 +205,8 @@ shasum -a 256 dist/*.dmg dist/*.zip
 
 ## 8. 升级验证
 
-v0.1 使用手动 DMG 升级，不发布自动更新元数据。
+v0.1 Alpha 使用应用内 GitHub Release 检查、下载并打开 DMG，安装动作仍由用户
+手动覆盖完成；不使用 Electron/Squirrel 自动替换。
 
 1. 在旧试点版创建会话、Provider 路由、代理 Profile、Worktree 登记和 SQLite 元数据备份。
 2. 完全退出旧应用。

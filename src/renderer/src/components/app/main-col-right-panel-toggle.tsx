@@ -33,7 +33,7 @@ export function MainColRightPanelToggle() {
 
   return (
     <div
-      className="absolute right-3 top-2 z-20 flex flex-col gap-1"
+      className="main-col-floating-controls absolute right-3 top-2 z-20 flex flex-col gap-1"
       style={{ background: 'transparent' }}
     >
       {!collapsed && (

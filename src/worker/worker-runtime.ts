@@ -5,9 +5,14 @@ import type {
   CreateAgentSessionRuntimeFactory,
   EventBus,
 } from '@earendil-works/pi-coding-agent'
+import type { ConversationRuntimeSnapshot } from '@shared/system-prompt-preset'
 import type { AppEvent } from '@shared/app-events'
 import { formatSessionModelKey, type SessionModelRef } from '@shared/worker-model'
 import { createDesktopUIBridge, type DesktopUIBridge } from './desktop-ui-bridge.js'
+import {
+  buildAgentPromptLoaderOverrides,
+  buildAgentToolsOverride,
+} from './agent-profile-runtime.js'
 import { handleSessionEvent as dispatchSessionEvent } from './worker-session-events.js'
 import { errorMessage } from '@shared/error-message'
 import { createOrchestrationTools } from './orchestration-tools.js'
@@ -38,6 +43,13 @@ export type WorkerMutableState = {
   promptSent: boolean
   runtimeReloading: boolean
   providerRouting: ProviderRoutingRuntime
+  /** Conversation configuration currently bound to the live conversation. */
+  activeConversationConfig: ConversationRuntimeSnapshot | null
+  /**
+   * Staged configuration for the next runtime replacement.
+   * `undefined` means retain the active configuration; `null` means General Pi.
+   */
+  nextConversationConfig: ConversationRuntimeSnapshot | null | undefined
 }
 
 export const st: WorkerMutableState = {
@@ -57,6 +69,8 @@ export const st: WorkerMutableState = {
   promptSent: false,
   runtimeReloading: false,
   providerRouting: { routes: {} },
+  activeConversationConfig: null,
+  nextConversationConfig: undefined,
 }
 
 function nextSeq(): number {
@@ -103,6 +117,10 @@ export async function rebindAfterRuntimeReplace(session: AgentSession): Promise<
   detachSessionSubscription()
   st.session = session
   st.currentSessionId = session.sessionId
+  if (st.nextConversationConfig !== undefined) {
+    st.activeConversationConfig = st.nextConversationConfig
+    st.nextConversationConfig = undefined
+  }
   try {
     const cwd = session.sessionManager?.getCwd?.()
     if (typeof cwd === 'string' && cwd.length > 0) st.currentCwd = cwd
@@ -141,11 +159,16 @@ function noteModelFallbackFromRuntime(): void {
 function buildRuntimeFactory(): CreateAgentSessionRuntimeFactory {
   const sdk = st.sdk!
   return async ({ cwd, agentDir, sessionManager, sessionStartEvent }) => {
+    const conversationConfig =
+      st.nextConversationConfig !== undefined
+        ? st.nextConversationConfig
+        : st.activeConversationConfig
     const services = await sdk.createAgentSessionServices({
       cwd,
       agentDir,
       resourceLoaderOptions: {
         eventBus: st.sharedEventBus!,
+        ...buildAgentPromptLoaderOverrides(conversationConfig),
       },
     })
     installProviderRouting(services.modelRuntime, () => st.providerRouting)
@@ -153,6 +176,7 @@ function buildRuntimeFactory(): CreateAgentSessionRuntimeFactory {
       services,
       sessionManager,
       sessionStartEvent,
+      ...buildAgentToolsOverride(conversationConfig),
       customTools: createOrchestrationTools(),
     })
     return {
@@ -251,64 +275,87 @@ export async function initSession(cwd: string): Promise<void> {
 export async function switchOrLoadSession(
   sessionFile: string,
   leafOverride?: string | null,
+  conversationConfigSnapshot?: ConversationRuntimeSnapshot | null,
 ): Promise<void> {
   const sdk = st.sdk!
-  if (!st.runtime) {
-    // Cold path: build runtime opened on this file
-    await disposeRuntimeOrSession()
-    const agentDir = sdk.getAgentDir()
-    const sm = sdk.SessionManager.open(sessionFile, undefined, st.currentCwd || undefined)
-    if (leafOverride === null) sm.resetLeaf?.()
-    else if (typeof leafOverride === 'string' && leafOverride.length > 0) {
-      try {
-        sm.branch(leafOverride)
-      } catch (e) {
-        console.warn('[Worker] loadSession branch override failed:', e)
-      }
-    }
-    const createRuntime = buildRuntimeFactory()
-    const runtime = await sdk.createAgentSessionRuntime(createRuntime, {
-      cwd: st.currentCwd || sm.getCwd?.() || process.cwd(),
-      agentDir,
-      sessionManager: sm,
-    })
-    st.runtime = runtime
-    wireRuntimeCallbacks(runtime)
-    await rebindAfterRuntimeReplace(runtime.session)
-    noteModelFallbackFromRuntime()
-    return
+  if (conversationConfigSnapshot !== undefined) {
+    st.nextConversationConfig = conversationConfigSnapshot
   }
-
-  const result = await st.runtime.switchSession(sessionFile, {
-    cwdOverride: st.currentCwd || undefined,
-  })
-  if (result.cancelled) {
-    throw new Error('SESSION_SWITCH_CANCELLED')
-  }
-  // rebindSession already ran; apply leaf tip if requested
-  if (leafOverride !== undefined && st.session) {
-    try {
-      const sm = st.session.sessionManager
+  let rebound = false
+  try {
+    if (!st.runtime) {
+      // Cold path: build runtime opened on this file
+      await disposeRuntimeOrSession()
+      const agentDir = sdk.getAgentDir()
+      const sm = sdk.SessionManager.open(sessionFile, undefined, st.currentCwd || undefined)
       if (leafOverride === null) sm.resetLeaf?.()
-      else if (leafOverride.length > 0) sm.branch(leafOverride)
-      const ctx = sm.buildSessionContext?.()
-      if (ctx?.messages && st.session.agent?.state) {
-        st.session.agent.state.messages = ctx.messages
+      else if (typeof leafOverride === 'string' && leafOverride.length > 0) {
+        try {
+          sm.branch(leafOverride)
+        } catch (e) {
+          console.warn('[Worker] loadSession branch override failed:', e)
+        }
       }
-    } catch (e) {
-      console.warn('[Worker] leaf override after switchSession failed:', e)
+      const createRuntime = buildRuntimeFactory()
+      const runtime = await sdk.createAgentSessionRuntime(createRuntime, {
+        cwd: st.currentCwd || sm.getCwd?.() || process.cwd(),
+        agentDir,
+        sessionManager: sm,
+      })
+      st.runtime = runtime
+      wireRuntimeCallbacks(runtime)
+      await rebindAfterRuntimeReplace(runtime.session)
+      rebound = true
+      noteModelFallbackFromRuntime()
+      return
+    }
+
+    const result = await st.runtime.switchSession(sessionFile, {
+      cwdOverride: st.currentCwd || undefined,
+    })
+    if (result.cancelled) {
+      throw new Error('SESSION_SWITCH_CANCELLED')
+    }
+    rebound = true
+    // rebindSession already ran; apply leaf tip if requested
+    if (leafOverride !== undefined && st.session) {
+      try {
+        const sm = st.session.sessionManager
+        if (leafOverride === null) sm.resetLeaf?.()
+        else if (leafOverride.length > 0) sm.branch(leafOverride)
+        const ctx = sm.buildSessionContext?.()
+        if (ctx?.messages && st.session.agent?.state) {
+          st.session.agent.state.messages = ctx.messages
+        }
+      } catch (e) {
+        console.warn('[Worker] leaf override after switchSession failed:', e)
+      }
+    }
+    noteModelFallbackFromRuntime()
+  } finally {
+    if (!rebound && conversationConfigSnapshot !== undefined) {
+      st.nextConversationConfig = undefined
     }
   }
-  noteModelFallbackFromRuntime()
 }
 
-export async function runtimeNewSession(): Promise<{ cancelled: boolean }> {
-  if (!st.runtime) {
-    await initSession(st.currentCwd || process.cwd())
-    return { cancelled: false }
+export async function runtimeNewSession(
+  conversationConfigSnapshot: ConversationRuntimeSnapshot | null,
+): Promise<{ cancelled: boolean }> {
+  st.nextConversationConfig = conversationConfigSnapshot
+  let rebound = false
+  try {
+    if (!st.runtime) {
+      await initSession(st.currentCwd || process.cwd())
+      rebound = true
+      return { cancelled: false }
+    }
+    const result = await st.runtime.newSession()
+    rebound = !result.cancelled
+    return { cancelled: result.cancelled }
+  } finally {
+    if (!rebound) st.nextConversationConfig = undefined
   }
-  const result = await st.runtime.newSession()
-  return { cancelled: result.cancelled }
 }
 
 /**

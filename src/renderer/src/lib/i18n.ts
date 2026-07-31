@@ -14,6 +14,9 @@ import zhUpdate from '../locales/zh/update.json'
 import zhLease from '../locales/zh/lease.json'
 import zhWorktrees from '../locales/zh/worktrees.json'
 import zhOrchestration from '../locales/zh/orchestration.json'
+import zhCases from '../locales/zh/cases.json'
+import zhAgents from '../locales/zh/agents.json'
+import zhSystemPrompts from '../locales/zh/systemPrompts.json'
 import enCommon from '../locales/en/common.json'
 import enTimeline from '../locales/en/timeline.json'
 import enReview from '../locales/en/review.json'
@@ -28,6 +31,9 @@ import enUpdate from '../locales/en/update.json'
 import enLease from '../locales/en/lease.json'
 import enWorktrees from '../locales/en/worktrees.json'
 import enOrchestration from '../locales/en/orchestration.json'
+import enCases from '../locales/en/cases.json'
+import enAgents from '../locales/en/agents.json'
+import enSystemPrompts from '../locales/en/systemPrompts.json'
 import { ipcClient } from './ipc-client'
 
 type AppLanguage = 'zh' | 'en'
@@ -66,6 +72,9 @@ const i18nInitialization = i18n.use(initReactI18next).init({
       lease: zhLease,
       worktrees: zhWorktrees,
       orchestration: zhOrchestration,
+      cases: zhCases,
+      agents: zhAgents,
+      systemPrompts: zhSystemPrompts,
     },
     en: {
       common: enCommon,
@@ -83,6 +92,9 @@ const i18nInitialization = i18n.use(initReactI18next).init({
       lease: enLease,
       worktrees: enWorktrees,
       orchestration: enOrchestration,
+      cases: enCases,
+      agents: enAgents,
+      systemPrompts: enSystemPrompts,
     },
   },
   lng: detectInitialLanguage(),

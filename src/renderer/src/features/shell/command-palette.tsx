@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Activity,
+  Bot,
+  BriefcaseBusiness,
   FileSearch,
   FolderTree,
   GitBranch,
@@ -45,12 +47,16 @@ export function CommandPalette({
   open,
   onClose,
   onOpenSettings,
+  onOpenAgentProfiles,
+  onOpenAgentCases,
   onOpenSessionTree,
   onOpenShortcuts,
 }: {
   open: boolean
   onClose: () => void
   onOpenSettings: () => void
+  onOpenAgentProfiles?: () => void
+  onOpenAgentCases?: () => void
   onOpenSessionTree?: () => void
   onOpenShortcuts?: () => void
 }) {
@@ -61,6 +67,32 @@ export function CommandPalette({
 
   const actions = useMemo<CommandPaletteAction[]>(() => {
     const list: CommandPaletteAction[] = [
+      ...(onOpenAgentProfiles
+        ? [{
+            id: 'agent-profiles',
+            label: t('agents:title'),
+            hint: t('agents:eyebrow'),
+            icon: Bot,
+            keywords: 'agent profiles configurations studio 智能体 配置',
+            run: () => {
+              onOpenAgentProfiles()
+              onClose()
+            },
+          }]
+        : []),
+      ...(onOpenAgentCases
+        ? [{
+            id: 'agent-cases',
+            label: t('cases:title'),
+            hint: t('cases:eyebrow'),
+            icon: BriefcaseBusiness,
+            keywords: 'agent cases studio 案例 资产',
+            run: () => {
+              onOpenAgentCases()
+              onClose()
+            },
+          }]
+        : []),
       {
         id: 'settings',
         label: t('common:commandPalette.settings'),
@@ -160,7 +192,15 @@ export function CommandPalette({
       })
     }
     return list
-  }, [t, onOpenSettings, onOpenSessionTree, onOpenShortcuts, onClose])
+  }, [
+    t,
+    onOpenAgentProfiles,
+    onOpenAgentCases,
+    onOpenSettings,
+    onOpenSessionTree,
+    onOpenShortcuts,
+    onClose,
+  ])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()

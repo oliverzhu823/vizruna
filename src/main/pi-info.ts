@@ -2,10 +2,10 @@
 
 import { existsSync, readFileSync, readdirSync, statSync } from 'fs'
 import { join } from 'path'
-import { homedir } from 'os'
 import { execSync } from 'child_process'
 import { app } from 'electron'
 import { resolveActiveSdk } from './sdk-loader'
+import { getPiAgentDirectory } from './pi-agent-directory'
 
 export interface PiInfo {
   sdkVersion: string
@@ -19,7 +19,7 @@ export interface PiInfo {
 }
 
 export function readPiInfo(): PiInfo {
-  const agentDir = join(homedir(), '.pi', 'agent')
+  const agentDir = getPiAgentDirectory()
   const info: PiInfo = {
     sdkVersion: '',
     agentDir,
@@ -50,10 +50,19 @@ export function readPiInfo(): PiInfo {
               : cred.oauth
                 ? 'oauth'
                 : 'subscription'
+        const configured =
+          typeStr === 'api_key'
+            ? (typeof (cred.key ?? cred.apiKey) === 'string' &&
+                String(cred.key ?? cred.apiKey).length > 0) ||
+              cred.apiKey != null
+            : typeStr === 'oauth'
+              ? (typeof cred.access === 'string' && cred.access.length > 0) ||
+                cred.oauth != null
+              : cred.subscription != null
         return {
           provider,
           type: typeStr,
-          configured: !!(cred.apiKey || cred.oauth || cred.subscription),
+          configured,
         }
       })
       const configuredCount = info.authProviders.filter(p => p.configured).length
@@ -90,7 +99,7 @@ export interface ResourceList {
 }
 
 export function readResourceList(cwd: string): ResourceList {
-  const agentDir = join(homedir(), '.pi', 'agent')
+  const agentDir = getPiAgentDirectory()
   const result: ResourceList = { skills: [], prompts: [], extensions: [], themes: [], packages: [] }
 
   const scan = (dir: string, source: string) => {

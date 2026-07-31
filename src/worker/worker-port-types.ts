@@ -1,5 +1,6 @@
 /** Messages from Main → Worker utilityProcess. */
 import type { ProviderRoutingRuntime } from '@shared/provider-routing'
+import type { ConversationRuntimeSnapshot } from '@shared/system-prompt-preset'
 
 export type WorkerIncomingMessage = {
   type?: string
@@ -9,6 +10,7 @@ export type WorkerIncomingMessage = {
   cwd?: string
   sdkPath?: string | null
   providerRouting?: ProviderRoutingRuntime
+  conversationConfigSnapshot?: ConversationRuntimeSnapshot | null
   text?: string
   options?: unknown
   sessionFile?: string

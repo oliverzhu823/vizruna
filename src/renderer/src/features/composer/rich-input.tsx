@@ -124,7 +124,7 @@ export const RichInput = forwardRef<HTMLDivElement, RichInputProps>(function Ric
       onInput={handleInput}
       onClickCapture={handleClickCapture}
       className={cn(
-        'rich-input is-empty min-h-[2.5rem] w-full px-0.5 py-0 text-[14px] leading-[1.55] text-foreground disabled:cursor-default disabled:opacity-50',
+        'rich-input is-empty min-h-[2.5rem] w-full px-0.5 py-0 text-foreground disabled:cursor-default disabled:opacity-50',
         disabled && 'is-disabled',
         className,
       )}

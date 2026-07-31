@@ -19,11 +19,11 @@ export function ComposerMetricsInline({ metrics, isRunning }: { metrics: Metrics
   if (!showCtx && !tpsLabel) return null
 
   return (
-    <div className="composer-metrics-inline flex min-w-0 shrink items-center gap-2 text-[10px] tabular-nums leading-none text-foreground-secondary/50">
+    <div className="composer-metrics-inline composer-meta-text flex min-w-0 max-w-[55%] shrink items-center gap-2 tabular-nums text-foreground-secondary/65">
       {showCtx && (
         <span className="truncate" title={t('composer:contextHint')}>
           {t('composer:contextLabel')}{' '}
-          <span className="text-foreground-secondary/62">
+          <span className="text-foreground-secondary/80">
             {formatTokens(metrics.estContextTokens ?? 0)}
             {metrics.contextWindow != null && <> / {formatTokens(metrics.contextWindow)}</>}
             {metrics.ctxPct != null && <> ({metrics.ctxPct.toFixed(1)}%)</>}
@@ -31,7 +31,7 @@ export function ComposerMetricsInline({ metrics, isRunning }: { metrics: Metrics
         </span>
       )}
       {tpsLabel && (
-        <span className="shrink-0 text-foreground-secondary/55" title={t('composer:tpsHint')}>
+        <span className="shrink-0 text-foreground-secondary/70" title={t('composer:tpsHint')}>
           {tpsLabel}
         </span>
       )}

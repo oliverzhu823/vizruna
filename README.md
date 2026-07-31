@@ -3,109 +3,192 @@
 </p>
 
 <p align="center">
-  A visible, controllable, local-first desktop workspace for Pi-powered AI Agents.
+  让 Pi 驱动的 AI Agent 在桌面上可见、可控、可复核。
 </p>
 
 <p align="center">
-  <a href="README.zh-CN.md">简体中文</a> · English
+  简体中文 · <a href="README.en.md">English</a>
 </p>
 
 # Vizruna
 
-Vizruna turns the Pi Agent runtime into a practical desktop product. You can
-chat with an Agent, watch its reasoning and tool activity, switch models and
-thinking levels, inspect changed files, run a terminal, and coordinate parallel
-work without leaving one workspace.
+Vizruna 把 Pi Agent Runtime 变成一个可以日常使用的桌面产品。你可以在同一个
+工作台里和 Agent 对话、观察思考与工具执行、切换模型和思考强度、检查改动文件、
+使用终端，并组织多个 Agent 并行工作。
 
-Status: **Public Alpha**. Everyone is welcome to download and use Vizruna. The
-current build supports **Apple-silicon Macs (M1/M2/M3/M4 and later)**. We are
-actively looking for early users and feedback; avoid mission-critical work while
-the product is still in Alpha.
+当前状态：**公开 Alpha**。所有人都可以下载和使用 Vizruna。现阶段可下载安装的
+版本支持 **Apple 芯片 Mac（M1/M2/M3/M4 及后续型号）**。我们正在寻找早期用户和
+真实反馈；Alpha 阶段请暂时不要把它用于不可中断的关键生产任务。
 
-![Vizruna desktop workspace](docs/images/vizruna-desktop.png)
+![Vizruna 桌面工作台](docs/images/vizruna-desktop.png)
 
-## Main features
+## v0.1.0-alpha.3 本次重点
 
-- **Chinese and English UI** with Light, Dark, System, and Sage eye-care themes.
-- **Native Pi model workflow**: choose a provider/model and thinking level;
-  use `/login` and `/logout`, OAuth, or an API key where the provider supports it.
-- **Provider-specific network routing**: let overseas providers use a proxy while
-  domestic providers connect directly, without changing the operating-system proxy.
-- **Visible Agent execution**: streamed responses, reasoning status, tool calls,
-  run statistics, context usage, and conversation tree.
-- **Workspace tools**: integrated file browser and terminal, plus project-based sessions.
-- **Review workflow**: inspect changed files and Markdown in the right panel, or
-  open a file in its default macOS application.
-- **Parallel Agent work**: managed Git worktrees, child Agents, task state, and
-  recovery controls share the existing application architecture.
-- **Local-first data**: Pi sessions and authentication remain on the user's
-  computer; build packages do not contain the developer's history or credentials.
+- 新增 **Agent 配置库**：为不同业务场景保存命名 Agent 和固定 System Prompt。
+- 新增 **会话系统提示词库**：可新增、编辑、复制和归档常用提示词，也可只为下一次
+  新对话输入临时提示词。
+- 新对话可在**通用 Pi、系统提示词、Agent 配置**中三选一；首条消息发送后固化快照，
+  避免后续修改配置影响已经开始的会话。
+- 新增 **Agent 案例库**：把跑通的真实会话沉淀为案例，记录模型、思考等级、标签和
+  验证状态，并可返回原会话继续复测。
+- 修复新版本模型载入、Provider 配置导入与预发布版本更新判断。
+- 优化消息区操作按钮避让、输入框信息字号和“正在思考”即时反馈。
+- 开发环境与安装版彻底隔离，发布包不会继承维护者的会话、模型授权和 API 配置。
+- 增加无签名测试版的应用内更新提醒：自动下载并打开新版 DMG，由用户手动覆盖应用。
 
-## Download and install
+完整变化见 [CHANGELOG.md](CHANGELOG.md)。
 
-1. Open the repository's [Releases](https://github.com/oliverzhu823/vizruna/releases).
-2. Download `Vizruna-*-arm64.dmg` from the newest prerelease.
-3. Open the DMG and drag **Vizruna** into **Applications**.
-4. Launch Vizruna normally. Public macOS packages are required to be Developer ID
-   signed and Apple-notarized before they are uploaded.
+## 完整功能
 
-If macOS says Vizruna is damaged, do not disable Gatekeeper or run a quarantine
-removal command from an untrusted source. Verify that you downloaded the newest
-release and report the release version plus its SHA-256 in GitHub Issues.
+### 对话、模型与运行过程
 
-The DMG is currently for Apple-silicon Macs only. Windows, Linux, and Intel Mac
-packages have not completed release acceptance.
+- **Pi 原生模型工作流**：选择 Provider、模型和思考强度；支持 `/login`、`/logout`、
+  OAuth 和 Provider 提供的 API Key 登录。
+- **新对话继承有效配置**：沿用上一次有效会话的模型和思考强度，并立即显示当前选择。
+- **按 Provider 分流网络**：海外模型可走 V2Ray 等代理，国内模型保持直连，不修改
+  macOS 全局代理，也不影响其他软件。
+- **Agent 过程可见**：按真实时间顺序展示用户消息、正在思考、工具调用、流式回答、
+  运行统计、上下文用量和对话分支。
+- **会话操作**：支持项目会话、临时对话、重命名、Fork、Clone、回退和历史恢复。
 
-## Quick start
+### Agent Studio
 
-1. Choose **Open folder** for project work, or start with **New chat** for a
-   temporary conversation.
-2. Click the model control beside the composer and select a provider, model, and
-   thinking level.
-3. Authenticate by typing `/login`, or open **Settings → Models**. Use `/logout`
-   when you want to disconnect a provider account.
-4. Type the outcome you want. Vizruna will show the request immediately and then
-   display thinking, tool, and response activity in chronological order.
-5. Use the right-side **Review**, **Run**, **Context**, and **Tree** panels to
-   inspect the result. Click a changed Markdown file to preview it; use the
-   external-open action when you prefer the default macOS app.
+- **Agent 配置库**：创建、编辑、复制、归档命名 Agent，为固定场景保存 System
+  Prompt；从配置库可直接创建新对话。
+- **系统提示词库**：独立管理可复用提示词；新对话也可临时输入一套不入库的提示词。
+- **单会话单提示词**：每个新对话只能使用通用 Pi、某套系统提示词或某个 Agent
+  配置中的一种，发送首条消息后保持不变。
+- **Agent 案例库**：将有效会话归档成案例，保存名称、说明、标签、原项目、原会话、
+  模型、思考等级与验证状态；案例不复制聊天正文或凭据。
 
-### Proxy and direct connections
+### 项目工作台与复核
 
-Open **Settings → Provider routing** to create a proxy profile and assign a route
-per provider. For example, OpenAI Codex can use the V2Ray profile while a Chinese
-model provider remains on **Direct**. Vizruna applies the route to that Agent
-worker only; it does not rewrite the global system proxy.
+- **文件与终端**：内置文件浏览器和可交互项目终端。
+- **Review 工作流**：在右侧查看文件改动、Diff、Markdown 和代码，也可调用 macOS
+  默认应用打开文件。
+- **Run、Context、Tree**：分别检查运行状态、上下文构成和会话分支，不只依赖
+  Agent 的自然语言“已完成”。
+- **图片与附件**：支持粘贴图片、引用文件与行号，并为常见工具结果提供桌面预览。
 
-## User data and privacy
+### 多 Agent 与扩展能力
 
-- Pi sessions and authentication are stored under `~/.pi/agent` on each user's Mac.
-- Vizruna preferences and product metadata use the separate Electron user-data
-  directory named `Vizruna`.
-- The published package is built from a sanitized checkout and does not include
-  conversations, recent projects, tokens, proxy passwords, or local paths from
-  the maintainer's computer.
-- Users should still avoid placing secrets in prompts or committing credentials
-  to a project repository.
+- **受管 Git Worktree**：为并行任务创建隔离分支和工作目录，降低多个 Agent
+  互相覆盖的风险。
+- **子 Agent 编排**：创建、跟进和检查子任务，展示父子 Agent 状态与验证证据。
+- **Skills、扩展与提示词资源**：管理 Pi Skills、Extensions、项目上下文和 Pi 原生
+  Prompt 资源，保留与 Pi CLI 兼容的文件结构。
+- **语音输入与提醒**：可配置语音转写；Agent 完成或需要用户确认时可发出桌面提醒。
 
-## Feedback
+### 界面、数据与可靠性
 
-Vizruna welcomes early users. Use [GitHub Issues](https://github.com/oliverzhu823/vizruna/issues)
-to report a bug, suggest an improvement, or describe a workflow you want the Agent
-to support. Include the Vizruna version, macOS version, Mac model, and model provider
-when relevant, but never post API keys, OAuth tokens, or private conversation content.
+- **中英文界面**：支持浅色、深色、跟随系统和“鼠尾草浅绿”护眼主题。
+- **本地优先**：会话、OAuth、API 配置、案例与 Agent 配置保存在用户自己的电脑。
+- **备份与审计**：为产品数据库迁移创建备份，并提供可靠性、恢复和脱敏审计能力。
+- **更新提醒**：可自动或手动检查 GitHub Releases，下载并打开新安装包。
 
-## Development
+## 下载和安装
 
-Requirements: Node.js 22.19.x, npm, Git, and macOS Apple Silicon for the current
-packaging target.
+1. 打开仓库的 [Releases 页面](https://github.com/oliverzhu823/vizruna/releases)。
+2. 在最新的预发布版本中下载 `Vizruna-*-arm64.dmg`。
+3. 建议同时下载 `SHA256SUMS.txt` 并核对安装包校验值。
+4. 打开 DMG，把 **Vizruna** 拖到“应用程序”文件夹。
+5. 双击启动 Vizruna。
 
-Source development is intentionally isolated from the installed product. It
-runs as **Vizruna Dev**, stores application state under
-`~/Library/Application Support/Vizruna Dev`, and redirects Pi credentials and
-sessions to that directory's `pi-agent` folder. It does not inherit the
-installed user's `~/.pi/agent` OAuth or API keys. An explicit
-`PI_CODING_AGENT_DIR` still takes precedence for controlled fixtures.
+当前 Alpha 安装包**没有 Developer ID 签名和 Apple 公证**。首次运行时，macOS
+可能提示无法验证开发者。确认文件来自本仓库且 SHA-256 一致后：
+
+1. 先尝试打开一次 Vizruna。
+2. 进入**系统设置 → 隐私与安全性**，在安全性区域点击**仍要打开**。
+3. 如果系统直接提示应用“已损坏”，校验文件无误后，可在终端仅移除这个应用的下载
+   隔离属性：
+
+```bash
+xattr -dr com.apple.quarantine /Applications/Vizruna.app
+```
+
+不要对来源不明的软件执行该命令，也不要全局关闭 Gatekeeper。
+
+当前 DMG 只适用于 Apple 芯片 Mac。Windows、Linux 和 Intel Mac 尚未完成发布验收。
+
+## 第一次使用
+
+1. 如果要操作代码或文档项目，点击**打开文件夹**；如果只是临时对话，直接使用
+   **新对话**。
+2. 点击输入框旁边的模型入口，选择 Provider、模型和思考强度。
+3. 在输入框输入 `/login` 完成登录，或打开**设置 → 模型**。需要退出某个模型账号
+   时使用 `/logout`。
+4. 新对话如需特定角色，可在输入框左下角选择**系统提示词**或**Agent 配置**；
+   不选择则使用通用 Pi。
+5. 输入你希望 Agent 完成的结果。Vizruna 会立即显示你的消息，然后按时间顺序显示
+   “正在思考”、工具执行和最终回答。
+6. 使用右侧的 **Review、Run、Context、Tree** 检查结果。点击有改动的 Markdown
+   文件可在右侧预览；如果更习惯本机软件，也可以选择使用默认应用打开。
+
+### 海外模型走代理、国内模型直连
+
+进入**设置 → Provider 路由**，先添加一个代理配置，再分别给各个 Provider 选择
+路线。例如，让 OpenAI Codex 使用 V2Ray 配置，同时让中国模型 Provider 保持
+**直连**。该配置只作用于对应的 Agent Worker，不会改写系统全局代理，因此不会
+影响其他软件。
+
+## Agent 配置、系统提示词和案例怎么用
+
+- **只是想临时定制下一次对话**：新建对话 → 打开 Agent/提示词选择器 → 临时自定义
+  System Prompt。它只用于这次新会话，不进入库。
+- **提示词会重复使用，但模型等设置仍想临时选择**：进入**设置 → 提示词 → 会话系统
+  提示词**，保存到提示词库；新建对话时选择它。
+- **已经形成稳定角色或工作方法**：进入 **Agent 配置库**，建立命名 Agent；以后
+  直接从该配置启动对话。
+- **一次真实任务已经跑通，值得沉淀和复测**：在当前会话中选择归档为 **Agent
+  案例**，填写说明和标签；复核后将状态标记为“已验证”。
+
+System Prompt 负责固定 Agent 的角色、目标、边界和输出要求；需要在运行过程中按需
+调用的方法，更适合做成 Skill。
+
+## 升级与数据保留
+
+Vizruna Alpha 采用**半自动更新**：
+
+1. 应用启动后自动检查，也可在**设置 → 常规 → 应用版本**手动检查。
+2. 有新版本时点击**下载并打开安装包**。
+3. 完全退出旧版 Vizruna。
+4. 把新版拖到“应用程序”，选择**替换**。
+
+覆盖 `/Applications/Vizruna.app` 不会删除以下外部数据：
+
+- `~/Library/Application Support/Vizruna`：产品设置、Agent 配置、提示词库、案例索引
+  和数据库。
+- `~/.pi/agent`：Pi 会话、OAuth 与 Provider 配置。
+- `~/.vizruna/worktrees`：受管工作目录。
+
+请勿使用卸载清理工具删除这些目录。Alpha 阶段升级前建议备份上述目录；数据库只保证
+向前迁移，不建议安装新版后再降级。
+
+## 用户数据与隐私
+
+- 每位用户的 Pi 会话和认证信息保存在自己 Mac 的 `~/.pi/agent`。
+- Vizruna 的偏好设置和产品元数据保存在
+  `~/Library/Application Support/Vizruna`。
+- 发布包来自经过清理的构建目录，不包含维护者的对话、最近项目、Token、代理密码
+  或本机路径。
+- 用户仍应避免在提示词中发送敏感信息，也不要把凭据提交进项目仓库。
+
+## 反馈与参与
+
+Vizruna 欢迎早期用户。你可以通过 [GitHub Issues](https://github.com/oliverzhu823/vizruna/issues)
+报告问题、提出改进建议，或者描述你希望 Agent 支持的真实工作流程。反馈时建议提供
+Vizruna 版本、macOS 版本、Mac 型号和所用模型 Provider，但不要公开 API Key、OAuth
+Token 或私人对话内容。
+
+## 本地开发
+
+环境要求：Node.js 22.19.x、npm、Git；当前安装包目标为 macOS Apple Silicon。
+
+源码开发环境与已安装的正式产品会自动隔离。开发模式显示为 **Vizruna Dev**，应用
+设置保存在 `~/Library/Application Support/Vizruna Dev`，Pi 凭据和会话使用该目录
+下独立的 `pi-agent` 文件夹，不会继承正式版用户在 `~/.pi/agent` 中的 OAuth 或
+API Key。需要构造受控测试数据时，显式设置的 `PI_CODING_AGENT_DIR` 仍具有最高
+优先级。
 
 ```bash
 nvm use
@@ -113,44 +196,49 @@ npm ci
 npm run dev
 ```
 
-Do not launch `dist/mac-arm64/Vizruna.app` as a development workflow. That is a
-packaged release candidate with the production identity. Use `npm run dev` for
-source work and a DMG installed in `/Applications` for product acceptance.
+不要把 `dist/mac-arm64/Vizruna.app` 当成开发入口；它是使用正式产品身份的打包候选
+产物。源码开发使用 `npm run dev`，产品验收则使用安装到“应用程序”的 DMG。
 
-Run the complete local quality suite:
+执行完整质量检查：
 
 ```bash
 npm run verify
 ```
 
-Build a local-only macOS package:
+本地开发测试包可以使用：
 
 ```bash
 npm run package -- --mac
 ```
 
-This generic package is for local development and must never be uploaded to a
-GitHub Release. Every public prerelease and stable release must use
-`npm run package:mac:release`, which fails unless Developer ID signing,
-notarization, stapling, and Gatekeeper verification all succeed. Release
-credentials are intentionally stored only in the protected GitHub environment.
+当前无签名 Apple Silicon 预发布包使用：
 
-## Architecture and project documents
+```bash
+npm run package:mac:unsigned
+```
 
-- Product base: [`justhil/pi-app`](https://github.com/justhil/pi-app), pinned at
+该命令明确关闭 Developer ID 自动发现，验证产物没有 Developer ID 签名，并确认
+Gatekeeper 会按文档所述拦截首次启动。GitHub 预发布工作流还会在隔离数据目录中启动
+打包应用、生成 SHA-256、SBOM 和构建来源证明。
+
+未来的正式版仍使用 `npm run package:mac:release`；只要 Developer ID 签名、Apple
+公证、票据装订或 Gatekeeper 校验有一项未通过，命令就会失败。
+
+## 架构与开发文档
+
+- 产品底座：[`justhil/pi-app`](https://github.com/justhil/pi-app)，固定提交
   `bcef920e3900a858b305c67c42a34e61779f977c`
-- Behavior reference: [`minghinmatthewlam/pi-gui`](https://github.com/minghinmatthewlam/pi-gui)
-- Agent runtime: `@earendil-works/pi-coding-agent@0.82.1`
-- [Development startup package](docs/startup/README.md)
+- 行为参考：[`minghinmatthewlam/pi-gui`](https://github.com/minghinmatthewlam/pi-gui)
+- Agent Runtime：`@earendil-works/pi-coding-agent@0.82.1`
+- [开发启动包](docs/startup/README.md)
 - [PRD v0.1](docs/startup/01-PRD-v0.1.md)
-- [Architecture RFC-001](docs/startup/02-Architecture-RFC-001.md)
-- [Roadmap](docs/startup/03-Development-Roadmap.md)
-- [Acceptance criteria](docs/startup/04-Acceptance-Criteria.md)
-- [User guide](docs/startup/12-User-Guide.md)
-- [macOS release runbook](docs/startup/13-macOS-Release-Runbook.md)
-- [Upstream strategy](UPSTREAM.md)
-- [Third-party notices](NOTICE.md)
+- [架构 RFC-001](docs/startup/02-Architecture-RFC-001.md)
+- [开发路线图](docs/startup/03-Development-Roadmap.md)
+- [验收标准](docs/startup/04-Acceptance-Criteria.md)
+- [使用指南](docs/startup/12-User-Guide.md)
+- [macOS 发布手册](docs/startup/13-macOS-Release-Runbook.md)
+- [上游维护策略](UPSTREAM.md)
+- [第三方声明](NOTICE.md)
 
-The application keeps the Electron Main, Preload, React Renderer, and Utility
-Worker boundaries. It does not merge two GUI repositories or introduce a second
-global state model.
+产品保留 Electron Main、Preload、React Renderer 和 Utility Worker 边界；不会硬合并
+两个 GUI 仓库，也不会引入第二套全局状态模型。

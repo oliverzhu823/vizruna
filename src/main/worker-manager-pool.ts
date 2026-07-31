@@ -11,6 +11,7 @@ import type { WorkerInitResult, WorkerSlot } from './worker-manager-types'
 import { readMaxSessionWorkers, minutesToIdleDelayMs, readSessionWorkerIdleTimeoutMinutes } from './worker-pool-config'
 import { workspacePoolKey } from './worker-session-key'
 import { getProviderRoutingService } from './provider-routing/provider-routing-service'
+import { resolveApplicationRoot } from './application-root'
 
 function createSlot(
   poolKey: string,
@@ -346,7 +347,12 @@ export async function forkWorkerForCwd(
   opts?: { poolKey?: string; sessionFile?: string | null },
 ): Promise<{ slot: WorkerSlot; init: Promise<WorkerInitResult> }> {
   const poolKey = opts?.poolKey || workspacePoolKey(cwd)
-  const forked = utilityProcess.fork(join(__dirname, 'worker.mjs'), [], { stdio: 'pipe' })
+  const applicationRoot = resolveApplicationRoot(app.getAppPath())
+  const forked = utilityProcess.fork(
+    join(applicationRoot, 'out', 'main', 'worker.mjs'),
+    [],
+    { stdio: 'pipe' },
+  )
   const slot = createSlot(poolKey, cwd, forked, opts?.sessionFile ?? null)
   const initPromise = new Promise<WorkerInitResult>((resolve, reject) => {
     const timer = setTimeout(() => {

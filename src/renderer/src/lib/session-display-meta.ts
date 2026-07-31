@@ -64,6 +64,18 @@ export function applyWorkerBoundModelDisplay(result: {
 export async function applyComposerDisplayMeta(meta?: SessionDisplayMeta | null): Promise<void> {
   const store = useUIStore.getState()
   const patch: SessionDisplayMeta = {}
+  const availableModelsPromise = ipcClient
+    .invoke('model.list', { scope: 'available' })
+    .then((response) => {
+      if (!Array.isArray(response?.models)) return null
+      return new Set<string>(
+        response.models.map(
+          (model: { provider?: string; id?: string }) =>
+            `${String(model.provider || '')}/${String(model.id || '')}`,
+        ),
+      )
+    })
+    .catch(() => null)
 
   const previewFile = store.historySessionFile
   const isNewSessionDraft =
@@ -129,6 +141,10 @@ export async function applyComposerDisplayMeta(meta?: SessionDisplayMeta | null)
   let finalModel = patch.model ?? (!workerBoundToView ? normalizeModelKey(cur.model) : undefined)
   if (workerBoundToView && workerModel) finalModel = workerModel
   if (workerBoundToView && !workerModel) finalModel = undefined
+  if (!workerBoundToView && finalModel) {
+    const availableModels = await availableModelsPromise
+    if (availableModels && !availableModels.has(finalModel)) finalModel = undefined
+  }
 
   const finalThink =
     patch.thinkingLevel ??

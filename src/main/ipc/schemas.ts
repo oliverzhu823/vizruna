@@ -1,5 +1,115 @@
 import { z } from 'zod'
 
+const agentCaseTagsSchema = z
+  .array(z.string().trim().min(1).max(40))
+  .max(20)
+  .transform((tags) => [...new Set(tags)])
+
+const agentProfileToolsSchema = z
+  .array(z.string().trim().min(1).max(120))
+  .max(64)
+  .transform((tools) => [...new Set(tools)])
+
+const agentThinkingLevelSchema = z.enum([
+  'off',
+  'minimal',
+  'low',
+  'medium',
+  'high',
+  'xhigh',
+])
+
+export const agentProfileListSchema = z.object({
+  includeArchived: z.boolean().optional(),
+})
+
+export const agentProfileCreateSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  description: z.string().trim().max(2_000).optional(),
+  systemPrompt: z.string().trim().min(1).max(200_000),
+  promptMode: z.enum(['append', 'replace']),
+  modelId: z.string().trim().min(1).max(500).optional(),
+  thinkingLevel: agentThinkingLevelSchema.optional(),
+  tools: agentProfileToolsSchema.optional(),
+})
+
+export const agentProfileUpdateSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().trim().min(1).max(120).optional(),
+  description: z.string().trim().max(2_000).optional(),
+  systemPrompt: z.string().trim().min(1).max(200_000).optional(),
+  promptMode: z.enum(['append', 'replace']).optional(),
+  modelId: z.union([z.string().trim().min(1).max(500), z.null()]).optional(),
+  thinkingLevel: z.union([agentThinkingLevelSchema, z.null()]).optional(),
+  tools: z.union([agentProfileToolsSchema, z.null()]).optional(),
+})
+
+export const agentProfileArchiveSchema = z.object({
+  id: z.string().uuid(),
+})
+
+export const sessionAgentBindingGetSchema = z
+  .object({
+    sessionId: z.string().min(1).max(500).optional(),
+    sessionFile: z.string().min(1).max(4_000).optional(),
+  })
+
+export const systemPromptPresetListSchema = z.object({
+  includeArchived: z.boolean().optional(),
+})
+
+export const systemPromptPresetCreateSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  description: z.string().trim().max(2_000).optional(),
+  systemPrompt: z.string().trim().min(1).max(200_000),
+  promptMode: z.enum(['append', 'replace']),
+})
+
+export const systemPromptPresetUpdateSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().trim().min(1).max(120).optional(),
+  description: z.string().trim().max(2_000).optional(),
+  systemPrompt: z.string().trim().min(1).max(200_000).optional(),
+  promptMode: z.enum(['append', 'replace']).optional(),
+})
+
+export const systemPromptPresetArchiveSchema = z.object({
+  id: z.string().uuid(),
+})
+
+export const conversationConfigBindingGetSchema = sessionAgentBindingGetSchema
+  .refine((value) => value.sessionId || value.sessionFile, {
+    message: 'sessionId or sessionFile is required',
+  })
+
+export const agentCaseListSchema = z.object({
+  workspacePath: z.string().min(1).max(4_000).optional(),
+  includeArchived: z.boolean().optional(),
+})
+
+export const agentCaseCreateSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  summary: z.string().trim().max(2_000).optional(),
+  tags: agentCaseTagsSchema.optional(),
+  workspacePath: z.string().min(1).max(4_000),
+  sourceSessionId: z.string().min(1).max(500),
+  sourceSessionFile: z.string().min(1).max(4_000),
+  modelId: z.string().trim().max(500).optional(),
+  thinkingLevel: z.string().trim().max(80).optional(),
+})
+
+export const agentCaseUpdateSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().trim().min(1).max(120).optional(),
+  summary: z.string().trim().max(2_000).optional(),
+  tags: agentCaseTagsSchema.optional(),
+  status: z.enum(['draft', 'validated']).optional(),
+})
+
+export const agentCaseArchiveSchema = z.object({
+  id: z.string().uuid(),
+})
+
 export const shellOpenPathSchema = z.object({
   path: z.string(),
 })
@@ -47,9 +157,31 @@ export const sessionGetMessagesSchema = z.object({
 
 export const sessionNewSchema = z.object({
   workspaceId: z.string().min(1),
+  conversationConfig: z
+    .discriminatedUnion('kind', [
+      z.object({
+        kind: z.literal('agent'),
+        profileId: z.string().uuid(),
+      }),
+      z.object({
+        kind: z.literal('prompt'),
+        presetId: z.string().uuid(),
+      }),
+      z.object({
+        kind: z.literal('temporaryPrompt'),
+        name: z.string().trim().min(1).max(120),
+        systemPrompt: z.string().trim().min(1).max(200_000),
+        promptMode: z.enum(['append', 'replace']),
+      }),
+    ])
+    .optional(),
+  agentProfileId: z.string().uuid().optional(),
   modelId: z.string().min(1).optional(),
   thinkingLevel: z.string().min(1).optional(),
-})
+}).refine(
+  (value) => !(value.conversationConfig && value.agentProfileId),
+  { message: 'conversationConfig and agentProfileId are mutually exclusive' },
+)
 
 export const sessionDeleteSchema = z.object({
   sessionFile: z.string().min(1),

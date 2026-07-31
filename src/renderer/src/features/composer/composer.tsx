@@ -15,6 +15,7 @@ import {
 import { AttachmentChip } from './attachment-chip'
 import { ComposerModelStrip } from './composer-model-strip'
 import { ComposerMetricsInline } from './composer-metrics-inline'
+import { ComposerAgentStrip } from './composer-agent-strip'
 import { ComposerPendingQueue } from './composer-pending-queue'
 import { useComposerMetrics } from './use-composer-metrics'
 import { refreshComposerRunDisplay } from '@renderer/lib/composer-run-display'
@@ -57,6 +58,8 @@ export function Composer() {
   const pendingNew = useUIStore((s) => s.pendingNewSessionPlaceholder)
   const sessionLeaseSnapshot = useUIStore((s) => s.sessionLeaseSnapshot)
   const canCompose = !!currentWorkspace || ephemeralSandboxDraft
+  const agentSelectionEditable =
+    !!ephemeralSandboxDraft || !!pendingNew || (!currentSessionId && !historySessionFile)
   const sessionPreview = useMemo(
     () =>
       !ephemeralSandboxDraft &&
@@ -398,16 +401,17 @@ export function Composer() {
             }
             disabled={!canSendMessages || voiceState === 'transcribing' || voiceState === 'recording'}
           />
-          <div className="composer-toolbar flex min-h-[30px] items-center gap-1.5">
+          <div className="composer-toolbar flex min-h-9 items-center gap-2">
             <button
               type="button"
               onClick={attachmentHandlers.pickAttachments}
               disabled={!canSendMessages}
               title={t('composer:addFile')}
-              className="composer-toolbar-btn flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-foreground-secondary/70 disabled:opacity-30"
+              className="composer-toolbar-btn flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-foreground-secondary/70 disabled:opacity-30"
             >
               <Plus className="h-[15px] w-[15px]" strokeWidth={2} />
             </button>
+            {canCompose && <ComposerAgentStrip editable={agentSelectionEditable} />}
             {canCompose && (
               <ComposerMetricsInline metrics={metrics} isRunning={showComposerStop || isRunning} />
             )}

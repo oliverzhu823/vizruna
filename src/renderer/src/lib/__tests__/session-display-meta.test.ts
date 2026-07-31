@@ -170,6 +170,40 @@ describe('session-display-meta model authority', () => {
     })
   })
 
+  it('clears a cached draft model that has no credentials in this runtime', async () => {
+    storeState = {
+      historySessionFile: null,
+      ephemeralSandboxDraft: true,
+      pendingNewSessionPlaceholder: false,
+      currentSessionId: '__ephemeral_draft__',
+      lastModel: 'zai-coding-cn/glm-5.2',
+      lastThinking: 'high',
+      runState: { model: 'zai-coding-cn/glm-5.2', thinkingLevel: 'high' },
+      setRunState,
+    }
+    invoke.mockImplementation(async (method: string) => {
+      if (method === 'ipc:runtime.getState') return { state: null }
+      if (method === 'model.list') return { models: [] }
+      if (method === 'pi.settings.get') {
+        return {
+          settings: {
+            defaultProvider: 'zai-coding-cn',
+            defaultModel: 'glm-5.2',
+            defaultThinkingLevel: 'high',
+          },
+        }
+      }
+      return {}
+    })
+
+    await applyComposerDisplayMeta()
+
+    expect(setRunState).toHaveBeenCalledWith({
+      model: undefined,
+      thinkingLevel: 'high',
+    })
+  })
+
   it('applyWorkerBoundModelDisplay updates model and toasts fallback', () => {
     applyWorkerBoundModelDisplay({
       model: 'anthropic/claude-opus-4-8',

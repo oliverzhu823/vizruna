@@ -58,11 +58,15 @@ describe('Vizruna product identity', () => {
     assert.doesNotMatch(store, /name: 'pi-desktop-ui'/)
   })
 
-  it('does not silently use the upstream GitHub repository as its update source', () => {
+  it('uses the Vizruna repository as its update source with an environment override', () => {
+    const identity = read('packages/shared/product-identity.ts')
     const updateCheck = read('src/main/github-release-check.ts')
     const settings = read('src/main/ipc/handlers/settings.ts')
+    assert.match(identity, /PRODUCT_UPDATE_REPOSITORY = 'oliverzhu823\/vizruna'/)
     assert.match(updateCheck, /PRODUCT_UPDATE_REPOSITORY_ENV/)
+    assert.match(updateCheck, /PRODUCT_UPDATE_REPOSITORY/)
     assert.match(settings, /PRODUCT_UPDATE_REPOSITORY_ENV/)
+    assert.match(settings, /PRODUCT_UPDATE_REPOSITORY/)
     assert.doesNotMatch(updateCheck, /const DEFAULT_REPO = 'justhil\/pi-app'/)
     assert.doesNotMatch(settings, /\|\| 'justhil\/pi-app'/)
   })

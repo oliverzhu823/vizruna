@@ -7,6 +7,33 @@ import { assertSessionNavigation } from '@renderer/lib/session-navigation'
 import { captureVisibleLiveSessionTimeline } from '@renderer/lib/capture-live-session-timeline'
 import { focusSession, focusSessionSync, hydrateSessionView } from '@renderer/lib/session-shell'
 import { sessionFilesEqual } from '@renderer/lib/session-file-key'
+import { useAgentProfileStore } from '@renderer/stores/agent-profile-store'
+
+function hydrateConversationConfigBinding(sessionId: string, sessionFile: string): void {
+  const agentStore = useAgentProfileStore.getState()
+  agentStore.setBindingLoading(true)
+  void ipcClient
+    .invoke('conversationConfig.binding.get', { sessionId, sessionFile })
+    .then((response) => {
+      const current = useUIStore.getState()
+      if (
+        current.currentSessionId !== sessionId &&
+        !sessionFilesEqual(current.historySessionFile, sessionFile)
+      ) {
+        return
+      }
+      useAgentProfileStore.getState().setActiveBinding(response?.binding ?? null)
+    })
+    .catch(() => {
+      const current = useUIStore.getState()
+      if (
+        current.currentSessionId === sessionId ||
+        sessionFilesEqual(current.historySessionFile, sessionFile)
+      ) {
+        useAgentProfileStore.getState().setActiveBinding(null)
+      }
+    })
+}
 
 function inspectFocusedSessionLease(
   sessionFile: string,
@@ -48,6 +75,7 @@ export async function openSessionIntoWorker(
   const store = useUIStore.getState()
 
   if (!sessionFile) {
+    useAgentProfileStore.getState().setActiveBinding(null)
     store.setCurrentSession(sessionId)
     store.clearTimeline()
     store.clearFileChanges()
@@ -75,6 +103,7 @@ export async function openSessionIntoWorker(
   // Instant focus: cache hit skips full-screen loading skeleton
   const { sessionKey, instant } = focusSessionSync(sessionId, sessionFile)
   if (navToken != null && !assertSessionNavigation(navToken)) return
+  hydrateConversationConfigBinding(sessionId, sessionKey)
   inspectFocusedSessionLease(sessionKey, navToken)
 
   // Pending bind is cheap — do not wait on hydrate for interactivity.

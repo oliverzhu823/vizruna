@@ -73,14 +73,10 @@ export async function handleNewsession(msg: WorkerIncomingMessage, reply: Worker
             reply({ type: 'error', error: 'SESSION_BUSY' })
             return
           }
-          if (st.promptSent || st.runtime) {
-            const result = await runtimeNewSession()
-            if (result.cancelled) {
-              reply({ type: 'error', error: 'SESSION_NEW_CANCELLED' })
-              return
-            }
-          } else {
-            await initSession(st.currentCwd || process.cwd())
+          const result = await runtimeNewSession(msg.conversationConfigSnapshot ?? null)
+          if (result.cancelled) {
+            reply({ type: 'error', error: 'SESSION_NEW_CANCELLED' })
+            return
           }
           st.promptSent = false
           reply({
@@ -161,7 +157,11 @@ export async function handleLoadsession(msg: WorkerIncomingMessage, reply: Worke
             return
           }
           st.agentTurnActive = false
-          await switchOrLoadSession(String(msg.sessionFile ?? ''), leafOverride)
+          await switchOrLoadSession(
+            String(msg.sessionFile ?? ''),
+            leafOverride,
+            msg.conversationConfigSnapshot ?? null,
+          )
           st.promptSent = true
           const modelStr = currentSessionModelKey()
           reply({

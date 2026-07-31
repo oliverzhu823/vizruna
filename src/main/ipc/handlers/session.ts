@@ -33,6 +33,11 @@ import {
 import { errorMessage } from '@shared/error-message'
 import { SessionLeaseConflictError } from '../../lease/session-lease-service'
 import { applyNewSessionPreferences } from '../../new-session-preferences'
+import {
+  inheritConversationConfigBinding,
+  resolveConversationConfigSnapshot,
+  saveConversationConfigBinding,
+} from '../../system-prompt-preset-service'
 
 export function registerSessionHandlers(): void {
   registerHandler('ipc:session.list', async (req) => {
@@ -275,14 +280,49 @@ export function registerSessionHandlers(): void {
       await workerManager.start(workspaceId)
     }
     setPendingWorkerSessionFile(null)
-    const result = await workerManager.newSession()
+    const selection =
+      req.conversationConfig ??
+      (req.agentProfileId
+        ? { kind: 'agent' as const, profileId: req.agentProfileId }
+        : undefined)
+    const conversationConfigSnapshot = resolveConversationConfigSnapshot(selection)
+    const result = await workerManager.newSession(conversationConfigSnapshot)
     let state = await workerManager.getState().catch(() => ({}))
     const sessionFile =
       result.sessionFile || (state as { sessionFile?: string })?.sessionFile
-    if (req.modelId || req.thinkingLevel) {
+    if (conversationConfigSnapshot && !sessionFile) {
+      throw new Error('Configured conversation was created without a session file')
+    }
+    const conversationConfigBinding =
+      conversationConfigSnapshot && sessionFile
+        ? saveConversationConfigBinding({
+            sessionId: result.sessionId,
+            sessionFile,
+            snapshot: conversationConfigSnapshot,
+          })
+        : undefined
+    const agentBinding =
+      conversationConfigBinding?.kind === 'agent'
+        ? {
+            sessionId: conversationConfigBinding.sessionId,
+            sessionFile: conversationConfigBinding.sessionFile,
+            profileId: conversationConfigBinding.snapshot.profileId,
+            snapshot: conversationConfigBinding.snapshot,
+            createdAt: conversationConfigBinding.createdAt,
+          }
+        : undefined
+    const requestedModel =
+      (conversationConfigSnapshot && 'modelId' in conversationConfigSnapshot
+        ? conversationConfigSnapshot.modelId
+        : undefined) || req.modelId
+    const requestedThinking =
+      (conversationConfigSnapshot && 'thinkingLevel' in conversationConfigSnapshot
+        ? conversationConfigSnapshot.thinkingLevel
+        : undefined) || req.thinkingLevel
+    if (requestedModel || requestedThinking) {
       state = await applyNewSessionPreferences(
         workerManager,
-        { model: req.modelId, thinkingLevel: req.thinkingLevel },
+        { model: requestedModel, thinkingLevel: requestedThinking },
         sessionFile,
       )
     }
@@ -290,6 +330,8 @@ export function registerSessionHandlers(): void {
       bindSandboxSession(workspaceId, result.sessionId, sessionFile)
     }
     return {
+      agentBinding,
+      conversationConfigBinding,
       session: {
         sessionId: result.sessionId,
         sessionFile,
@@ -379,6 +421,11 @@ export function registerSessionHandlers(): void {
         }
       }
       setPendingWorkerSessionFile(null)
+      inheritConversationConfigBinding({
+        sourceSessionFile: sessionFile,
+        sessionId: result.sessionId,
+        sessionFile: result.sessionFile,
+      })
       return {
         cancelled: false,
         editorText: result.editorText,
@@ -468,6 +515,11 @@ export function registerSessionHandlers(): void {
         }
       }
       setPendingWorkerSessionFile(null)
+      inheritConversationConfigBinding({
+        sourceSessionFile: sessionFile,
+        sessionId: result.sessionId,
+        sessionFile: result.sessionFile,
+      })
       return {
         cancelled: false,
         sessionId: result.sessionId,

@@ -12,6 +12,9 @@ export default defineConfig({
     },
     build: {
       rollupOptions: {
+        // Vite 8/Rolldown's default `exports-only` entry signature can emit a
+        // zero-byte facade for Electron's side-effect-only Main entry.
+        preserveEntrySignatures: 'strict',
         external: [
           'electron',
           '@earendil-works/pi-ai',

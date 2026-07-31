@@ -16,9 +16,26 @@ import {
   invalidateSdkManagerCaches,
 } from '../../sdk-manager'
 import { errorMessage } from '@shared/error-message'
+import { inspectPiConfigImport, importPiConfig } from '../../pi-config-import'
+import { z } from 'zod'
 
 export function registerPiSdkHandlers(): void {
   registerHandler('ipc:pi.getInfo', async () => readPiInfo())
+
+  registerHandler('ipc:pi.configImport.inspect', async () =>
+    inspectPiConfigImport(),
+  )
+
+  registerHandlerWithSchema(
+    'ipc:pi.configImport.run',
+    z.object({ confirmed: z.literal(true) }),
+    async () => {
+      const result = importPiConfig()
+      await workerManager.reloadAuthentication()
+      await workerManager.reloadModels()
+      return result
+    },
+  )
 
   registerHandler('ipc:pi.models.get', async () => {
     const r = await readModelsConfig()

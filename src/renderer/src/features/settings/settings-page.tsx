@@ -29,16 +29,16 @@ import { AdaptersSettings } from '@renderer/features/settings/settings-adapters-
 import { ReliabilitySettingsPanel } from '@renderer/features/settings/reliability-settings-panel'
 import { ProviderRoutingSettingsPanel } from '@renderer/features/settings/provider-routing-settings-panel'
 
-type SettingsPage = 'general' | 'appearance' | 'rightPanels' | 'pi' | 'models' | 'providerRouting' | 'skills' | 'prompts' | 'extensions' | 'adapters' | 'voice' | 'reliability'
+export type SettingsPageKey = 'general' | 'appearance' | 'rightPanels' | 'pi' | 'models' | 'providerRouting' | 'skills' | 'prompts' | 'extensions' | 'adapters' | 'voice' | 'reliability'
 
-export function SettingsPage() {
+export function SettingsPage({ initialPage = 'general' }: { initialPage?: SettingsPageKey }) {
   const { t } = useTranslation()
-  const [page, setPage] = useState<SettingsPage>('general')
+  const [page, setPage] = useState<SettingsPageKey>(initialPage)
   const [configExt, setConfigExt] = useState<string | null>(null)
   const pendingExtensionConfig = useUIStore((s) => s.pendingExtensionConfig)
   const requestExtensionConfig = useUIStore((s) => s.requestExtensionConfig)
 
-  const PAGES: { key: SettingsPage; icon: LucideIcon; label: string }[] = [
+  const PAGES: { key: SettingsPageKey; icon: LucideIcon; label: string }[] = [
     { key: 'general', icon: SettingsIcon, label: t('settings:nav.general') },
     { key: 'appearance', icon: Palette, label: t('settings:nav.appearance') },
     { key: 'rightPanels', icon: LayoutPanelLeft, label: t('settings:nav.rightPanels') },
@@ -92,7 +92,7 @@ export function SettingsPage() {
     )
   }
 
-  const widePages: SettingsPage[] = ['rightPanels', 'pi', 'models', 'providerRouting', 'skills', 'prompts', 'extensions', 'adapters', 'voice', 'reliability']
+  const widePages: SettingsPageKey[] = ['rightPanels', 'pi', 'models', 'providerRouting', 'skills', 'prompts', 'extensions', 'adapters', 'voice', 'reliability']
   const wide = widePages.includes(page)
 
   return (

@@ -1,0 +1,65 @@
+{
+  "title": "Conversation System Prompt Library",
+  "description": "Save reusable System Prompts and select one before starting a new conversation. The first message captures an immutable prompt snapshot for that conversation.",
+  "libraryTab": "Conversation Prompts",
+  "piResourcesTab": "Pi Prompt Resources",
+  "piResourcesHint": "Manage Pi's native global, project, template, and plugin prompt resources.",
+  "count": "{{count}} prompts",
+  "loading": "Loading system prompts…",
+  "new": "New prompt",
+  "edit": "Edit",
+  "duplicate": "Duplicate",
+  "archive": "Archive",
+  "use": "Use in new conversation",
+  "empty": {
+    "title": "No saved system prompts yet",
+    "description": "Create a prompt once, then select it whenever you start a new conversation."
+  },
+  "selector": {
+    "title": "Choose new conversation configuration",
+    "description": "Choose exactly one option. The first message locks the selection for this conversation.",
+    "hint": "Choose General Pi, a System Prompt, or an Agent configuration",
+    "generalGroup": "Default",
+    "promptGroup": "System Prompts",
+    "agentGroup": "Agent Configurations",
+    "temporary": "Temporary custom prompt",
+    "temporaryDescription": "Use only for the next conversation without saving it",
+    "managePrompts": "Manage system prompts",
+    "manageAgents": "Manage Agent configurations"
+  },
+  "temporary": {
+    "title": "Temporary custom system prompt",
+    "name": "Temporary system prompt",
+    "useOnce": "Use once",
+    "saveAndUse": "Save to library and use",
+    "saved": "Prompt saved and selected"
+  },
+  "form": {
+    "createTitle": "New system prompt",
+    "editTitle": "Edit system prompt",
+    "duplicateTitle": "Duplicate system prompt",
+    "name": "Name",
+    "namePlaceholder": "For example: Rigorous Market Analysis",
+    "description": "Purpose",
+    "descriptionPlaceholder": "Describe when this prompt should be used",
+    "systemPrompt": "System Prompt",
+    "systemPromptPlaceholder": "Describe the role, goals, boundaries, workflow, and output requirements…",
+    "promptMode": "Prompt mode",
+    "append": "Append to Pi's default prompt",
+    "appendHint": "Recommended. Keeps Pi's built-in capabilities and adds your scenario instructions.",
+    "replace": "Replace Pi's default prompt",
+    "replaceHint": "Advanced. Completely replaces Pi's base system prompt.",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving…"
+  },
+  "messages": {
+    "created": "System prompt created",
+    "updated": "System prompt updated",
+    "archived": "System prompt archived",
+    "loadFailed": "Failed to load system prompts",
+    "saveFailed": "Failed to save system prompt",
+    "archiveFailed": "Failed to archive system prompt",
+    "archiveConfirm": "Archive “{{name}}”? Existing conversations created with it will not be affected."
+  }
+}

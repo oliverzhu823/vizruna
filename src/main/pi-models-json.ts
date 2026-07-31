@@ -1,10 +1,10 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { dirname, join } from 'path'
-import { homedir } from 'os'
 import { app } from 'electron'
 import { pathToFileURL } from 'node:url'
 import { resolveActiveSdk } from './sdk-loader'
 import { normalizeModelsConfig } from './models-config-normalize'
+import { getPiAgentDirectory } from './pi-agent-directory'
 
 export type PiModelsApi =
   | 'openai-completions'
@@ -39,7 +39,7 @@ export type PiModelsConfig = {
 }
 
 export function getModelsJsonPath(): string {
-  return join(homedir(), '.pi', 'agent', 'models.json')
+  return join(getPiAgentDirectory(), 'models.json')
 }
 
 function stripJsonComments(input: string): string {
@@ -78,7 +78,7 @@ async function loadPiSdk(): Promise<typeof import('@earendil-works/pi-coding-age
 async function validateWithPiSdk(config: PiModelsConfig): Promise<string | undefined> {
   try {
     const sdk = await loadPiSdk()
-    const agentDir = sdk.getAgentDir?.() ?? join(homedir(), '.pi', 'agent')
+    const agentDir = sdk.getAgentDir?.() ?? getPiAgentDirectory()
     const tmpPath = join(agentDir, '.models-json-validate.tmp')
     mkdirSync(dirname(tmpPath), { recursive: true })
     writeFileSync(tmpPath, JSON.stringify(config, null, 2), 'utf-8')
@@ -103,7 +103,7 @@ export type ModelsJsonCatalogEntry = {
   available: boolean
 }
 
-/** 从 ~/.pi/agent/models.json 展开全部 provider/model（与项目无关） */
+/** 从当前运行时 Pi agent 目录的 models.json 展开全部 provider/model。 */
 export function modelsCatalogFromConfig(config: PiModelsConfig): ModelsJsonCatalogEntry[] {
   const out: ModelsJsonCatalogEntry[] = []
   for (const [providerKey, prov] of Object.entries(config.providers || {})) {

@@ -2,6 +2,8 @@
 
 import { existsSync, readFileSync } from 'fs'
 import { join } from 'path'
+import { app } from 'electron'
+import { resolveApplicationRoot } from './application-root'
 import {
   discoverGlobalPiCodingAgentRoot,
   resolvePackageEntryPath,
@@ -28,7 +30,14 @@ export function clearGlobalSdkPathCache(): void {
 
 export function readBuiltinSdkVersion(): string {
   try {
-    const pkgPath = join(__dirname, '..', '..', 'node_modules', '@earendil-works', 'pi-coding-agent', 'package.json')
+    const applicationRoot = resolveApplicationRoot(app.getAppPath())
+    const pkgPath = join(
+      applicationRoot,
+      'node_modules',
+      '@earendil-works',
+      'pi-coding-agent',
+      'package.json',
+    )
     if (existsSync(pkgPath)) {
       const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'))
       return pkg.version || ''

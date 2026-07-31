@@ -17,20 +17,46 @@ const srcPath = join(root, 'src/main/github-release-check.ts')
 // Keep in sync with src/main/github-release-check.ts
 
 function parseSemver(tag) {
-  const match = String(tag).trim().replace(/^v/i, '').match(/^(\d+)(?:\.(\d+))?(?:\.(\d+))?/)
-  if (!match) return [0]
-  return [Number(match[1]) || 0, Number(match[2]) || 0, Number(match[3]) || 0]
+  const match = String(tag)
+    .trim()
+    .replace(/^v/i, '')
+    .match(
+      /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z.-]+)?$/,
+    )
+  if (!match) return null
+  return {
+    core: [Number(match[1]), Number(match[2]), Number(match[3])],
+    prerelease: match[4]
+      ? match[4].split('.').map((part) => (/^\d+$/.test(part) ? Number(part) : part))
+      : [],
+  }
 }
 
 function isVersionNewer(candidate, current) {
-  const candidateParts = parseSemver(candidate)
-  const currentParts = parseSemver(current)
-  const length = Math.max(candidateParts.length, currentParts.length)
-  for (let index = 0; index < length; index++) {
-    const left = candidateParts[index] ?? 0
-    const right = currentParts[index] ?? 0
+  const candidateVersion = parseSemver(candidate)
+  const currentVersion = parseSemver(current)
+  if (!candidateVersion || !currentVersion) return false
+  for (let index = 0; index < candidateVersion.core.length; index++) {
+    const left = candidateVersion.core[index]
+    const right = currentVersion.core[index]
     if (left > right) return true
     if (left < right) return false
+  }
+  const candidatePre = candidateVersion.prerelease
+  const currentPre = currentVersion.prerelease
+  if (candidatePre.length === 0 && currentPre.length > 0) return true
+  if (candidatePre.length > 0 && currentPre.length === 0) return false
+  const length = Math.max(candidatePre.length, currentPre.length)
+  for (let index = 0; index < length; index++) {
+    const left = candidatePre[index]
+    const right = currentPre[index]
+    if (left === undefined) return false
+    if (right === undefined) return true
+    if (left === right) continue
+    if (typeof left === 'number' && typeof right === 'number') return left > right
+    if (typeof left === 'number') return false
+    if (typeof right === 'number') return true
+    return left.localeCompare(right) > 0
   }
   return false
 }
@@ -68,6 +94,12 @@ describe('github release update helpers', () => {
     assert.equal(isVersionNewer('v0.5.0', '0.4.17'), true)
     assert.equal(isVersionNewer('0.4.17', '0.4.17'), false)
     assert.equal(isVersionNewer('0.4.16', '0.4.17'), false)
+    assert.equal(isVersionNewer('0.1.0-alpha.3', '0.1.0-alpha.2'), true)
+    assert.equal(isVersionNewer('0.1.0-alpha.10', '0.1.0-alpha.3'), true)
+    assert.equal(isVersionNewer('0.1.0-beta.1', '0.1.0-alpha.10'), true)
+    assert.equal(isVersionNewer('0.1.0', '0.1.0-rc.2'), true)
+    assert.equal(isVersionNewer('0.1.0-alpha.2', '0.1.0-alpha.3'), false)
+    assert.equal(isVersionNewer('not-a-version', '0.1.0-alpha.3'), false)
   })
 
   it('classifies installer assets', () => {

@@ -123,7 +123,7 @@
   "selectModelTitle": "选择模型",
   "current": "当前：",
   "searchModelPlaceholder": "搜索 provider / modelId / 名称…",
-  "noModels": "无可用模型（检查 ~/.pi/agent/auth.json）",
+  "noModels": "当前环境没有已授权模型，请到“设置 → 模型”登录或导入本机 Pi 配置",
   "noMatch": "无匹配",
   "unavailable": "不可用",
   "modelCount": "共 {{total}} 个，显示 {{shown}} 个",

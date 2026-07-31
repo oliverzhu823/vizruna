@@ -6,6 +6,7 @@ import { registerHandler, registerHandlerWithSchema } from '../registry'
 import { settingsSetSchema } from '../schemas'
 import {
   PRODUCT_NAME,
+  PRODUCT_UPDATE_REPOSITORY,
   PRODUCT_UPDATE_REPOSITORY_ENV,
 } from '@shared/product-identity'
 
@@ -50,7 +51,9 @@ export function registerSettingsHandlers(): void {
   })
 
   registerHandler('ipc:app.openRelease', async (req) => {
-    const slug = String(process.env[PRODUCT_UPDATE_REPOSITORY_ENV] || '').trim()
+    const slug = String(
+      process.env[PRODUCT_UPDATE_REPOSITORY_ENV] || PRODUCT_UPDATE_REPOSITORY,
+    ).trim()
     const requestedUrl = req.url && String(req.url).trim()
     const url = requestedUrl || (slug ? `https://github.com/${slug}/releases` : '')
     if (!url.startsWith('https://')) {

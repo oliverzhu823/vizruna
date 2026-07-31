@@ -1,0 +1,67 @@
+{
+  "title": "Agent Configurations",
+  "eyebrow": "Agent Studio",
+  "description": "Save a fixed System Prompt for each scenario and start a new Pi conversation with it.",
+  "loading": "Loading Agent configurations…",
+  "loadingBinding": "Loading Agent…",
+  "count": "{{count}} Agents",
+  "new": "New Agent",
+  "edit": "Edit",
+  "duplicate": "Duplicate",
+  "archive": "Archive",
+  "use": "Use this Agent",
+  "updatedAt": "Updated {{time}}",
+  "inherits": "Inherit current setting",
+  "model": "Model",
+  "thinking": "Thinking",
+  "tools": "Tools",
+  "empty": {
+    "title": "No custom Agents yet",
+    "description": "Create your first Agent with a fixed System Prompt for a specific scenario."
+  },
+  "general": {
+    "name": "General Pi Agent",
+    "description": "Uses the existing Pi global, project, and current conversation settings."
+  },
+  "selector": {
+    "title": "Choose Agent",
+    "description": "This conversation keeps the selected Agent after the first message.",
+    "hint": "Choose the Agent for this new conversation",
+    "manage": "Manage Agent configurations"
+  },
+  "promptMode": {
+    "append": "Append to Pi's default prompt",
+    "replace": "Replace Pi's default prompt"
+  },
+  "form": {
+    "createTitle": "New Agent",
+    "editTitle": "Edit Agent",
+    "duplicateTitle": "Duplicate Agent",
+    "name": "Name",
+    "namePlaceholder": "For example: Market Research Agent",
+    "description": "Purpose",
+    "descriptionPlaceholder": "Describe the tasks this Agent is designed for",
+    "systemPrompt": "System Prompt",
+    "systemPromptPlaceholder": "Describe the Agent's role, goals, boundaries, and output requirements…",
+    "promptMode": "Prompt mode",
+    "appendHint": "Recommended. Keeps Pi's existing capabilities and adds scenario instructions.",
+    "replaceHint": "Advanced. Replaces Pi's default base prompt.",
+    "model": "Default model",
+    "thinking": "Default thinking",
+    "toolsMode": "Tool configuration",
+    "toolsInherit": "Inherit Pi's current settings",
+    "toolsCustom": "Choose tools",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving…"
+  },
+  "messages": {
+    "created": "Agent created",
+    "updated": "Agent updated",
+    "archived": "Agent archived",
+    "loadFailed": "Failed to load Agent configurations",
+    "saveFailed": "Failed to save Agent configuration",
+    "archiveFailed": "Failed to archive Agent",
+    "archiveConfirm": "Archive “{{name}}”? Existing conversations will continue to open."
+  }
+}

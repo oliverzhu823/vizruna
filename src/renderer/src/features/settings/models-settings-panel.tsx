@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
-import { Layers, Plus, RefreshCw, Sparkles } from 'lucide-react'
+import { Download, Layers, Loader2, Plus, RefreshCw, Sparkles } from 'lucide-react'
 import { ConfirmDialog } from '@renderer/features/settings/confirm-dialog'
 import { ipcClient } from '@renderer/lib/ipc-client'
 import { SettingsPageHeader } from '@renderer/features/settings/settings-shell'
 import { useSettingsDirtySlice } from '@renderer/features/settings/use-settings-dirty-slice'
 import { notifySettingsDirtyChanged } from '@renderer/features/settings/settings-dirty-registry'
-import type { PiModelsConfigPayload, PiModelsProviderConfig } from '@shared/ipc-contract'
+import type {
+  PiConfigImportInspectResponse,
+  PiModelsConfigPayload,
+  PiModelsProviderConfig,
+} from '@shared/ipc-contract'
 import {
   PROVIDER_PRESETS,
   allocateProviderKey,
@@ -20,6 +24,7 @@ import type { LocalModelEntry } from '@renderer/features/settings/model-entry-ed
 import { btnOutline, btnPrimary, cloneConfig, configEqual, defaultModelEntry, ProviderAvatar } from './models-settings-shared'
 import { ModelsProviderCard } from './models-provider-card'
 import { ProviderAuthSettings } from './provider-auth-settings'
+import { refreshComposerRunDisplay } from '@renderer/lib/composer-run-display'
 
 export function ModelsSettingsPanel() {
   const { t } = useTranslation()
@@ -37,6 +42,9 @@ export function ModelsSettingsPanel() {
   const [remoteCatalog, setRemoteCatalog] = useState<Record<string, { ids: string[]; error?: string }>>({})
   const [expandedLocalModel, setExpandedLocalModel] = useState<Record<string, boolean>>({})
   const [apiKeyVisible, setApiKeyVisible] = useState<Record<string, boolean>>({})
+  const [configImport, setConfigImport] = useState<PiConfigImportInspectResponse | null>(null)
+  const [importingConfig, setImportingConfig] = useState(false)
+  const [authEpoch, setAuthEpoch] = useState(0)
   const [confirmState, setConfirmState] = useState<{
     title: string
     message: string
@@ -47,7 +55,11 @@ export function ModelsSettingsPanel() {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await ipcClient.invoke('pi.models.get', {})
+      const [res, importInspection] = await Promise.all([
+        ipcClient.invoke('pi.models.get', {}),
+        ipcClient.invoke('pi.configImport.inspect', {}),
+      ])
+      setConfigImport(importInspection as PiConfigImportInspectResponse)
       setFilePath(res?.path || '')
       setParseError(res?.parseError || null)
       setSchemaError(res?.schemaError || null)
@@ -67,6 +79,28 @@ export function ModelsSettingsPanel() {
       setLoading(false)
     }
   }, [t])
+
+  const importExistingPiConfig = useCallback(async () => {
+    setImportingConfig(true)
+    try {
+      const result = await ipcClient.invoke('pi.configImport.run', { confirmed: true })
+      toast.success(
+        t('settings:providerAuth.importSuccess', {
+          count: result?.imported?.length ?? 0,
+        }),
+      )
+      await load()
+      await refreshComposerRunDisplay()
+      setAuthEpoch((value) => value + 1)
+    } catch (error) {
+      toast.error(t('settings:providerAuth.importFailed'), {
+        description: error instanceof Error ? error.message : String(error),
+      })
+    } finally {
+      setImportingConfig(false)
+      setConfirmState(null)
+    }
+  }, [load, t])
 
   useEffect(() => {
     void load()
@@ -231,8 +265,52 @@ export function ModelsSettingsPanel() {
         description={t('settings:providerAuth.modelsPageDescription')}
       />
 
+      {configImport?.available ? (
+        <div className="rounded-xl border border-primary/25 bg-primary/5 px-4 py-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <div className="text-[13px] font-medium">
+                {t('settings:providerAuth.importTitle')}
+              </div>
+              <div className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                {t('settings:providerAuth.importDescription', {
+                  source: configImport.sourceDir,
+                  files: configImport.files.join(', '),
+                  providers:
+                    configImport.providers.length > 0
+                      ? configImport.providers.join(', ')
+                      : t('settings:providerAuth.importNoStoredProviders'),
+                })}
+              </div>
+            </div>
+            <button
+              type="button"
+              className={btnPrimary}
+              disabled={importingConfig}
+              onClick={() =>
+                setConfirmState({
+                  title: t('settings:providerAuth.importConfirmTitle'),
+                  message: t('settings:providerAuth.importConfirmMessage', {
+                    source: configImport.sourceDir,
+                    target: configImport.targetDir,
+                  }),
+                  onConfirm: () => void importExistingPiConfig(),
+                })
+              }
+            >
+              {importingConfig ? (
+                <Loader2 className="mr-1 inline h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Download className="mr-1 inline h-3.5 w-3.5" />
+              )}
+              {t('settings:providerAuth.importAction')}
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       <div className="rounded-xl border border-border/60 bg-card/30 px-3">
-        <ProviderAuthSettings onChanged={load} showHeader={false} />
+        <ProviderAuthSettings key={authEpoch} onChanged={load} showHeader={false} />
       </div>
 
       <div className="border-t border-border/60" />

@@ -1,0 +1,65 @@
+{
+  "title": "会话系统提示词库",
+  "description": "保存常用的 System Prompt，并在新对话开始前选择一套使用。发送第一条消息后，本次对话的提示词快照将保持不变。",
+  "libraryTab": "会话系统提示词",
+  "piResourcesTab": "Pi 提示词资源",
+  "piResourcesHint": "管理 Pi 原生的全局、项目、模板和插件提示词资源。",
+  "count": "{{count}} 套提示词",
+  "loading": "正在加载系统提示词…",
+  "new": "新增提示词",
+  "edit": "编辑",
+  "duplicate": "复制",
+  "archive": "归档",
+  "use": "用于新对话",
+  "empty": {
+    "title": "还没有保存的系统提示词",
+    "description": "新增一套提示词，以后创建对话时即可直接选择。"
+  },
+  "selector": {
+    "title": "选择新对话配置",
+    "description": "三种方式互斥；发送第一条消息后，本次对话将固定使用当前选择。",
+    "hint": "选择通用 Pi、系统提示词或 Agent 配置",
+    "generalGroup": "默认",
+    "promptGroup": "系统提示词",
+    "agentGroup": "Agent 配置",
+    "temporary": "临时自定义提示词",
+    "temporaryDescription": "只用于下一次新对话，不保存到提示词库",
+    "managePrompts": "管理系统提示词",
+    "manageAgents": "管理 Agent 配置"
+  },
+  "temporary": {
+    "title": "临时自定义系统提示词",
+    "name": "临时系统提示词",
+    "useOnce": "仅本次使用",
+    "saveAndUse": "保存到库并使用",
+    "saved": "提示词已保存并选中"
+  },
+  "form": {
+    "createTitle": "新增系统提示词",
+    "editTitle": "编辑系统提示词",
+    "duplicateTitle": "复制系统提示词",
+    "name": "名称",
+    "namePlaceholder": "例如：严谨市场分析",
+    "description": "用途说明",
+    "descriptionPlaceholder": "说明这套提示词适合什么场景",
+    "systemPrompt": "System Prompt",
+    "systemPromptPlaceholder": "描述角色、目标、边界、工作方式和输出要求…",
+    "promptMode": "使用方式",
+    "append": "追加到 Pi 默认 Prompt",
+    "appendHint": "推荐。保留 Pi 原有能力，再加入你的场景要求。",
+    "replace": "替换 Pi 默认 Prompt",
+    "replaceHint": "高级选项。完全替换 Pi 的默认基础提示词。",
+    "cancel": "取消",
+    "save": "保存",
+    "saving": "正在保存…"
+  },
+  "messages": {
+    "created": "系统提示词已创建",
+    "updated": "系统提示词已更新",
+    "archived": "系统提示词已归档",
+    "loadFailed": "系统提示词加载失败",
+    "saveFailed": "系统提示词保存失败",
+    "archiveFailed": "系统提示词归档失败",
+    "archiveConfirm": "归档“{{name}}”？已经使用它创建的历史对话不会受影响。"
+  }
+}

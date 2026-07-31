@@ -734,6 +734,11 @@
     white-space: pre;
   }
   .composer-shell {
+    /* Composer typography: one readable body size and one supporting metadata size. */
+    --composer-font-body: 15px;
+    --composer-font-meta: 12px;
+    --composer-line-body: 1.6;
+    --composer-line-meta: 1.4;
     background: var(--bg-base);
     border-color: var(--border-base);
     transition:
@@ -771,6 +776,8 @@
   /* 富文本输入区（contenteditable） */
   .rich-input {
     position: relative;
+    font-size: var(--composer-font-body);
+    line-height: var(--composer-line-body);
     caret-color: var(--aou-6);
     letter-spacing: 0.01em;
     outline: none;
@@ -782,6 +789,10 @@
     transition:
       color var(--motion-fast) var(--motion-ease),
       height var(--motion-fast) var(--motion-ease);
+  }
+  .composer-meta-text {
+    font-size: var(--composer-font-meta);
+    line-height: var(--composer-line-meta);
   }
   .rich-input.is-disabled {
     opacity: 0.5;
@@ -1581,20 +1592,24 @@
 
   /* 主对话区：居中，正文宽度上限略大于输入框 */
   .chat-content-column {
+    --timeline-inline-pad: 1rem;
+    --timeline-floating-control-gutter: 4rem;
     width: 100%;
     max-width: var(--timeline-content-max);
     margin-inline: auto;
-    padding-inline: 1rem;
+    padding-left: var(--timeline-inline-pad);
+    /* Keep right-aligned user messages out from under collapse/reload controls. */
+    padding-right: calc(var(--timeline-inline-pad) + var(--timeline-floating-control-gutter));
     box-sizing: border-box;
   }
   @media (min-width: 768px) {
     .chat-content-column {
-      padding-inline: 1.25rem;
+      --timeline-inline-pad: 1.25rem;
     }
   }
   @media (min-width: 1024px) {
     .chat-content-column {
-      padding-inline: 1.5rem;
+      --timeline-inline-pad: 1.5rem;
     }
   }
   .composer-dock-inner {

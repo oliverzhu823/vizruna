@@ -1,0 +1,50 @@
+{
+  "eyebrow": "Agent Studio",
+  "title": "Agent Cases",
+  "description": "Turn proven conversations into reusable assets. Each case keeps its source workspace, session, model, and validation state so it can later evolve into versions, evaluations, and delivery packages.",
+  "count": "{{count}} cases",
+  "create": {
+    "button": "Save current conversation",
+    "title": "Save as an Agent Case",
+    "description": "This saves an asset index without copying conversation content, API keys, or OAuth credentials.",
+    "name": "Case name",
+    "namePlaceholder": "For example: Competitor research report generator",
+    "defaultName": "Untitled Agent Case",
+    "summary": "Case summary",
+    "summaryPlaceholder": "Describe the problem, intended users, and current validation result",
+    "tags": "Tags",
+    "tagsPlaceholder": "Separate tags with commas, for example: research, report, market",
+    "submit": "Save case",
+    "disabledHint": "Open an existing conversation first"
+  },
+  "status": {
+    "draft": "Needs validation",
+    "validated": "Validated",
+    "archived": "Archived"
+  },
+  "filters": {
+    "showArchived": "Show archived",
+    "hideArchived": "Hide archived"
+  },
+  "actions": {
+    "openSource": "Open source",
+    "markDraft": "Mark as needs validation",
+    "markValidated": "Mark as validated",
+    "archive": "Archive",
+    "restore": "Restore as draft"
+  },
+  "empty": {
+    "title": "No Agent Cases yet",
+    "withSource": "Save the current proven conversation as your first case, then keep testing and improving it.",
+    "withoutSource": "Return to the main view, open an existing conversation, and save it as a case."
+  },
+  "messages": {
+    "created": "Agent Case saved",
+    "updated": "Case status updated",
+    "archived": "Case archived",
+    "loadFailed": "Failed to load Agent Cases",
+    "createFailed": "Failed to save Agent Case",
+    "updateFailed": "Failed to update Agent Case",
+    "openFailed": "Failed to open source conversation"
+  }
+}

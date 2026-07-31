@@ -10,12 +10,18 @@ describe('Electron main bundle externalization', () => {
     const config = readFileSync(join(root, 'electron.vite.config.ts'), 'utf8')
     assert.match(config, /external:\s*\[/)
     assert.match(config, /['"]electron['"]/, 'electron must stay runtime external, not bundled from node_modules/electron')
+    assert.match(
+      config,
+      /preserveEntrySignatures:\s*['"]strict['"]/,
+      'Electron Main is a side-effect-only entry and must not become an empty facade',
+    )
   })
 
   it('does not bundle npm electron installer wrapper into out/main/index.js after build', () => {
     const built = join(root, 'out/main/index.js')
     if (!existsSync(built)) return
     const src = readFileSync(built, 'utf8')
+    assert.ok(src.length > 1_000, 'Electron Main bundle must not be empty')
     assert.doesNotMatch(src, /Electron failed to install correctly/)
     assert.doesNotMatch(src, /Downloading Electron binary/)
   })

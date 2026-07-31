@@ -81,7 +81,7 @@ const store = new Store<StoreSchema>({
     rightPanelOrder: [],
     language: 'zh',
     autoOpenLastProject: true,
-    autoCheckRegistryUpdates: false,
+    autoCheckRegistryUpdates: true,
     ignoredUpdateVersion: '',
     alertSoundEnabled: true,
     alertNotificationEnabled: true,

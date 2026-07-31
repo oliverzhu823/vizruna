@@ -1,7 +1,7 @@
 {
   "name": "vizruna",
   "productName": "Vizruna",
-  "version": "0.1.0-alpha.2",
+  "version": "0.1.0-alpha.3",
   "description": "A visible, controllable, and reviewable desktop workspace for AI agents",
   "main": "./out/main/index.js",
   "author": "Vizruna Team",
@@ -24,7 +24,9 @@
     "typecheck": "tsc -p tsconfig.web.json --noEmit && tsc -p tsconfig.node.json --noEmit",
     "lint": "eslint .",
     "package": "npm run icon:export && electron-vite build && electron-builder",
+    "package:mac:unsigned": "node scripts/run-macos-unsigned-prerelease.mjs",
     "package:mac:release": "node scripts/run-macos-release.mjs",
+    "verify:mac:unsigned": "node scripts/verify-macos-unsigned-prerelease.mjs",
     "verify:mac:release": "node scripts/verify-macos-release.mjs",
     "sbom": "node scripts/generate-sbom.mjs",
     "verify": "npm run typecheck && npm run lint && npm run check:i18n && npm run test:scripts && npm run test:unit && npm run build && npm run sbom",

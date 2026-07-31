@@ -1,0 +1,50 @@
+{
+  "eyebrow": "Agent Studio",
+  "title": "Agent 案例",
+  "description": "把已经跑通的对话沉淀为可复用资产。案例保留原工作区、会话、模型和验证状态，后续可继续演进为版本、评测与交付包。",
+  "count": "共 {{count}} 个案例",
+  "create": {
+    "button": "沉淀当前对话",
+    "title": "沉淀为 Agent 案例",
+    "description": "这里保存案例索引，不复制对话正文，也不会保存 API Key 或 OAuth 凭据。",
+    "name": "案例名称",
+    "namePlaceholder": "例如：竞品调研报告生成器",
+    "defaultName": "未命名 Agent 案例",
+    "summary": "案例说明",
+    "summaryPlaceholder": "说明它解决什么问题、适合谁使用，以及当前验证结果",
+    "tags": "标签",
+    "tagsPlaceholder": "用逗号分隔，例如：调研，报告，市场",
+    "submit": "保存案例",
+    "disabledHint": "请先打开一个已有对话"
+  },
+  "status": {
+    "draft": "待验证",
+    "validated": "已验证",
+    "archived": "已归档"
+  },
+  "filters": {
+    "showArchived": "显示已归档",
+    "hideArchived": "隐藏已归档"
+  },
+  "actions": {
+    "openSource": "打开原对话",
+    "markDraft": "标记为待验证",
+    "markValidated": "标记为已验证",
+    "archive": "归档",
+    "restore": "恢复为待验证"
+  },
+  "empty": {
+    "title": "还没有 Agent 案例",
+    "withSource": "把当前已经跑通的对话保存为第一个案例，之后可以继续复测和改进。",
+    "withoutSource": "返回主界面并打开一个已有对话，再把它沉淀为案例。"
+  },
+  "messages": {
+    "created": "Agent 案例已保存",
+    "updated": "案例状态已更新",
+    "archived": "案例已归档",
+    "loadFailed": "加载 Agent 案例失败",
+    "createFailed": "保存 Agent 案例失败",
+    "updateFailed": "更新 Agent 案例失败",
+    "openFailed": "打开原对话失败"
+  }
+}

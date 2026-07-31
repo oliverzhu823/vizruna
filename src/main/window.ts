@@ -1,16 +1,18 @@
-import { BrowserWindow, nativeImage, shell } from 'electron'
+import { app, BrowserWindow, nativeImage, shell } from 'electron'
 import { existsSync } from 'fs'
 import { join } from 'path'
+import { resolveApplicationRoot } from './application-root'
 
 const isMac = process.platform === 'darwin'
 const isLinux = process.platform === 'linux'
 const useFrameless = process.platform === 'win32' || isMac || isLinux
 
 export function resolveWindowIcon() {
+  const applicationRoot = resolveApplicationRoot(app.getAppPath())
   const candidates = [
     join(process.resourcesPath, 'build', 'icon.png'),
-    join(__dirname, '../../build/icon.png'),
-    join(__dirname, '../../resources/icon.png'),
+    join(applicationRoot, 'build', 'icon.png'),
+    join(applicationRoot, 'resources', 'icon.png'),
   ]
   for (const p of candidates) {
     if (existsSync(p)) {
@@ -90,6 +92,7 @@ export function isE2eTestMode(): boolean {
 
 export function createWindow(): BrowserWindow {
   const saved = readSavedWindowBounds()
+  const applicationRoot = resolveApplicationRoot(app.getAppPath())
   mainWindow = new BrowserWindow({
     width: saved?.width ?? DEFAULT_W,
     height: saved?.height ?? DEFAULT_H,
@@ -105,7 +108,7 @@ export function createWindow(): BrowserWindow {
     title: runtimeIdentity.appName,
     icon: resolveWindowIcon(),
     webPreferences: {
-      preload: join(__dirname, '../preload/index.cjs'),
+      preload: join(applicationRoot, 'out', 'preload', 'index.cjs'),
       sandbox: readRendererSandboxEnabled(),
       contextIsolation: true,
       nodeIntegration: false,
@@ -172,7 +175,7 @@ export function createWindow(): BrowserWindow {
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+    mainWindow.loadFile(join(applicationRoot, 'out', 'renderer', 'index.html'))
   }
 
   return mainWindow

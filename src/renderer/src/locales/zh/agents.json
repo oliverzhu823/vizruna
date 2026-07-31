@@ -1,0 +1,67 @@
+{
+  "title": "Agent 配置库",
+  "eyebrow": "Agent Studio",
+  "description": "为不同场景保存固定的 System Prompt，并用该配置创建新的 Pi 对话。",
+  "loading": "正在加载 Agent 配置…",
+  "loadingBinding": "正在读取 Agent…",
+  "count": "{{count}} 个 Agent",
+  "new": "新建 Agent",
+  "edit": "编辑",
+  "duplicate": "复制",
+  "archive": "归档",
+  "use": "使用此 Agent",
+  "updatedAt": "更新于 {{time}}",
+  "inherits": "跟随当前设置",
+  "model": "模型",
+  "thinking": "思考度",
+  "tools": "工具",
+  "empty": {
+    "title": "还没有自定义 Agent",
+    "description": "创建第一个 Agent，为特定场景配置固定的 System Prompt。"
+  },
+  "general": {
+    "name": "通用 Pi Agent",
+    "description": "使用现有的 Pi 全局、项目和当前会话设置。"
+  },
+  "selector": {
+    "title": "选择 Agent",
+    "description": "发送第一条消息后，本次对话将固定使用该 Agent。",
+    "hint": "选择本次新对话使用的 Agent",
+    "manage": "管理 Agent 配置"
+  },
+  "promptMode": {
+    "append": "追加到 Pi 默认 Prompt",
+    "replace": "替换 Pi 默认 Prompt"
+  },
+  "form": {
+    "createTitle": "新建 Agent",
+    "editTitle": "编辑 Agent",
+    "duplicateTitle": "复制 Agent",
+    "name": "名称",
+    "namePlaceholder": "例如：市场调研 Agent",
+    "description": "用途说明",
+    "descriptionPlaceholder": "说明它适合完成什么任务",
+    "systemPrompt": "System Prompt",
+    "systemPromptPlaceholder": "描述 Agent 的角色、目标、边界和输出要求…",
+    "promptMode": "Prompt 使用方式",
+    "appendHint": "推荐。保留 Pi 原有能力，在末尾加入场景指令。",
+    "replaceHint": "高级选项。将替换 Pi 默认基础 Prompt。",
+    "model": "默认模型",
+    "thinking": "默认思考度",
+    "toolsMode": "工具配置",
+    "toolsInherit": "跟随 Pi 当前设置",
+    "toolsCustom": "指定工具",
+    "cancel": "取消",
+    "save": "保存",
+    "saving": "正在保存…"
+  },
+  "messages": {
+    "created": "Agent 已创建",
+    "updated": "Agent 已更新",
+    "archived": "Agent 已归档",
+    "loadFailed": "Agent 配置加载失败",
+    "saveFailed": "Agent 配置保存失败",
+    "archiveFailed": "Agent 归档失败",
+    "archiveConfirm": "归档“{{name}}”？历史对话仍然可以继续打开。"
+  }
+}

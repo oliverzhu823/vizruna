@@ -3,6 +3,7 @@ import log from 'electron-log'
 import { errorMessage } from '@shared/error-message'
 import type { AppUpdateAsset, AppUpdateAssetKind } from '@shared/app-update'
 import {
+  PRODUCT_UPDATE_REPOSITORY,
   PRODUCT_UPDATE_REPOSITORY_ENV,
   PRODUCT_USER_AGENT,
 } from '@shared/product-identity'
@@ -34,27 +35,64 @@ type GhRelease = {
   html_url?: string
   body?: string | null
   assets?: GhAsset[]
+  draft?: boolean
 }
 
 function repoSlug(): string {
-  return String(process.env[PRODUCT_UPDATE_REPOSITORY_ENV] || '').trim()
+  return String(
+    process.env[PRODUCT_UPDATE_REPOSITORY_ENV] || PRODUCT_UPDATE_REPOSITORY,
+  ).trim()
 }
 
-export function parseSemver(tag: string): number[] {
-  const match = String(tag).trim().replace(/^v/i, '').match(/^(\d+)(?:\.(\d+))?(?:\.(\d+))?/)
-  if (!match) return [0]
-  return [Number(match[1]) || 0, Number(match[2]) || 0, Number(match[3]) || 0]
+export type ParsedSemver = {
+  core: [number, number, number]
+  prerelease: Array<number | string>
+}
+
+export function parseSemver(tag: string): ParsedSemver | null {
+  const match = String(tag)
+    .trim()
+    .replace(/^v/i, '')
+    .match(
+      /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z.-]+)?$/,
+    )
+  if (!match) return null
+  return {
+    core: [Number(match[1]), Number(match[2]), Number(match[3])],
+    prerelease: match[4]
+      ? match[4].split('.').map((part) => (/^\d+$/.test(part) ? Number(part) : part))
+      : [],
+  }
 }
 
 export function isVersionNewer(candidate: string, current: string): boolean {
-  const candidateParts = parseSemver(candidate)
-  const currentParts = parseSemver(current)
-  const length = Math.max(candidateParts.length, currentParts.length)
-  for (let index = 0; index < length; index++) {
-    const left = candidateParts[index] ?? 0
-    const right = currentParts[index] ?? 0
+  const candidateVersion = parseSemver(candidate)
+  const currentVersion = parseSemver(current)
+  if (!candidateVersion || !currentVersion) return false
+
+  for (let index = 0; index < candidateVersion.core.length; index++) {
+    const left = candidateVersion.core[index]
+    const right = currentVersion.core[index]
     if (left > right) return true
     if (left < right) return false
+  }
+
+  const candidatePre = candidateVersion.prerelease
+  const currentPre = currentVersion.prerelease
+  if (candidatePre.length === 0 && currentPre.length > 0) return true
+  if (candidatePre.length > 0 && currentPre.length === 0) return false
+
+  const length = Math.max(candidatePre.length, currentPre.length)
+  for (let index = 0; index < length; index++) {
+    const left = candidatePre[index]
+    const right = currentPre[index]
+    if (left === undefined) return false
+    if (right === undefined) return true
+    if (left === right) continue
+    if (typeof left === 'number' && typeof right === 'number') return left > right
+    if (typeof left === 'number') return false
+    if (typeof right === 'number') return true
+    return left.localeCompare(right) > 0
   }
   return false
 }
@@ -192,7 +230,7 @@ async function fetchLatestRelease(slug: string): Promise<GhRelease | null> {
     const list = await fetch(`${API}/repos/${slug}/releases?per_page=5`, { headers, signal })
     if (!list.ok) return null
     const arr = (await list.json()) as GhRelease[]
-    const first = arr?.find((row) => row?.tag_name && !String(row.tag_name).includes('draft'))
+    const first = arr?.find((row) => row?.tag_name && row.draft !== true)
     return first || null
   }
   if (!response.ok) return null

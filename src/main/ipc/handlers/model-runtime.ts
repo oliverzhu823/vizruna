@@ -59,7 +59,10 @@ export function registerModelRuntimeHandlers(): void {
     } catch (e) {
       console.error('[IPC] model.list failed:', e)
     }
-    return catalogFromDisk()
+    // `available` is an authorization boundary. Never fall back to the model
+    // catalog here: catalog entries can exist without credentials and would be
+    // selectable in Composer but fail as soon as the first prompt is sent.
+    return { models: [] }
   })
 
   registerHandler('ipc:model.set', async (req) => {

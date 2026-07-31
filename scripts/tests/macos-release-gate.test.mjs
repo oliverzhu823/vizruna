@@ -21,9 +21,8 @@ test('macOS builder enables hardened runtime, entitlements, and notarization', (
   )
 })
 
-test('release workflow cannot publish an unsigned macOS artifact', () => {
+test('stable release workflow cannot publish an unsigned macOS artifact', () => {
   const workflow = read('.github/workflows/release.yml')
-  const prereleaseWorkflow = read('.github/workflows/prerelease.yml')
   const candidateWorkflow = read('.github/workflows/release-candidate.yml')
   const runner = read('scripts/run-macos-release.mjs')
   const verifier = read('scripts/verify-macos-release.mjs')
@@ -50,13 +49,6 @@ test('release workflow cannot publish an unsigned macOS artifact', () => {
     /build-mac:[\s\S]*CSC_IDENTITY_AUTO_DISCOVERY:\s*false/,
   )
   assert.doesNotMatch(workflow, /npm run package:mac:release/)
-  assert.match(prereleaseWorkflow, /npm run package:mac:release/)
-  assert.match(prereleaseWorkflow, /environment:\s*v0\.1-candidate/)
-  assert.match(prereleaseWorkflow, /MAC_CSC_LINK/)
-  assert.match(prereleaseWorkflow, /APPLE_APP_SPECIFIC_PASSWORD/)
-  assert.match(prereleaseWorkflow, /prerelease:\s*true/)
-  assert.match(prereleaseWorkflow, /actions\/attest-build-provenance@v2/)
-  assert.doesNotMatch(prereleaseWorkflow, /CSC_IDENTITY_AUTO_DISCOVERY:\s*false/)
   assert.match(workflow, /actions\/download-artifact@v4/)
   assert.match(workflow, /run-id:.*candidate_run_id/)
   assert.match(workflow, /sha256sum --check/)
@@ -66,6 +58,24 @@ test('release workflow cannot publish an unsigned macOS artifact', () => {
   assert.match(verifier, /spctl/)
   assert.match(verifier, /stapler/)
   assert.match(verifier, /Developer ID Application:/)
+})
+
+test('alpha prerelease publishes a verified unsigned tester build', () => {
+  const workflow = read('.github/workflows/prerelease.yml')
+  const runner = read('scripts/run-macos-unsigned-prerelease.mjs')
+  const verifier = read('scripts/verify-macos-unsigned-prerelease.mjs')
+
+  assert.match(workflow, /npm run package:mac:unsigned/)
+  assert.match(workflow, /npm run test:package/)
+  assert.match(workflow, /node scripts\/ci-audit\.mjs/)
+  assert.match(workflow, /prerelease:\s*true/)
+  assert.match(workflow, /actions\/attest-build-provenance@v2/)
+  assert.doesNotMatch(workflow, /MAC_CSC_LINK|APPLE_APP_SPECIFIC_PASSWORD/)
+  assert.doesNotMatch(workflow, /environment:\s*v0\.1-candidate/)
+  assert.match(runner, /CSC_IDENTITY_AUTO_DISCOVERY:\s*'false'/)
+  assert.match(runner, /verify-macos-unsigned-prerelease/)
+  assert.match(verifier, /doesNotMatch[\s\S]*Developer ID Application:/)
+  assert.match(verifier, /Gatekeeper rejection confirmed/)
 })
 
 test('v0.1 release publishes only macOS and requires exact evidence approval', () => {

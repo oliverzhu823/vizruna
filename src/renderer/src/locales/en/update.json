@@ -5,11 +5,11 @@
   "noNotes": "No detailed notes were attached to this release. Open the release page for more.",
   "remindLater": "Not now",
   "ignoreVersion": "Skip this version",
-  "updateNow": "Update",
+  "updateNow": "Download and open installer",
   "openRelease": "Open release page",
-  "updating": "Updating…",
+  "updating": "Downloading installer…",
   "downloading": "Downloading…",
   "downloadingPercent": "Downloading {{percent}}%",
-  "launchingInstaller": "Launching installer…",
+  "launchingInstaller": "Installer opened. Quit Vizruna, drag the new app to Applications, and choose Replace.",
   "downloadFailed": "Download failed: {{error}}"
 }

@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => {
   return {
     handlers,
     setDefaultModelAndProvider,
+    catalogModels: [] as Array<Record<string, unknown>>,
     workerManager: {
       isRunning: false,
       cwd: null as string | null,
@@ -36,7 +37,7 @@ vi.mock('../../sandbox-workspaces', () => ({
 }))
 vi.mock('../../pi-models-json', () => ({
   readModelsConfigRaw: () => ({ config: { providers: {} } }),
-  modelsCatalogFromConfig: () => [],
+  modelsCatalogFromConfig: () => mocks.catalogModels,
 }))
 vi.mock('../sdk-session', () => ({
   getActiveSdkModule: async () => ({
@@ -62,6 +63,7 @@ describe('model.set IPC routing', () => {
     mocks.handlers.clear()
     mocks.workerManager.isRunning = false
     mocks.workerManager.cwd = null
+    mocks.catalogModels = []
     registerModelRuntimeHandlers()
   })
 
@@ -118,5 +120,24 @@ describe('model.set IPC routing', () => {
         workspaceId: '/workspace',
       }),
     ).rejects.toThrow('MODEL_NOT_FOUND')
+  })
+
+  it('never exposes unauthenticated catalog entries as available models', async () => {
+    mocks.catalogModels = [
+      {
+        provider: 'openai-codex',
+        id: 'gpt-test',
+        name: 'gpt-test',
+        contextWindow: 1000,
+        maxOutput: 100,
+        available: true,
+      },
+    ]
+    const handler = mocks.handlers.get('ipc:model.list')!
+
+    await expect(handler({ scope: 'available' })).resolves.toEqual({ models: [] })
+    await expect(handler({ scope: 'catalog' })).resolves.toEqual({
+      models: mocks.catalogModels,
+    })
   })
 })

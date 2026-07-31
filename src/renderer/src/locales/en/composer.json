@@ -123,7 +123,7 @@
   "selectModelTitle": "Select Model",
   "current": "Current: ",
   "searchModelPlaceholder": "Search provider / modelId / name…",
-  "noModels": "No models available (check ~/.pi/agent/auth.json)",
+  "noModels": "No authorized model is available. Sign in or import a local Pi configuration under Settings → Models.",
   "noMatch": "No match",
   "unavailable": "Unavailable",
   "modelCount": "{{total}} total, showing {{shown}}",

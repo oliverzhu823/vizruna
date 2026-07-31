@@ -20,10 +20,16 @@ import { registerReliabilityHandlers } from './ipc/handlers/reliability'
 import { registerProviderRoutingHandlers } from './ipc/handlers/provider-routing'
 import { registerProviderAuthHandlers } from './ipc/handlers/provider-auth'
 import { registerTerminalHandlers } from './ipc/handlers/terminal'
+import { registerAgentCaseHandlers } from './ipc/handlers/agent-case'
+import { registerAgentProfileHandlers } from './ipc/handlers/agent-profile'
+import { registerSystemPromptPresetHandlers } from './ipc/handlers/system-prompt-preset'
 
 export { registerHandler, sendEvent } from './ipc/registry'
 
 export function registerAllHandlers(): void {
+  registerAgentCaseHandlers()
+  registerAgentProfileHandlers()
+  registerSystemPromptPresetHandlers()
   registerDialogHandlers()
   registerWorkspaceFsHandlers()
   registerWorkspaceHandlers()
