@@ -57,7 +57,8 @@ jobs:
         run: node scripts/ci-audit.mjs
 
       - name: Clean generated release directory
-        run: node -e "require('node:fs').rmSync(require('node:path').resolve('dist'), { recursive: true, force: true })"
+        run: >-
+          node -e "require('node:fs').rmSync(require('node:path').resolve('dist'), { recursive: true, force: true })"
 
       - name: Package and verify unsigned Apple Silicon build
         run: npm run package:mac:unsigned

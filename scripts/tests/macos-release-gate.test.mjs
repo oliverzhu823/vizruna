@@ -68,6 +68,7 @@ test('alpha prerelease publishes a verified unsigned tester build', () => {
   assert.match(workflow, /npm run package:mac:unsigned/)
   assert.match(workflow, /npm run test:package/)
   assert.match(workflow, /node scripts\/ci-audit\.mjs/)
+  assert.match(workflow, /Clean generated release directory[\s\S]*run:\s*>-/)
   assert.match(workflow, /prerelease:\s*true/)
   assert.match(workflow, /actions\/attest-build-provenance@v2/)
   assert.doesNotMatch(workflow, /MAC_CSC_LINK|APPLE_APP_SPECIFIC_PASSWORD/)
