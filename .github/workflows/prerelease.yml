@@ -1,13 +1,11 @@
-# Early macOS prereleases are intentionally distributed without Developer ID
-# signing or notarization. Stable releases keep the signed candidate gate.
-name: Release Unsigned macOS Prerelease
+# Vizruna-web is the only actively distributed product. The retained desktop
+# sources are not packaged or uploaded by this workflow.
+name: Release Vizruna-web
 
 on:
   push:
     tags:
-      - 'v*-alpha.*'
-      - 'v*-beta.*'
-      - 'v*-rc.*'
+      - 'v*'
 
 permissions:
   contents: write
@@ -15,7 +13,7 @@ permissions:
   id-token: write
 
 jobs:
-  release-mac-prerelease:
+  release-vizruna-web:
     runs-on: macos-15
     timeout-minutes: 90
     steps:
@@ -50,34 +48,29 @@ jobs:
       - name: Complete repository quality gate
         run: npm run verify
 
-      - name: Run desktop end-to-end tests
-        run: npm run test:e2e
+      - name: Run Vizruna-web browser end-to-end tests
+        run: |
+          npm run test:e2e:install
+          npm run test:e2e:web
 
       - name: Audit dependencies
         run: node scripts/ci-audit.mjs
 
-      - name: Clean generated release directory
-        run: >-
-          node -e "require('node:fs').rmSync(require('node:path').resolve('dist'), { recursive: true, force: true })"
-
-      - name: Package and verify unsigned Apple Silicon build
-        run: npm run package:mac:unsigned
-
-      - name: Smoke test packaged application with isolated data
-        run: npm run test:package
-
-      - name: Prepare public release assets
+      - name: Prepare Vizruna-web release assets
         run: |
           set -euo pipefail
           mkdir -p release-assets
-          find dist -maxdepth 1 -type f \( -name '*.dmg' -o -name '*.zip' \) -exec cp '{}' release-assets/ \;
-          test "$(find release-assets -maxdepth 1 -type f -name '*.dmg' | wc -l | tr -d ' ')" = "1"
+          VERSION="${GITHUB_REF_NAME#v}"
+          WEB_ARCHIVE="release-assets/Vizruna-web-${VERSION}-source.zip"
+          git archive --format=zip --prefix="Vizruna-web-${VERSION}/" --output="${WEB_ARCHIVE}" HEAD
+          unzip -Z1 "${WEB_ARCHIVE}" | grep -qx "Vizruna-web-${VERSION}/Start-Vizruna-web.command"
           test "$(find release-assets -maxdepth 1 -type f -name '*.zip' | wc -l | tr -d ' ')" = "1"
+          test "$(find release-assets -maxdepth 1 -type f -name '*.dmg' | wc -l | tr -d ' ')" = "0"
           node scripts/generate-release-sbom.mjs release-assets/sbom.cdx.json
           node scripts/generate-release-checksums.mjs release-assets
           find release-assets -maxdepth 1 -type f -print | sort
 
-      - name: Attest prerelease artifacts
+      - name: Attest release artifacts
         uses: actions/attest-build-provenance@v2
         with:
           subject-path: release-assets/**
@@ -88,12 +81,12 @@ jobs:
           node scripts/generate-release-notes.mjs "${GITHUB_REF_NAME#v}" > release-body.md
           test -s release-body.md
 
-      - name: Publish unsigned macOS prerelease
+      - name: Publish Vizruna-web release
         uses: softprops/action-gh-release@v2
         with:
-          name: Vizruna ${{ github.ref_name }} — Unsigned macOS Test Build
+          name: Vizruna-web ${{ github.ref_name }}
           body_path: release-body.md
           files: release-assets/**
-          prerelease: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

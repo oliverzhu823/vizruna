@@ -23,6 +23,7 @@ export default defineConfig({
         ],
         input: {
           index: resolve(__dirname, 'src/main/index.ts'),
+          'web-server': resolve(__dirname, 'src/web/server.ts'),
           worker: resolve(__dirname, 'src/worker/index.ts'),
         },
         output: {

@@ -2,6 +2,7 @@ import type { AppEvent } from '@shared/app-events'
 import type { AppUpdateAvailableInfo, AppUpdateDownloadProgress } from '@shared/app-update'
 import type { ProviderAuthFlowEvent } from '@shared/provider-auth'
 import type { TerminalDataEvent, TerminalExitEvent } from '@shared/terminal'
+import { installWebRuntimeBridge } from './web-runtime-client'
 
 declare global {
   interface Window {
@@ -25,79 +26,119 @@ declare global {
   }
 }
 
+type RuntimeBridge = NonNullable<Window['piDesktop']>
+let activeBridge: RuntimeBridge | null = window.piDesktop ?? null
+
+function runtimeBridge(): RuntimeBridge | null {
+  activeBridge ??= window.piDesktop ?? null
+  return activeBridge
+}
+
 class IpcClientImpl {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async invoke<M extends string>(method: M, request?: any): Promise<any> {
-    if (!window.piDesktop) {
+    const bridge = runtimeBridge()
+    if (!bridge) {
       console.warn(`[IPC] piDesktop not available, stubbing ${method}`)
       return {}
     }
-    return window.piDesktop.invoke(`ipc:${method}`, request)
+    return bridge.invoke(`ipc:${method}`, request)
   }
 }
 
 export const ipcClient = new IpcClientImpl()
 
+export async function initializeRuntimeTransport(): Promise<void> {
+  if (runtimeBridge()) return
+  activeBridge = await installWebRuntimeBridge()
+}
+
+export function isWebRuntime(): boolean {
+  return (
+    document.documentElement.dataset.vizrunaRuntime === 'web' ||
+    runtimeBridge()?.ping() === 'web-pong'
+  )
+}
+
+export function resolveRuntimeFilePath(file: File): string | undefined {
+  try {
+    return runtimeBridge()?.getPathForFile(file) || undefined
+  } catch {
+    return undefined
+  }
+}
+
 export function onAppEvent(callback: (event: AppEvent) => void): () => void {
-  if (!window.piDesktop) {
+  const bridge = runtimeBridge()
+  if (!bridge) {
     console.warn('[IPC] piDesktop not available, event subscription disabled')
     return () => {}
   }
-  return window.piDesktop.onEvent(callback)
+  return bridge.onEvent(callback)
 }
 
 export function onWorkerExit(callback: (info: { code: number; cwd: string }) => void): () => void {
-  if (!window.piDesktop) return () => {}
-  return window.piDesktop.onWorkerExit(callback)
+  const bridge = runtimeBridge()
+  if (!bridge) return () => {}
+  return bridge.onWorkerExit(callback)
 }
 
 export function onAutoOpened(callback: (info: { workspaceId: string }) => void): () => void {
-  if (!window.piDesktop) return () => {}
-  return window.piDesktop.onAutoOpened(callback)
+  const bridge = runtimeBridge()
+  if (!bridge) return () => {}
+  return bridge.onAutoOpened(callback)
 }
 
 export function onExtensionUIRequest(callback: (request: unknown) => void): () => void {
-  if (!window.piDesktop) return () => {}
-  return window.piDesktop.onExtensionUIRequest(callback)
+  const bridge = runtimeBridge()
+  if (!bridge) return () => {}
+  return bridge.onExtensionUIRequest(callback)
 }
 
 export function onExtensionUIDismiss(
   callback: (payload: { type: string; id?: string; reason?: string }) => void,
 ): () => void {
-  if (!window.piDesktop) return () => {}
-  return window.piDesktop.onExtensionUIDismiss(callback)
+  const bridge = runtimeBridge()
+  if (!bridge) return () => {}
+  return bridge.onExtensionUIDismiss(callback)
 }
 
 export function onAppUpdateAvailable(callback: (info: AppUpdateAvailableInfo) => void): () => void {
-  if (!window.piDesktop) return () => {}
-  return window.piDesktop.onAppUpdateAvailable(callback)
+  const bridge = runtimeBridge()
+  if (!bridge) return () => {}
+  return bridge.onAppUpdateAvailable(callback)
 }
 
 export function onAppUpdateDownloadProgress(
   callback: (info: AppUpdateDownloadProgress) => void,
 ): () => void {
-  if (!window.piDesktop?.onAppUpdateDownloadProgress) return () => {}
-  return window.piDesktop.onAppUpdateDownloadProgress(callback)
+  const bridge = runtimeBridge()
+  if (!bridge?.onAppUpdateDownloadProgress) return () => {}
+  return bridge.onAppUpdateDownloadProgress(callback)
 }
 
 export function onGitWorkspaceChanged(callback: (payload: { cwd: string }) => void): () => void {
-  if (!window.piDesktop) return () => {}
-  return window.piDesktop.onGitWorkspaceChanged(callback)
+  const bridge = runtimeBridge()
+  if (!bridge) return () => {}
+  return bridge.onGitWorkspaceChanged(callback)
 }
 
 export function onProviderAuthFlow(
   callback: (event: ProviderAuthFlowEvent) => void,
 ): () => void {
-  if (!window.piDesktop) return () => {}
-  return window.piDesktop.onProviderAuthFlow(callback)
+  const bridge = runtimeBridge()
+  if (!bridge) return () => {}
+  return bridge.onProviderAuthFlow(callback)
 }
 
 export function onTerminalData(callback: (event: TerminalDataEvent) => void): () => void {
-  if (!window.piDesktop) return () => {}
-  return window.piDesktop.onTerminalData(callback)
+  const bridge = runtimeBridge()
+  if (!bridge) return () => {}
+  return bridge.onTerminalData(callback)
 }
 
 export function onTerminalExit(callback: (event: TerminalExitEvent) => void): () => void {
-  if (!window.piDesktop) return () => {}
-  return window.piDesktop.onTerminalExit(callback)
+  const bridge = runtimeBridge()
+  if (!bridge) return () => {}
+  return bridge.onTerminalExit(callback)
 }

@@ -58,6 +58,7 @@ import {
   isDeferredAuthenticationReloadError,
   isInvalidAuthenticationRuntimeError,
 } from '@shared/worker-auth-reload'
+import { emitRuntimeEvent } from './runtime-event-bus'
 
 interface InitResult extends WorkerInitResult {}
 
@@ -161,6 +162,7 @@ export class WorkerManager {
         return this.orchestrationRequestHandler(payload)
       },
       onExtensionUiRequest: (payload) => {
+        emitRuntimeEvent('ipc:extension-ui-request', payload.request)
         this.notifyRuntime({
           type: 'extension-ui-request',
           request: payload.request,
@@ -184,6 +186,11 @@ export class WorkerManager {
     if (typeof this.idleTimer === 'object' && this.idleTimer && 'unref' in this.idleTimer) {
       ;(this.idleTimer as NodeJS.Timeout).unref?.()
     }
+  }
+
+  /** Start lifecycle maintenance when no Electron BrowserWindow is present. */
+  startRuntimeMonitoring(): void {
+    this.ensureIdleTimer()
   }
 
   async start(cwd: string): Promise<InitResult> {
@@ -440,6 +447,7 @@ export class WorkerManager {
       sessionFile,
       agentTurnActive,
     })
+    emitRuntimeEvent('ipc:events', enriched)
     if (
       sessionFile &&
       event.type === 'run' &&
@@ -512,6 +520,12 @@ export class WorkerManager {
       poolKey: key,
       sessionFile: slot.sessionFile,
       stopping: slot.stopping,
+    })
+    emitRuntimeEvent('ipc:worker-exit', {
+      code,
+      cwd: slot.cwd,
+      sessionFile: slot.sessionFile,
+      poolKey: key,
     })
     auditRepository.write({
       category: 'worker',
@@ -667,8 +681,7 @@ export class WorkerManager {
       slot.beforeWrite = undefined
       await terminateWorkerSlotImmediately(slot)
     }
-    if (this.mainWindow && !this.mainWindow.isDestroyed()) {
-      this.mainWindow.webContents.send('ipc:events', {
+    const event = {
         type: 'lease',
         phase: 'lost',
         seq: Date.now(),
@@ -676,7 +689,10 @@ export class WorkerManager {
         sessionFile: snapshot.sessionFile,
         timestamp: Date.now(),
         snapshot,
-      } satisfies AppEvent)
+      } satisfies AppEvent
+    emitRuntimeEvent('ipc:events', event)
+    if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+      this.mainWindow.webContents.send('ipc:events', event)
     }
   }
 

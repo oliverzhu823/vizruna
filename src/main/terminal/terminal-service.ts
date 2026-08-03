@@ -9,6 +9,7 @@ import type {
   TerminalCreateRequest,
   TerminalCreateResponse,
 } from '@shared/terminal'
+import { emitRuntimeEvent } from '../runtime-event-bus'
 
 const MAX_TERMINALS = 8
 const MAX_BACKLOG = 128 * 1024
@@ -107,6 +108,7 @@ export class TerminalService {
       this.flushOutput(session)
       const marker = `\r\n[process exited: ${exitCode}]\r\n`
       this.emitOutput(session, marker)
+      emitRuntimeEvent('ipc:terminal-exit', { id, exitCode, signal })
       const win = terminalWindow()
       if (win && !win.isDestroyed()) {
         win.webContents.send('ipc:terminal-exit', { id, exitCode, signal })
@@ -189,6 +191,11 @@ export class TerminalService {
   private emitOutput(session: TerminalSession, data: string): void {
     session.sequence += 1
     session.backlog = `${session.backlog}${data}`.slice(-MAX_BACKLOG)
+    emitRuntimeEvent('ipc:terminal-data', {
+      id: session.id,
+      data,
+      sequence: session.sequence,
+    })
     const win = terminalWindow()
     if (win && !win.isDestroyed()) {
       win.webContents.send('ipc:terminal-data', {

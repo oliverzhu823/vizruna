@@ -3,12 +3,14 @@ import { join } from 'path'
 import type { BrowserWindow } from 'electron'
 import { getTrustedWorkspaceRoot } from './trusted-workspace'
 import { isGitRepository } from './git-workspace'
+import { emitRuntimeEvent } from './runtime-event-bus'
 
 let watcher: FSWatcher | null = null
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 let watchedCwd: string | null = null
 
 function notifyGitChanged(win: BrowserWindow | null, cwd: string): void {
+  emitRuntimeEvent('ipc:git-workspace-changed', { cwd })
   if (!win || win.isDestroyed()) return
   win.webContents.send('ipc:git-workspace-changed', { cwd })
 }

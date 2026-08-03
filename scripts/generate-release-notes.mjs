@@ -11,7 +11,7 @@
 import { readFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { PRODUCT_NAME } from '../packages/shared/product-identity.ts'
+import { PRODUCT_WEB_NAME } from '../packages/shared/product-identity.ts'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -54,13 +54,13 @@ export function buildReleaseNotesFromChangelog(changelogMarkdown, version) {
   }
 
   return [
-    `## ${PRODUCT_NAME} v${normalized}`,
+    `## ${PRODUCT_WEB_NAME} v${normalized}`,
     '',
     body,
     '',
     '---',
     '',
-    '安装包见本页 Assets。更新说明以本正文为准（应用内「发现新版本」弹窗会展示）。',
+    'Vizruna-web 源码包见本页 Assets。更新说明以本正文为准。',
     '',
   ].join('\n')
 }

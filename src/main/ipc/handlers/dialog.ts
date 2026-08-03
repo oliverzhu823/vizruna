@@ -1,8 +1,14 @@
-import { dialog, BrowserWindow } from 'electron'
+import { app, dialog, BrowserWindow } from 'electron'
 import { registerHandler } from '../registry'
+
+function focusNativeDialog(): void {
+  if (BrowserWindow.getAllWindows().length > 0) return
+  app.focus({ steal: true })
+}
 
 export function registerDialogHandlers(): void {
   registerHandler('ipc:dialog:openDirectory', async () => {
+    focusNativeDialog()
     const win = BrowserWindow.getFocusedWindow() || BrowserWindow.getAllWindows()[0]
     const result = win
       ? await dialog.showOpenDialog(win, { properties: ['openDirectory'], title: '选择项目目录' })
@@ -14,6 +20,7 @@ export function registerDialogHandlers(): void {
   })
 
   registerHandler('ipc:dialog:openFiles', async (req) => {
+    focusNativeDialog()
     const win = BrowserWindow.getFocusedWindow() || BrowserWindow.getAllWindows()[0]
     const props: ('openFile' | 'multiSelections')[] = ['openFile']
     if (req?.multiple !== false) props.push('multiSelections')

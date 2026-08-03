@@ -1,4 +1,7 @@
-# Vizruna macOS 发布手册
+# Vizruna macOS 发布手册（已暂停，仅供历史参考）
+
+> 自 2026-08-03 起，桌面客户端停止发布。本手册不再代表当前发布流程；当前唯一
+> 发布路线见 [21-Vizruna-web-Implementation.md](./21-Vizruna-web-Implementation.md)。
 
 本文档同时定义两条互不混淆的发布路径：
 

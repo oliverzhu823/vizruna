@@ -1,4 +1,5 @@
 import { BrowserWindow, app } from 'electron'
+import { emitRuntimeEvent } from '../../runtime-event-bus'
 import { registerHandler, registerHandlerWithSchema, sendEvent } from '../registry'
 import { piSettingsSetSchema, sdkInstallSchema } from '../schemas'
 import { workerManager } from '../../worker-manager'
@@ -94,8 +95,10 @@ export function registerPiSdkHandlers(): void {
     const win = BrowserWindow.getFocusedWindow() || BrowserWindow.getAllWindows()[0]
     try {
       await installVersion(version, (line) => {
+        emitRuntimeEvent('ipc:events', { type: 'sdk-install-progress', version, line })
         if (win) sendEvent(win, { type: 'sdk-install-progress', version, line })
       })
+      emitRuntimeEvent('ipc:events', { type: 'sdk-install-progress', version, done: true })
       if (win) sendEvent(win, { type: 'sdk-install-progress', version, done: true })
       invalidateSdkManagerCaches()
       clearGlobalSdkPathCache()
@@ -106,6 +109,12 @@ export function registerPiSdkHandlers(): void {
       }
       return { ok: true }
     } catch (e: unknown) {
+      emitRuntimeEvent('ipc:events', {
+        type: 'sdk-install-progress',
+        version,
+        done: true,
+        error: errorMessage(e),
+      })
       if (win) sendEvent(win, { type: 'sdk-install-progress', version, done: true, error: errorMessage(e) })
       return { ok: false, error: errorMessage(e) }
     }

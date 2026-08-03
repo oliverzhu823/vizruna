@@ -1,10 +1,14 @@
 export const PRODUCT_NAME = 'Vizruna'
 export const PRODUCT_DEVELOPMENT_NAME = 'Vizruna Dev'
+export const PRODUCT_WEB_NAME = 'Vizruna-web'
 export const PRODUCT_PACKAGE_NAME = 'vizruna'
 export const PRODUCT_APP_ID = 'com.vizruna.desktop'
 export const PRODUCT_DEVELOPMENT_APP_ID = 'com.vizruna.desktop.dev'
+export const PRODUCT_WEB_APP_ID = 'com.vizruna.web'
 export const PRODUCT_USER_DATA_DIRECTORY = PRODUCT_NAME
 export const PRODUCT_DEVELOPMENT_USER_DATA_DIRECTORY = PRODUCT_DEVELOPMENT_NAME
+/** Desktop and Vizruna-web are mutually exclusive shells over the same product data. */
+export const PRODUCT_WEB_USER_DATA_DIRECTORY = PRODUCT_USER_DATA_DIRECTORY
 export const PRODUCT_CONFIG_STORE_NAME = PRODUCT_PACKAGE_NAME
 export const PRODUCT_UI_STORAGE_KEY = `${PRODUCT_PACKAGE_NAME}-ui:v1`
 export const PRODUCT_EVENT_NAMESPACE = `${PRODUCT_PACKAGE_NAME}:`

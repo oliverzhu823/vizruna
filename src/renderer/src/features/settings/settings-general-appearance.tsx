@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@renderer/lib/utils'
-import { ipcClient } from '@renderer/lib/ipc-client'
+import { ipcClient, isWebRuntime } from '@renderer/lib/ipc-client'
 import { showAppUpdateDialog } from '@renderer/lib/app-update-notify'
 import type { AppUpdateAvailableInfo } from '@shared/app-update'
 import { useSettingsDraft } from '@renderer/features/settings/settings-draft-context'
@@ -32,6 +32,7 @@ export function GeneralSettings() {
   const [updateCheck, setUpdateCheck] = useState<string | null>(null)
   const [checkingUpdate, setCheckingUpdate] = useState(false)
   const [advancedOpen, setAdvancedOpen] = useState(false)
+  const webRuntime = isWebRuntime()
   useEffect(() => {
     ipcClient.invoke('settings.get', { key: 'recentProjects' }).then((res) => {
       if (res?.settings?.recentProjects) setRecentProjects(res.settings.recentProjects)
@@ -83,22 +84,31 @@ export function GeneralSettings() {
         <SettingRow label={t('settings:general.openLastProject')} description={t('settings:general.openLastProjectDesc')}>
           <Switch checked={draft.autoOpenLastProject} onCheckedChange={setAutoOpenLastProject} />
         </SettingRow>
+        {!webRuntime && (
+          <SettingRow
+            label={t('settings:general.autoCheckUpdate')}
+            description={t('settings:general.autoCheckUpdateDesc')}
+          >
+            <Switch checked={draft.autoCheckRegistryUpdates} onCheckedChange={setAutoCheckRegistryUpdates} />
+          </SettingRow>
+        )}
         <SettingRow
-          label={t('settings:general.autoCheckUpdate')}
-          description={t('settings:general.autoCheckUpdateDesc')}
+          label={t('settings:general.appVersion')}
+          description={t(webRuntime ? 'settings:general.webVersionDesc' : 'settings:general.appVersionDesc')}
         >
-          <Switch checked={draft.autoCheckRegistryUpdates} onCheckedChange={setAutoCheckRegistryUpdates} />
-        </SettingRow>
-        <SettingRow label={t('settings:general.appVersion')} description={t('settings:general.appVersionDesc')}>
           <div className="flex flex-col items-end gap-1">
-            <button
-              type="button"
-              disabled={checkingUpdate}
-              onClick={() => void handleCheckUpdate()}
-              className="rounded-lg border border-border px-2.5 py-1 text-[12px] text-foreground hover:bg-accent/50 disabled:opacity-50"
-            >
-              {checkingUpdate ? t('settings:general.checking') : t('settings:general.checkUpdate')}
-            </button>
+            {webRuntime ? (
+              <span className="text-[12px] text-foreground">Vizruna-web</span>
+            ) : (
+              <button
+                type="button"
+                disabled={checkingUpdate}
+                onClick={() => void handleCheckUpdate()}
+                className="rounded-lg border border-border px-2.5 py-1 text-[12px] text-foreground hover:bg-accent/50 disabled:opacity-50"
+              >
+                {checkingUpdate ? t('settings:general.checking') : t('settings:general.checkUpdate')}
+              </button>
+            )}
             {updateCheck && (
               <span className="max-w-[220px] text-right text-[11px] text-muted-foreground/75">{updateCheck}</span>
             )}

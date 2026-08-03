@@ -2,7 +2,7 @@
 
 文档状态：Approved for internal Alpha v0.1  
 基线日期：2026-07-24  
-当前工程状态日期：2026-07-26
+当前工程状态日期：2026-08-03
 v0.1 产品名称：Vizruna\
 产品底座：`justhil/pi-app`  
 能力参考：`minghinmatthewlam/pi-gui`
@@ -17,9 +17,9 @@ v0.1 产品名称：Vizruna\
 6. 混合产品元数据单独存储，不修改 Pi 上游会话格式。
 7. 每个活跃 Agent 继续运行在独立 Utility Worker 中。
 8. 新增能力从第一天接入中英文语言包、类型化 IPC 和审计事件。
-9. v0.1 首先支持 macOS Apple Silicon；Windows 和 Linux 在架构上兼容，但不作为首个发布阻塞项。
+9. 当前唯一用户发布形态为 macOS 本机运行的 Vizruna-web；Windows 和 Linux 尚未承诺公开 Alpha 支持。
 10. `pi-app` 的 MIT 商业使用与再分发权限已经确认；分发时必须随包保留版权和许可
-    声明。面向客户的 macOS 正式版仍按发布标准完成签名和 notarization。
+    声明。桌面签名与公证路线暂停，恢复桌面分发时再重新启用对应门禁。
 11. 产品负责人已确认第一阶段必须交付 GUI OAuth 和完整内嵌终端；两项已进入工程候选版，不再属于可选后续范围。
 12. Pi 采用经过当前产品测试的内嵌最新版 `0.82.1`；外部 SDK 低于 `0.82.1` 或缺少 ModelRuntime 能力时自动回退内嵌版。
 
@@ -39,12 +39,15 @@ v0.1 产品名称：Vizruna\
 | [10-M4-Stability-Audit-Diagnostics-Report.md](./10-M4-Stability-Audit-Diagnostics-Report.md) | 统一错误、审计、脱敏诊断、元数据恢复、对账和稳定性 | Internal gate passed |
 | [11-M5-Productization-Report.md](./11-M5-Productization-Report.md) | Provider 独立路由、双语门禁、macOS 发布链路与开放门禁 | Conditional |
 | [12-User-Guide.md](./12-User-Guide.md) | 安装、模型、V2RayN HTTP/SOCKS5 代理、Worktree、恢复与排障 | Ready for pilot |
-| [13-macOS-Release-Runbook.md](./13-macOS-Release-Runbook.md) | 签名、公证、装订、Gatekeeper、升级和卸载 | Ready; credentials required |
+| [13-macOS-Release-Runbook.md](./13-macOS-Release-Runbook.md) | 历史桌面签名、公证、装订和 Gatekeeper 方案 | Paused; reference only |
 | [14-Pilot-Kit.md](./14-Pilot-Kit.md) | 3–5 人试点计划、反馈模板、验收和 Go/No-Go | Ready; execution pending |
 | [15-v0.1-Completion-Audit.md](./15-v0.1-Completion-Audit.md) | P0/AC/NFR 逐项完成度、证据边界和外部解除条件 | Active release audit |
 | [16-Release-Evidence-Gate.md](./16-Release-Evidence-Gate.md) | 正式签名、双 Provider、七天内测、试点与四方签署的本地证据硬门禁 | Ready; evidence pending |
-| [17-Release-Readiness-Preflight.md](./17-Release-Readiness-Preflight.md) | 公司仓库、受保护环境、候选 Run 与正式发布绑定的只读预检 | Ready; infrastructure pending |
+| [17-Release-Readiness-Preflight.md](./17-Release-Readiness-Preflight.md) | 历史桌面正式发布基础设施预检 | Paused; reference only |
 | [18-Phase-1-Chinese-GUI-Progress.md](./18-Phase-1-Chinese-GUI-Progress.md) | 第一阶段产品目标、已完成能力、验收结果和下一步 | Engineering candidate |
+| [19-Studio-Factory-Runtime-Roadmap.md](./19-Studio-Factory-Runtime-Roadmap.md) | Agent Studio、Agent 工厂与独立 Runtime 的长期路线 | Active |
+| [20-alpha3-Agent-Case-Progress.md](./20-alpha3-Agent-Case-Progress.md) | Agent 案例库与 Alpha 迭代进展 | Engineering candidate |
+| [21-Vizruna-web-Implementation.md](./21-Vizruna-web-Implementation.md) | Local Web 架构、安全边界、实测证据和发布方式 | Release candidate |
 
 ## 3. 研究基线
 
@@ -69,19 +72,18 @@ v0.1 产品名称：Vizruna\
 3. 根据通过的 PRD/RFC 调整路线图。
 4. 最后冻结验收标准和首个版本门禁。
 5. 五项文档已通过评审；M0–M4 内部工程门禁已通过。
-6. M5 仓库内工程工作已完成；Apple 签名/公证、干净设备、真实凭据模型调用和 3–5 人试点仍是外部门禁。
+6. M5 桌面发布门禁已暂停；当前发布验收以 Vizruna-web 的干净安装、浏览器 E2E、真实模型调用和早期用户试用为准。
 
-## 5. 正式发布前仍需登记的外部事项
+## 5. Vizruna-web 公开 Alpha 仍需登记的外部事项
 
 PRD 评审已经冻结 v0.1 名称、内部 Alpha 范围、macOS arm64、默认并发 4、
 受控强制接管、逐 Provider 路由、JSONL/JSON 审计导出，以及第一阶段必须包含
 GUI OAuth 和完整内嵌终端。
-正式发布前仍需登记：
+扩大公开测试前仍需登记：
 
 - 公司 GitHub 发布仓库及管理员。
 - 工程、测试、产品、安全/法务四类签署人的姓名。
 - 3–5 名内部或友好客户试点参与者及测试设备。
-- Apple Developer 团队、证书和公证负责人。
 - 安全/法务对随包 `NOTICE`、MIT 正文、第三方依赖清单和 SBOM 的发布批次复核记录。
 
 ## 6. 变更控制

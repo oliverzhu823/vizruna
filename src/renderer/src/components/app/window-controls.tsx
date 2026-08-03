@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Minus, Square, X, Copy } from 'lucide-react'
 import { cn } from '@renderer/lib/utils'
 import { isMac } from '@renderer/lib/platform'
+import { isWebRuntime } from '@renderer/lib/ipc-client'
 
 /** 无边框窗口：最小化 / 最大化(还原) / 关闭（Windows/Linux 顶栏右侧） */
 export function WindowControls({ className }: { className?: string }) {
@@ -27,7 +28,7 @@ export function WindowControls({ className }: { className?: string }) {
   }
   const close = () => void window.piDesktop?.invoke('ipc:window:close')
 
-  if (isMac) return null
+  if (isMac || isWebRuntime()) return null
 
   return (
     <div className={cn('flex h-9 items-stretch', className)}>

@@ -199,6 +199,7 @@
     "autoCheckUpdateDesc": "Check GitHub Releases after launch, then download and open the installer; replacing the app preserves sessions and settings",
     "appVersion": "App version",
     "appVersionDesc": "Check manually, download and open the installer, then replace the existing app",
+    "webVersionDesc": "Vizruna-web updates through its launcher package, not a desktop installer",
     "checkUpdate": "Check for updates",
     "checking": "Checking…",
     "updateCheckFailed": "Check failed",

@@ -40,6 +40,8 @@
     "pasteScreenshotNeedWorkspace": "请先打开工作区再粘贴截图",
     "pasteScreenshotFailed": "粘贴截图失败",
     "pasteScreenshotUnsupported": "不支持该图片格式（请用 PNG/JPEG/WebP 等）",
+    "webUploadTooLarge": "{{name}} 超过 16 MB，暂时无法添加",
+    "webUploadFailed": "添加文件 {{name}} 失败",
     "openedConfig": "已打开 {{name}} 配置",
     "openedPanel": "已打开 {{panel}} 面板",
     "slashNoPanel": "斜杠未配置 panelId",

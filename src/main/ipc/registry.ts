@@ -12,30 +12,43 @@ export type IpcHandlerFn = (request: any) => Promise<any>
 
 const handlers = new Map<string, IpcHandlerFn>()
 
+async function executeHandler(channel: string, request: unknown): Promise<unknown> {
+  const handler = handlers.get(channel)
+  if (!handler) throw new Error(`IPC handler not registered: ${channel}`)
+  try {
+    return await handler(request as IpcInvokeBody)
+  } catch (error) {
+    const failure = failureFromUnknown(error)
+    console.error(`[IPC:${channel}] ${failure.code}:`, failure.message)
+    try {
+      auditRepository.write({
+        category: 'operation',
+        action: 'ipc.failure',
+        outcome: 'failed',
+        details: { channel, failure },
+      })
+    } catch {
+      // Preserve the original classified failure even when the audit store is unavailable.
+    }
+    throw new Error(`[${failure.code}] ${failure.message}`)
+  }
+}
+
 export function registerHandler(channel: string, handler: IpcHandlerFn): void {
   if (handlers.has(channel)) {
     ipcMain.removeHandler(channel)
   }
   handlers.set(channel, handler)
-  ipcMain.handle(channel, async (_event, request) => {
-    try {
-      return await handler(request as IpcInvokeBody)
-    } catch (error) {
-      const failure = failureFromUnknown(error)
-      console.error(`[IPC:${channel}] ${failure.code}:`, failure.message)
-      try {
-        auditRepository.write({
-          category: 'operation',
-          action: 'ipc.failure',
-          outcome: 'failed',
-          details: { channel, failure },
-        })
-      } catch {
-        // Preserve the original classified failure even when the audit store is unavailable.
-      }
-      throw new Error(`[${failure.code}] ${failure.message}`)
-    }
-  })
+  ipcMain.handle(channel, async (_event, request) => executeHandler(channel, request))
+}
+
+/** Invoke the same validated application handler from a non-Electron transport. */
+export function invokeRegisteredHandler(channel: string, request?: unknown): Promise<unknown> {
+  return executeHandler(channel, request)
+}
+
+export function hasRegisteredHandler(channel: string): boolean {
+  return handlers.has(channel)
 }
 
 /** Register a handler with Zod schema validation on the input. */

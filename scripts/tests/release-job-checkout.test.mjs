@@ -7,11 +7,11 @@ const root = process.cwd()
 
 describe('Release job source availability (H-01)', () => {
   it('release job checks out repo before SBOM/checksums', () => {
-    const yml = readFileSync(join(root, '.github/workflows/release.yml'), 'utf8').replace(
+    const yml = readFileSync(join(root, '.github/workflows/prerelease.yml'), 'utf8').replace(
       /\r\n?/g,
       '\n'
     )
-    const releaseMarker = '\n  release:\n'
+    const releaseMarker = '\n  release-vizruna-web:\n'
     const releaseIndex = yml.indexOf(releaseMarker)
     assert.ok(releaseIndex >= 0, 'top-level release job missing')
     const releaseJob = yml.slice(releaseIndex + releaseMarker.length)

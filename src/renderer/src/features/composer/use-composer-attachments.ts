@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { ipcClient } from '@renderer/lib/ipc-client'
+import { ipcClient, isWebRuntime } from '@renderer/lib/ipc-client'
 import {
   AttachmentMeta,
   getAttachmentKind,
@@ -198,22 +198,54 @@ export function useComposerAttachments(opts: {
   )
 
   const addDroppedFiles = useCallback(
-    (fileList: FileList | File[]) => {
+    async (fileList: FileList | File[]) => {
       const files = Array.from(fileList)
       if (files.length === 0) return
+      const resolved = await Promise.all(
+        files.map(async (file): Promise<AttachmentMeta | null> => {
+          const desktopPath = resolveFilePath(file)
+          if (desktopPath) {
+            const name = file.name || basenameOf(desktopPath)
+            return { path: desktopPath, name, kind: getAttachmentKind(name) }
+          }
+          if (!isWebRuntime()) return null
+          if (file.size > 16 * 1024 * 1024) {
+            toast.error(t('composer:toast.webUploadTooLarge', { name: file.name }))
+            return null
+          }
+          try {
+            const dataUrl = await new Promise<string>((resolve, reject) => {
+              const reader = new FileReader()
+              reader.onload = () => resolve(String(reader.result || ''))
+              reader.onerror = () => reject(reader.error || new Error('FILE_READ_FAILED'))
+              reader.readAsDataURL(file)
+            })
+            const data = dataUrl.slice(dataUrl.indexOf(',') + 1)
+            const response = await ipcClient.invoke('browser.uploadTempFile', {
+              data,
+              name: file.name,
+              mimeType: file.type,
+            })
+            const path = String(response?.path || '')
+            if (!path) throw new Error('UPLOAD_PATH_MISSING')
+            return { path, name: file.name, kind: getAttachmentKind(file.name) }
+          } catch (error) {
+            console.error('[Vizruna-web] file upload failed:', error)
+            toast.error(t('composer:toast.webUploadFailed', { name: file.name }))
+            return null
+          }
+        }),
+      )
       const metas: AttachmentMeta[] = []
       const seen = new Set<string>()
-      for (const f of files) {
-        const path = resolveFilePath(f)
-        if (!path) continue
-        if (seen.has(path)) continue
-        seen.add(path)
-        const name = f.name || basenameOf(path)
-        metas.push({ path, name, kind: getAttachmentKind(name) })
+      for (const meta of resolved) {
+        if (!meta || seen.has(meta.path)) continue
+        seen.add(meta.path)
+        metas.push(meta)
       }
       insertMetas(metas)
     },
-    [insertMetas],
+    [insertMetas, t],
   )
 
   const handleDragEnter = useCallback(
@@ -259,7 +291,7 @@ export function useComposerAttachments(opts: {
       e.preventDefault()
       dragDepth.current = 0
       setIsDragActive(false)
-      addDroppedFiles(dt.files)
+      void addDroppedFiles(dt.files)
     },
     [addDroppedFiles, dragDepth, insertMetas, setIsDragActive],
   )

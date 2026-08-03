@@ -67,4 +67,22 @@ describe('runtime identity isolation', () => {
 
     expect(identity.piAgentDirectory).toBe('/private/tmp/fixture-agent')
   })
+
+  it('shares product data and native Pi credentials with Vizruna-web', () => {
+    const identity = resolveRuntimeIdentity({
+      ...base,
+      isPackaged: false,
+      isE2E: false,
+      isWeb: true,
+    })
+
+    expect(identity).toEqual({
+      channel: 'web',
+      appName: 'Vizruna-web',
+      appId: 'com.vizruna.web',
+      userDataPath: join(base.appDataPath, 'Vizruna'),
+      piAgentDirectory: null,
+      isolated: false,
+    })
+  })
 })

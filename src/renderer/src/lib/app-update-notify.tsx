@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactElement } from 'react'
 import type { AppUpdateAvailableInfo } from '@shared/app-update'
-import { ipcClient, onAppUpdateAvailable } from '@renderer/lib/ipc-client'
+import { ipcClient, isWebRuntime, onAppUpdateAvailable } from '@renderer/lib/ipc-client'
 import { AppUpdateDialog } from '@renderer/features/shell/app-update-dialog'
 
 /** Boot hook (main.tsx): keeps legacy import; real UI is AppUpdateHost. */
@@ -19,6 +19,7 @@ export function AppUpdateHost(): ReactElement | null {
   const [info, setInfo] = useState<AppUpdateAvailableInfo | null>(null)
 
   useEffect(() => {
+    if (isWebRuntime()) return
     openUpdateDialog = (next) => setInfo(next)
 
     const unsubscribe = onAppUpdateAvailable((payload) => {

@@ -14,6 +14,7 @@ import { wireDelayedTooltip } from './delayed-tooltip'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { segmentsToPromptPayload } from './attachment-text'
 import i18n from '@renderer/lib/i18n'
+import { resolveRuntimeFilePath } from '@renderer/lib/ipc-client'
 
 export type AttachmentKind =
   | 'image'
@@ -98,12 +99,8 @@ export function getAttachmentIcon(kind: AttachmentKind): LucideIcon {
 
 /** Resolve a real on-disk path for a File from paste/drop, cross-platform. */
 export function resolveFilePath(file: File): string | undefined {
-  try {
-    const p = window.piDesktop?.getPathForFile(file)
-    if (p) return p
-  } catch {
-    /* clipboard screenshots have no on-disk path */
-  }
+  const runtimePath = resolveRuntimeFilePath(file)
+  if (runtimePath) return runtimePath
   return (file as File & { path?: string }).path
 }
 

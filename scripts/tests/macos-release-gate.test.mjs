@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const root = process.cwd()
@@ -26,62 +26,30 @@ test('macOS builder enables hardened runtime, entitlements, and notarization', (
   )
 })
 
-test('stable release workflow cannot publish an unsigned macOS artifact', () => {
-  const workflow = read('.github/workflows/release.yml')
-  const candidateWorkflow = read('.github/workflows/release-candidate.yml')
-  const runner = read('scripts/run-macos-release.mjs')
-  const verifier = read('scripts/verify-macos-release.mjs')
+test('all tag releases publish Vizruna-web source only', () => {
+  const workflow = read('.github/workflows/prerelease.yml')
 
-  assert.match(candidateWorkflow, /npm run package:mac:release/)
-  assert.match(candidateWorkflow, /runs-on:\s*macos-15/)
-  assert.match(candidateWorkflow, /npm run verify/)
-  assert.match(candidateWorkflow, /npm run test:e2e/)
-  assert.match(candidateWorkflow, /npm audit --audit-level=low/)
-  assert.match(candidateWorkflow, /npm audit --omit=dev --audit-level=low/)
-  assert.ok(
-    candidateWorkflow.indexOf('npm run verify') <
-      candidateWorkflow.indexOf('npm run package:mac:release'),
-  )
-  assert.ok(
-    candidateWorkflow.indexOf('npm run test:e2e') <
-      candidateWorkflow.indexOf('npm run package:mac:release'),
-  )
-  assert.match(candidateWorkflow, /environment:\s*v0\.1-candidate/)
-  assert.match(candidateWorkflow, /MAC_CSC_LINK/)
-  assert.match(candidateWorkflow, /APPLE_APP_SPECIFIC_PASSWORD/)
-  assert.doesNotMatch(
-    candidateWorkflow,
-    /build-mac:[\s\S]*CSC_IDENTITY_AUTO_DISCOVERY:\s*false/,
-  )
-  assert.doesNotMatch(workflow, /npm run package:mac:release/)
-  assert.match(workflow, /actions\/download-artifact@v4/)
-  assert.match(workflow, /run-id:.*candidate_run_id/)
-  assert.match(workflow, /sha256sum --check/)
-  assert.match(runner, /macos-release-preflight/)
-  assert.match(runner, /PI_RELEASE_REQUIRE_NOTARIZATION:\s*'1'/)
-  assert.match(verifier, /codesign/)
-  assert.match(verifier, /spctl/)
-  assert.match(verifier, /stapler/)
-  assert.match(verifier, /Developer ID Application:/)
+  assert.match(workflow, /tags:[\s\S]*- 'v\*'/)
+  assert.match(workflow, /Vizruna-web-\$\{VERSION\}-source\.zip/)
+  assert.match(workflow, /name: Vizruna-web \$\{\{ github\.ref_name \}\}/)
+  assert.match(workflow, /prerelease: \$\{\{ contains\(github\.ref_name, '-'\) \}\}/)
+  assert.doesNotMatch(workflow, /package:mac|test:package|\.dmg'[^\n]*-exec cp/)
+  assert.equal(existsSync(join(root, '.github/workflows/release.yml')), false)
+  assert.equal(existsSync(join(root, '.github/workflows/release-candidate.yml')), false)
 })
 
-test('alpha prerelease publishes a verified unsigned tester build', () => {
+test('alpha prerelease publishes Vizruna-web only', () => {
   const workflow = read('.github/workflows/prerelease.yml')
-  const runner = read('scripts/run-macos-unsigned-prerelease.mjs')
-  const verifier = read('scripts/verify-macos-unsigned-prerelease.mjs')
 
-  assert.match(workflow, /npm run package:mac:unsigned/)
-  assert.match(workflow, /npm run test:package/)
+  assert.match(workflow, /Vizruna-web-\$\{VERSION\}-source\.zip/)
+  assert.match(workflow, /npm run test:e2e:web/)
   assert.match(workflow, /node scripts\/ci-audit\.mjs/)
-  assert.match(workflow, /Clean generated release directory[\s\S]*run:\s*>-/)
-  assert.match(workflow, /prerelease:\s*true/)
+  assert.match(workflow, /prerelease: \$\{\{ contains\(github\.ref_name, '-'\) \}\}/)
   assert.match(workflow, /actions\/attest-build-provenance@v2/)
+  assert.doesNotMatch(workflow, /npm run package:mac:unsigned|npm run test:package/)
+  assert.doesNotMatch(workflow, /\.dmg'[^\n]*-exec cp|arm64\.zip/)
   assert.doesNotMatch(workflow, /MAC_CSC_LINK|APPLE_APP_SPECIFIC_PASSWORD/)
   assert.doesNotMatch(workflow, /environment:\s*v0\.1-candidate/)
-  assert.match(runner, /CSC_IDENTITY_AUTO_DISCOVERY:\s*'false'/)
-  assert.match(runner, /verify-macos-unsigned-prerelease/)
-  assert.match(verifier, /doesNotMatch[\s\S]*Developer ID Application:/)
-  assert.match(verifier, /Gatekeeper rejection confirmed/)
 })
 
 test('unsigned in-app updates verify official assets before targeted quarantine handling', () => {
@@ -104,23 +72,11 @@ test('unsigned in-app updates verify official assets before targeted quarantine 
   assert.doesNotMatch(downloader, /spctl|--master-disable|\/Applications\/Vizruna\.app/)
 })
 
-test('v0.1 release publishes only macOS and requires exact evidence approval', () => {
-  const workflow = read('.github/workflows/release.yml')
-
-  assert.doesNotMatch(workflow, /^\s{2}build-win:/m)
-  assert.doesNotMatch(workflow, /^\s{2}build-linux:/m)
-  assert.doesNotMatch(workflow, /^\s{2}build-mac:/m)
-  assert.doesNotMatch(workflow, /dist\/\*Setup\*\.exe|dist\/\*\.AppImage/)
-  assert.match(workflow, /authorize-release:[\s\S]*environment:\s*v0\.1-release/)
-  assert.match(workflow, /release:[\s\S]*needs:\s*\[authorize-release\]/)
-  assert.match(workflow, /RELEASE_EVIDENCE_COMMIT/)
-  assert.match(workflow, /RELEASE_CANDIDATE_RUN_ID/)
-  assert.match(workflow, /RELEASE_DMG_SHA256/)
-  assert.match(workflow, /RELEASE_ZIP_SHA256/)
-  assert.match(workflow, /APPROVED_COMMIT.*GITHUB_SHA/s)
-  assert.match(workflow, /RUN_HEAD_SHA.*GITHUB_SHA/s)
-  assert.match(workflow, /TAG_VERSION.*PACKAGE_VERSION/s)
-  assert.match(workflow, /name:\s*pi-desktop-mac-candidate-/)
+test('retired desktop release tooling is not an active GitHub workflow', () => {
+  assert.equal(existsSync(join(root, '.github/workflows/release.yml')), false)
+  assert.equal(existsSync(join(root, '.github/workflows/release-candidate.yml')), false)
+  assert.equal(existsSync(join(root, 'scripts/run-macos-release.mjs')), true)
+  assert.equal(existsSync(join(root, 'scripts/verify-macos-release.mjs')), true)
 })
 
 test('release verification covers app, DMG, and ZIP artifacts', () => {

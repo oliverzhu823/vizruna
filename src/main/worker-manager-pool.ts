@@ -12,6 +12,7 @@ import { readMaxSessionWorkers, minutesToIdleDelayMs, readSessionWorkerIdleTimeo
 import { workspacePoolKey } from './worker-session-key'
 import { getProviderRoutingService } from './provider-routing/provider-routing-service'
 import { resolveApplicationRoot } from './application-root'
+import { emitRuntimeEvent } from './runtime-event-bus'
 
 function createSlot(
   poolKey: string,
@@ -161,17 +162,17 @@ export function attachWorkerHandlers(
     const win = opts.mainWindow
     if (
       (data.type === 'extension-ui-dismiss' || data.type === 'extension-ui-dismiss-all') &&
-      win &&
-      !win.isDestroyed()
+      (!opts.getForegroundPoolKey?.() || opts.getForegroundPoolKey?.() === slot.poolKey)
     ) {
-      const fg = opts.getForegroundPoolKey?.() ?? null
-      if (fg && fg !== slot.poolKey) {
-        // X1: only foreground session dismiss noise
-      } else {
+      const payload = {
+        type: data.type,
+        id: typeof data.id === 'string' ? data.id : undefined,
+        reason: typeof data.reason === 'string' ? data.reason : undefined,
+      }
+      emitRuntimeEvent('ipc:extension-ui-dismiss', payload)
+      if (win && !win.isDestroyed()) {
         win.webContents.send('ipc:extension-ui-dismiss', {
-          type: data.type,
-          id: data.id,
-          reason: data.reason,
+          ...payload,
         })
       }
     }

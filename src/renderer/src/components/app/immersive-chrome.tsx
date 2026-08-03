@@ -5,6 +5,7 @@ import { WindowControls } from '@renderer/components/app/window-controls'
 import { cn } from '@renderer/lib/utils'
 import { useUIStore } from '@renderer/stores/ui-store'
 import { isMac, MAC_TRAFFIC_LIGHTS_SPACER_CLASS } from '@renderer/lib/platform'
+import { isWebRuntime } from '@renderer/lib/ipc-client'
 
 /** 无边框窗口顶栏：可拖拽区域 + 侧栏开关（主对话页无厚重 TopBar；无运行绿点/状态条） */
 export function ImmersiveChrome({
@@ -41,7 +42,9 @@ export function ImmersiveChrome({
         </button>
         <div className="flex items-center gap-1.5 px-1 text-[12px] text-foreground-secondary select-none">
           <VizrunaMark size={14} className="rounded-[3px]" />
-          <span className="font-medium text-foreground/90">Vizruna</span>
+          <span className="font-medium text-foreground/90">
+            {isWebRuntime() ? 'Vizruna-web' : 'Vizruna'}
+          </span>
           {projectName && (
             <>
               <span className="opacity-35">/</span>

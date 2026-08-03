@@ -20,6 +20,7 @@ import { failureFromUnknown } from '../reliability/failure-model'
 import { redactSensitive } from '../reliability/redaction'
 import { workerManager } from '../worker-manager'
 import { withProviderAuthNetwork } from './auth-network-scope'
+import { emitRuntimeEvent } from '../runtime-event-bus'
 
 const AUTH_FLOW_TIMEOUT_MS = 10 * 60_000
 
@@ -96,6 +97,7 @@ export class ProviderAuthService {
         }
       }
     }
+    emitRuntimeEvent('ipc:provider-auth-flow', event)
     const win = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0]
     if (win && !win.isDestroyed()) {
       win.webContents.send('ipc:provider-auth-flow', event)

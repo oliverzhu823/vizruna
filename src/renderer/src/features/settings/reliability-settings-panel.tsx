@@ -22,6 +22,7 @@ import type {
 import { ipcClient } from '@renderer/lib/ipc-client'
 import { cn } from '@renderer/lib/utils'
 import { SettingsPageHeader } from './settings-shell'
+import { saveBrowserDownload } from '@renderer/lib/browser-download'
 
 function formatBytes(bytes: number): string {
   if (!Number.isFinite(bytes) || bytes <= 0) return '0 B'
@@ -142,6 +143,7 @@ export function ReliabilitySettingsPanel() {
     setBusy('diagnostics-export')
     try {
       const result = await ipcClient.invoke('diagnostics.export', {})
+      saveBrowserDownload(result.download)
       if (!result.cancelled) toast.success(t('settings:reliability.exported'))
     } finally {
       setBusy(null)
@@ -155,6 +157,7 @@ export function ReliabilitySettingsPanel() {
         query: { ...(outcome ? { outcome } : {}), limit: 10_000 },
         format,
       })
+      saveBrowserDownload(result.download)
       if (!result.cancelled) toast.success(t('settings:reliability.exported'))
     } finally {
       setBusy(null)
@@ -433,4 +436,3 @@ export function ReliabilitySettingsPanel() {
     </div>
   )
 }
-

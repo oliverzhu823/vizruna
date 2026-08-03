@@ -1,6 +1,4 @@
-/**
- * Release notes must be user-readable (in-app update dialog), not link placeholders.
- */
+/** Release notes must be user-readable, not link placeholders. */
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import { readFileSync } from 'node:fs'
@@ -32,7 +30,7 @@ describe('generate-release-notes', () => {
 `
 
     const notes = buildReleaseNotesFromChangelog(changelog, '0.4.99')
-    assert.match(notes, /Vizruna v0\.4\.99/)
+    assert.match(notes, /Vizruna-web v0\.4\.99/)
     assert.match(notes, /软件内更新提醒/)
     assert.match(notes, /yaml 运行时/)
     assert.doesNotMatch(notes, /GitHub Release 正文链接/)
@@ -47,7 +45,7 @@ describe('generate-release-notes', () => {
   })
 
   it('release workflow injects body_path instead of changelog link placeholder', () => {
-    const yml = readFileSync(join(root, '.github/workflows/release.yml'), 'utf8')
+    const yml = readFileSync(join(root, '.github/workflows/prerelease.yml'), 'utf8')
     assert.match(yml, /generate-release-notes\.mjs/)
     assert.match(yml, /body_path:\s*release-body\.md/)
     assert.doesNotMatch(

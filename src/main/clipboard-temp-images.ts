@@ -1,6 +1,6 @@
 import { app } from 'electron'
 import { existsSync, mkdirSync, readdirSync, statSync, unlinkSync, writeFileSync } from 'fs'
-import { join } from 'path'
+import { extname, join } from 'path'
 import { randomUUID } from 'crypto'
 
 const tracked = new Set<string>()
@@ -15,6 +15,16 @@ export function resolveClipboardImageDir(): string {
 export function writeClipboardTempImage(data: Buffer, ext: string): string {
   const safeExt = (ext || 'png').replace(/[^a-z0-9]/gi, '') || 'png'
   const filePath = join(resolveClipboardImageDir(), `pi-clipboard-${randomUUID()}.${safeExt}`)
+  writeFileSync(filePath, data)
+  trackClipboardTempImage(filePath)
+  return filePath
+}
+
+export function writeBrowserTempFile(data: Buffer, originalName: string): string {
+  const rawExt = extname(originalName).slice(1)
+  const safeExt = rawExt.replace(/[^a-z0-9]/gi, '').slice(0, 16)
+  const suffix = safeExt ? `.${safeExt}` : ''
+  const filePath = join(resolveClipboardImageDir(), `vizruna-web-upload-${randomUUID()}${suffix}`)
   writeFileSync(filePath, data)
   trackClipboardTempImage(filePath)
   return filePath
@@ -54,7 +64,7 @@ export function pruneStaleClipboardImages(maxAgeMs = 7 * 24 * 60 * 60 * 1000): n
     const dir = resolveClipboardImageDir()
     const now = Date.now()
     for (const name of readdirSync(dir)) {
-      if (!name.startsWith('pi-clipboard-')) continue
+      if (!name.startsWith('pi-clipboard-') && !name.startsWith('vizruna-web-upload-')) continue
       const full = join(dir, name)
       try {
         const { mtimeMs } = statSync(full)

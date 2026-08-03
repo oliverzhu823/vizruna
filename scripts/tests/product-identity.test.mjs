@@ -14,7 +14,7 @@ describe('Vizruna product identity', () => {
     assert.equal(pkg.productName, 'Vizruna')
     assert.equal(pkg.private, true)
     assert.equal(pkg.license, 'UNLICENSED')
-    assert.equal(pkg.engines.node, '>=22.19.0 <23')
+    assert.equal(pkg.engines.node, '>=22.19.0')
   })
 
   it('uses a distinct application id and package display name', () => {

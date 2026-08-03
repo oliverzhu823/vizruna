@@ -2,8 +2,12 @@ import { workerManager } from '../../worker-manager'
 import { ensureWorkerSessionBound } from '../../session-bind-state'
 import { normalizeSessionKey } from '../../worker-session-key'
 import { registerHandler, registerHandlerWithSchema } from '../registry'
-import { writeClipboardTempImage } from '../../clipboard-temp-images'
-import { clipboardWriteTempImageSchema, promptTextSchema } from '../schemas'
+import { writeBrowserTempFile, writeClipboardTempImage } from '../../clipboard-temp-images'
+import {
+  browserUploadTempFileSchema,
+  clipboardWriteTempImageSchema,
+  promptTextSchema,
+} from '../schemas'
 import { SessionLeaseConflictError } from '../../lease/session-lease-service'
 import { getOrchestrationService } from '../../orchestration/orchestration-instance'
 
@@ -72,6 +76,11 @@ export function registerPromptHandlers(): void {
               : 'png'
     const filePath = writeClipboardTempImage(Buffer.from(req.data, 'base64'), ext)
     return { path: filePath }
+  })
+
+  registerHandlerWithSchema('ipc:browser.uploadTempFile', browserUploadTempFileSchema, async (req) => {
+    const filePath = writeBrowserTempFile(Buffer.from(req.data, 'base64'), req.name)
+    return { path: filePath, name: req.name, mimeType: req.mimeType || '' }
   })
 
   registerHandlerWithSchema('ipc:prompt.steer', promptTextSchema, async (req) => {

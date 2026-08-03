@@ -5,11 +5,13 @@ import { workerManager } from '../worker-manager'
 import { getManagedWorktreeService } from '../worktree/managed-worktree-instance'
 import { SqliteOrchestrationRepository } from './orchestration-repository'
 import { OrchestrationService } from './orchestration-service'
+import { emitRuntimeEvent } from '../runtime-event-bus'
 
 let instance: OrchestrationService | null = null
 let unsubscribeRuntime: (() => void) | null = null
 
 function publish(event: OrchestrationEvent): void {
+  emitRuntimeEvent('ipc:events', event)
   for (const window of BrowserWindow.getAllWindows()) {
     if (!window.isDestroyed()) window.webContents.send('ipc:events', event)
   }

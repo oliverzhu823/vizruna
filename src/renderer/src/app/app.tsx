@@ -13,7 +13,7 @@ import { Composer } from '@renderer/features/composer/composer'
 import { TopBar } from '@renderer/components/app/top-bar'
 import { ImmersiveChrome } from '@renderer/components/app/immersive-chrome'
 import { useUIStore } from '@renderer/stores/ui-store'
-import { onAppEvent, onWorkerExit, ipcClient } from '@renderer/lib/ipc-client'
+import { onAppEvent, onWorkerExit, ipcClient, isWebRuntime } from '@renderer/lib/ipc-client'
 
 import { activateWorkspace } from '@renderer/lib/activate-workspace'
 import { ensureWorkspaceWorkerOnBoot } from '@renderer/lib/ensure-workspace-worker'
@@ -41,6 +41,7 @@ import { enterNewSessionPlaceholder } from '@renderer/lib/new-session'
 import type { SettingsPageKey } from '@renderer/features/settings/settings-page'
 
 import { useDoubleEscapeTree } from '@renderer/hooks/use-double-escape-tree'
+import { WebWorkspacePathDialog } from '@renderer/features/workspace/web-workspace-path-dialog'
 
 type View = 'main' | 'agents' | 'cases' | 'settings'
 type ProviderAuthManagerRequest = {
@@ -95,6 +96,7 @@ export default function App() {
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const [providerAuthManager, setProviderAuthManager] =
     useState<ProviderAuthManagerRequest | null>(null)
+  const [webWorkspacePathOpen, setWebWorkspacePathOpen] = useState(false)
   const handleProviderAuthFlowStarted = useCallback(() => {
     // Replace the provider chooser with the active Pi authorization step.
     // Keeping both dialogs mounted used to hide the new step behind the chooser.
@@ -299,12 +301,12 @@ export default function App() {
   }, [currentWorkspace, setSessions])
 
   const handleOpenProject = async () => {
-    if (!window.piDesktop) {
-      console.error('piDesktop not available')
+    if (isWebRuntime()) {
+      setWebWorkspacePathOpen(true)
       return
     }
     try {
-      const res = await window.piDesktop.invoke('ipc:dialog:openDirectory')
+      const res = await ipcClient.invoke('dialog:openDirectory')
       if (res?.path) {
         await activateWorkspace(res.path, { preferHome: true })
       }
@@ -323,6 +325,19 @@ export default function App() {
 
   const handleSelectProject = async (path: string) => {
     await activateWorkspace(path, { preferHome: true })
+  }
+
+  const openWebWorkspacePath = async (path: string) => {
+    const validation = await ipcClient.invoke('workspace.validateDirectory', { path })
+    if (!validation?.ok || !validation.path) throw new Error('WORKSPACE_DIRECTORY_NOT_FOUND')
+    await activateWorkspace(validation.path, { preferHome: true })
+    setWebWorkspacePathOpen(false)
+  }
+
+  const openWebWorkspaceSystemPicker = async () => {
+    const res = await ipcClient.invoke('dialog:openDirectory')
+    if (!res?.path) return
+    await openWebWorkspacePath(res.path)
   }
 
   const handleOpenAgentCaseSource = async (agentCase: AgentCase) => {
@@ -515,6 +530,12 @@ export default function App() {
       <ProviderAuthFlowHost onFlowStarted={handleProviderAuthFlowStarted} />
       <AppUpdateHost />
       <SessionLeaseConflictDialog />
+      <WebWorkspacePathDialog
+        open={webWorkspacePathOpen}
+        onConfirm={openWebWorkspacePath}
+        onSystemPicker={openWebWorkspaceSystemPicker}
+        onCancel={() => setWebWorkspacePathOpen(false)}
+      />
       {paletteAndShortcuts}
       <Suspense fallback={null}>
         {modelPickerOpen && <ModelPicker />}

@@ -1,21 +1,27 @@
 {
   "name": "vizruna",
   "productName": "Vizruna",
-  "version": "0.1.0-alpha.4",
-  "description": "A visible, controllable, and reviewable desktop workspace for AI agents",
+  "version": "0.1.0-alpha.5",
+  "description": "A visible, controllable, and reviewable local web workspace for AI agents",
   "main": "./out/main/index.js",
   "author": "Vizruna Team",
   "license": "UNLICENSED",
   "private": true,
+  "bin": {
+    "vizruna-web": "scripts/vizruna-web.mjs"
+  },
   "type": "module",
   "engines": {
-    "node": ">=22.19.0 <23"
+    "node": ">=22.19.0"
   },
   "scripts": {
     "sync:fonts": "node scripts/sync-geist-mono-font.mjs",
     "dev": "npm run sync:fonts && electron-vite dev",
+    "dev:web": "npm run build:web && node scripts/vizruna-web.mjs",
     "dev:alert-trace": "set PI_ALERT_TRACE=1&& set PI_AUDIO_TRACE=1&& electron-vite dev",
     "build": "npm run sync:fonts && electron-vite build",
+    "build:web": "npm run sync:fonts && electron-vite build",
+    "start:web": "node scripts/vizruna-web.mjs",
     "preview": "electron-vite preview",
     "start": "electron-vite preview",
     "test:scripts": "node scripts/run-contract-tests.mjs",
@@ -33,6 +39,7 @@
     "icon:export": "node scripts/export-app-icon.mjs",
     "docs:adapters": "node scripts/generate-adapter-readme-table.mjs",
     "test:e2e": "playwright test",
+    "test:e2e:web": "npm run build:web && playwright test --config playwright.web.config.ts",
     "test:package": "node scripts/verify-packaged-app.mjs",
     "check:i18n": "node scripts/check-i18n.mjs && node scripts/check-no-hardcoded-core-ui.mjs",
     "test:soak:m4": "node scripts/run-m4-soak.mjs --hours=8",

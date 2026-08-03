@@ -17,8 +17,23 @@ import { errorMessage } from '@shared/error-message'
 import { getMainWindow } from '../../window'
 import { refreshGitWorkspaceWatch } from '../../git-workspace-watch'
 import { getTerminalService } from '../../terminal/terminal-service'
+import { realpathSync, statSync } from 'node:fs'
+
+function resolveWorkspaceDirectory(input: string): string | null {
+  try {
+    const path = realpathSync(input.trim())
+    return statSync(path).isDirectory() ? path : null
+  } catch {
+    return null
+  }
+}
 
 export function registerWorkspaceHandlers(): void {
+  registerHandlerWithSchema('ipc:workspace.validateDirectory', workspaceOpenSchema, async (req) => {
+    const path = resolveWorkspaceDirectory(req.path)
+    return path ? { ok: true, path } : { ok: false, error: 'WORKSPACE_DIRECTORY_NOT_FOUND' }
+  })
+
   registerHandler('ipc:workspace.ensureWorker', async (req) => {
     const path = String(req?.path || '').trim()
     if (!path) return { ok: false, workspaceId: '', error: 'missing path' }
@@ -34,7 +49,10 @@ export function registerWorkspaceHandlers(): void {
   })
 
   registerHandlerWithSchema('ipc:workspace.open', workspaceOpenSchema, async (req) => {
-    const path = req.path
+    const path = resolveWorkspaceDirectory(req.path)
+    if (!path) {
+      throw new Error('WORKSPACE_DIRECTORY_NOT_FOUND')
+    }
     const name = path.split(/[\\/]/).pop() || path
     invalidateAdapterCatalog()
     configStore.addRecentProject(path)

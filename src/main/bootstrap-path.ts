@@ -19,6 +19,7 @@ export const runtimeIdentity = resolveRuntimeIdentity({
   pid: process.pid,
   explicitUserData: process.env.PI_E2E_USER_DATA,
   explicitPiAgentDirectory: process.env[PI_CODING_AGENT_DIRECTORY_ENV],
+  isWeb: process.env.VIZRUNA_WEB_RUNTIME === '1',
 })
 
 app.setName(runtimeIdentity.appName)

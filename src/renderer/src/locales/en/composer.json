@@ -40,6 +40,8 @@
     "pasteScreenshotNeedWorkspace": "Open a workspace before pasting screenshots",
     "pasteScreenshotFailed": "Failed to paste screenshot",
     "pasteScreenshotUnsupported": "Unsupported image format (use PNG, JPEG, WebP, etc.)",
+    "webUploadTooLarge": "{{name}} is larger than 16 MB and cannot be added yet",
+    "webUploadFailed": "Could not add {{name}}",
     "openedConfig": "Opened {{name}} config",
     "openedPanel": "Opened {{panel}} panel",
     "slashNoPanel": "Slash command has no panelId configured",

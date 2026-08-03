@@ -355,6 +355,19 @@ export const clipboardWriteTempImageSchema = z
     data: z.string().min(1),
     mimeType: z.enum(['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/bmp']),
   })
+
+export const browserUploadTempFileSchema = z
+  .object({
+    data: z.string().min(1).max(24 * 1024 * 1024),
+    name: z.string().trim().min(1).max(500),
+    mimeType: z.string().trim().max(200).optional(),
+  })
+  .superRefine((req, ctx) => {
+    const bytes = Buffer.from(req.data, 'base64')
+    if (bytes.length > 16 * 1024 * 1024) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'file too large', path: ['data'] })
+    }
+  })
   .superRefine((req, ctx) => {
     const bytes = Buffer.from(req.data, 'base64')
     if (bytes.length > CLIPBOARD_IMAGE_MAX_BYTES) {

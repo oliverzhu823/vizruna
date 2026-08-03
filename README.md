@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  让 Pi 驱动的 AI Agent 在桌面上可见、可控、可复核。
+  让 Pi 驱动的 AI Agent 在浏览器中可见、可控、可复核。
 </p>
 
 <p align="center">
@@ -12,30 +12,29 @@
 
 # Vizruna
 
-Vizruna 把 Pi Agent Runtime 变成一个可以日常使用的桌面产品。你可以在同一个
-工作台里和 Agent 对话、观察思考与工具执行、切换模型和思考强度、检查改动文件、
-使用终端，并组织多个 Agent 并行工作。
+Vizruna 把 Pi Agent Runtime 变成一个可以日常使用的本地 Agent 工作台。
+**Vizruna-web** 在浏览器中运行；你可以在同一个工作台里和 Agent 对话、观察思考与
+工具执行、切换模型和思考强度、检查改动文件、使用终端，并组织多个 Agent 并行工作。
 
-当前状态：**公开 Alpha**。所有人都可以下载和使用 Vizruna。现阶段可下载安装的
-版本支持 **Apple 芯片 Mac（M1/M2/M3/M4 及后续型号）**。我们正在寻找早期用户和
-真实反馈；Alpha 阶段请暂时不要把它用于不可中断的关键生产任务。
+当前状态：**公开 Alpha**。Vizruna-web 是目前唯一维护和发布的用户版本；桌面客户端
+已暂停开发与分发。Alpha 阶段请暂时不要把它用于不可中断的关键生产任务。
 
-![Vizruna 桌面工作台](docs/images/vizruna-desktop.png)
+![Vizruna-web 工作台界面](docs/images/vizruna-web.png)
 
-## v0.1.0-alpha.4 本次重点
+## v0.1.0-alpha.5 本次重点
 
-- 新增 **Agent 配置库**：为不同业务场景保存命名 Agent 和固定 System Prompt。
-- 新增 **会话系统提示词库**：可新增、编辑、复制和归档常用提示词，也可只为下一次
-  新对话输入临时提示词。
-- 新对话可在**通用 Pi、系统提示词、Agent 配置**中三选一；首条消息发送后固化快照，
-  避免后续修改配置影响已经开始的会话。
-- 新增 **Agent 案例库**：把跑通的真实会话沉淀为案例，记录模型、思考等级、标签和
-  验证状态，并可返回原会话继续复测。
-- 修复新版本模型载入、Provider 配置导入与预发布版本更新判断。
-- 优化消息区操作按钮避让、输入框信息字号和“正在思考”即时反馈。
-- 开发环境与安装版彻底隔离，发布包不会继承维护者的会话、模型授权和 API 配置。
-- 加固无签名测试版的应用内更新：只接受官方同版本 Release，自动核对
-  `SHA256SUMS.txt`，校验通过后仅处理本次下载 DMG 的隔离属性，再由用户手动覆盖应用。
+- 新增唯一发布入口 **Vizruna-web**：在默认浏览器中使用完整 Agent Studio、模型登录、
+  对话、文件、终端、Review、Worktree 和多 Agent 功能，不再发布桌面安装包。
+- 新增可双击运行的 `Start-Vizruna-web.command`；首次自动准备依赖，Git 克隆版后续只在
+  官方仓库、干净 `main` 分支和可快进时安全更新。
+- 本地服务只监听 `127.0.0.1`，使用一次性随机启动令牌、HttpOnly 会话、来源与 CSRF
+  校验、RPC 白名单和参数校验，局域网及其他网站无法直接调用本机 Agent。
+- 会话、Pi 授权、Provider 设置、Agent 配置、提示词和案例都保存在源码目录之外；
+  更新 Vizruna-web 不会删除这些用户数据。
+- 浏览器内可以输入并验证项目目录；附件、诊断包和脱敏审计日志使用受控临时目录，
+  导出完成后自动清理。
+- 新增浏览器端端到端回归，覆盖登录事件、模型能力、项目切换、Review、Worktree、
+  多 Agent、诊断导出、录音环境与核心安全拒绝路径。
 
 完整变化见 [CHANGELOG.md](CHANGELOG.md)。
 
@@ -69,7 +68,7 @@ Vizruna 把 Pi Agent Runtime 变成一个可以日常使用的桌面产品。你
   默认应用打开文件。
 - **Run、Context、Tree**：分别检查运行状态、上下文构成和会话分支，不只依赖
   Agent 的自然语言“已完成”。
-- **图片与附件**：支持粘贴图片、引用文件与行号，并为常见工具结果提供桌面预览。
+- **图片与附件**：支持粘贴图片、引用文件与行号，并在浏览器中预览常见工具结果。
 
 ### 多 Agent 与扩展能力
 
@@ -78,38 +77,84 @@ Vizruna 把 Pi Agent Runtime 变成一个可以日常使用的桌面产品。你
 - **子 Agent 编排**：创建、跟进和检查子任务，展示父子 Agent 状态与验证证据。
 - **Skills、扩展与提示词资源**：管理 Pi Skills、Extensions、项目上下文和 Pi 原生
   Prompt 资源，保留与 Pi CLI 兼容的文件结构。
-- **语音输入与提醒**：可配置语音转写；Agent 完成或需要用户确认时可发出桌面提醒。
+- **语音输入与提醒**：可配置语音转写；Agent 完成或需要用户确认时可发出本机提醒。
 
 ### 界面、数据与可靠性
 
 - **中英文界面**：支持浅色、深色、跟随系统和“鼠尾草浅绿”护眼主题。
 - **本地优先**：会话、OAuth、API 配置、案例与 Agent 配置保存在用户自己的电脑。
 - **备份与审计**：为产品数据库迁移创建备份，并提供可靠性、恢复和脱敏审计能力。
-- **更新提醒**：可自动或手动检查 GitHub Releases，下载并打开新安装包。
+- **安全更新**：Git 克隆版只在官方来源、干净 `main` 分支和可快进时更新；ZIP 版
+  使用新版源码目录启动，用户数据保持不变。
 
-## 下载和安装
+## 安装并使用 Vizruna-web
 
-1. 打开仓库的 [Releases 页面](https://github.com/oliverzhu823/vizruna/releases)。
-2. 在最新的预发布版本中下载 `Vizruna-*-arm64.dmg`。
-3. 同时下载 `SHA256SUMS.txt` 并核对安装包校验值。
-4. 打开 DMG，把 **Vizruna** 拖到“应用程序”文件夹。
-5. 双击启动 Vizruna。
+Vizruna-web 的界面在默认浏览器中打开，Pi Runtime、终端、文件和凭据仍只在你的
+电脑上运行，不会上传到 Vizruna 服务器。当前公开 Alpha 已在 macOS 上完成验收，
+使用源码启动包运行，不需要安装 `.app` 或 DMG。
 
-当前 Alpha 安装包**没有 Developer ID 签名和 Apple 公证**。首次运行时，macOS
-可能提示无法验证开发者。确认文件来自本仓库且 SHA-256 一致后：
+### 方式一：下载 Release 源码包（最适合普通使用者）
 
-1. 先尝试打开一次 Vizruna。
-2. 进入**系统设置 → 隐私与安全性**，在安全性区域点击**仍要打开**。
-3. 如果系统直接提示应用“已损坏”，校验文件无误后，可在终端仅移除这个应用的下载
-   隔离属性：
+1. 安装 [Node.js](https://nodejs.org/zh-cn/download) 22.19.0 或更高版本，安装包中已包含 npm。
+2. 打开 [Vizruna Releases](https://github.com/oliverzhu823/vizruna/releases)，下载
+   `Vizruna-web-版本-source.zip`；建议同时下载 `SHA256SUMS.txt` 核对文件。
+3. 解压 ZIP，进入解压后的 `Vizruna-web-版本` 文件夹。
+4. 双击 `Start-Vizruna-web.command`。首次运行会联网安装本地运行依赖并构建页面，
+   可能需要几分钟。
+5. 默认浏览器自动打开后即可使用。运行期间保持终端窗口开启；要停止 Vizruna-web，
+   回到该窗口按 `Control+C`。
+
+需要核对下载文件时，把 ZIP 和 `SHA256SUMS.txt` 放在同一目录并执行：
 
 ```bash
-xattr -dr com.apple.quarantine /Applications/Vizruna.app
+grep 'Vizruna-web-.*-source.zip' SHA256SUMS.txt | shasum -a 256 -c -
 ```
 
-不要对来源不明的软件执行该命令，也不要全局关闭 Gatekeeper。
+出现 `OK` 才表示文件与 GitHub Release 中的校验记录一致。
 
-当前 DMG 只适用于 Apple 芯片 Mac。Windows、Linux 和 Intel Mac 尚未完成发布验收。
+如果 macOS 不允许直接执行启动器，右键点击它并选择**打开**。如果仍提示没有权限，
+在该文件夹打开终端后执行：
+
+```bash
+chmod +x Start-Vizruna-web.command
+./Start-Vizruna-web.command
+```
+
+不要对其他来源不明的脚本执行上述操作。
+
+### 方式二：使用 Git 克隆（适合持续测试和开发）
+
+在终端运行：
+
+```bash
+git clone https://github.com/oliverzhu823/vizruna.git
+cd vizruna
+./Start-Vizruna-web.command
+```
+
+这种方式还需要 Git。启动器会在每次运行时检查官方 `main` 分支；只有 origin 精确
+指向 `oliverzhu823/vizruna`、当前分支为 `main`、本地没有改动并且可以快进时才更新。
+离线、来源不符、分支分叉或存在本地修改时都会保留原状并继续启动。临时跳过检查可用：
+
+```bash
+VIZRUNA_WEB_SKIP_UPDATE=1 ./Start-Vizruna-web.command
+```
+
+每个 Release 只提供一个 Vizruna-web 源码 ZIP，并附带 SHA-256、SBOM 和 GitHub
+构建来源证明，不再提供桌面安装包。
+
+安全边界：服务只监听 `127.0.0.1`，不能被局域网其他设备访问；每次启动生成新的
+随机访问令牌，并使用 HttpOnly 会话、同源校验和 CSRF 防护保护本地 API。不要修改
+启动地址为 `0.0.0.0`，也不要把启动链接发给别人。
+
+### 启动故障排查
+
+- **提示没有 Node.js**：安装 Node.js 22.19.0 或更高版本，关闭终端窗口后重新启动。
+- **启动器没有执行权限**：使用上面的 `chmod +x` 命令，只处理当前下载的启动器。
+- **浏览器没有自动打开**：按 `Control+C` 停止后重新双击启动器；不要复用上一次启动
+  地址，因为其中的一次性令牌已经失效。
+- **提示已有实例运行**：关闭其他 Vizruna-web 启动窗口后重试。同一时间只运行一个实例。
+- **首次安装依赖失败**：确认 npm 可以联网，重新运行启动器；它会从中断处重新准备环境。
 
 ## 第一次使用
 
@@ -148,37 +193,29 @@ System Prompt 负责固定 Agent 的角色、目标、边界和输出要求；�
 
 ## 升级与数据保留
 
-Vizruna Alpha 采用**半自动更新**：
+**Git 克隆版**：正常双击启动器即可。满足官方来源、干净 `main` 分支和可快进三个
+条件时，启动器会先安全更新代码，再安装有变化的依赖并重新构建。
 
-1. 应用启动后自动检查，也可在**设置 → 常规 → 应用版本**手动检查。
-2. 有新版本时点击**下载并打开安装包**。Vizruna 会确认安装包和
-   `SHA256SUMS.txt` 来自官方同一版本，下载后再次核对 SHA-256。
-3. 校验通过后，应用仅处理这次下载到自身临时目录的 DMG 隔离属性并打开它；不会
-   关闭或修改系统 Gatekeeper，也不会处理其他文件。
-4. 完全退出旧版 Vizruna。
-5. 把新版拖到“应用程序”，选择**替换**。
+**Release ZIP 版**：停止旧版本，从 Releases 下载新版 ZIP，解压到一个新文件夹，
+然后运行新文件夹里的启动器。确认新版正常后可以删除旧的源码文件夹；不要把用户数据
+目录一起删除。ZIP 副本不会自行覆盖源码，避免更新失败时损坏当前可用版本。
 
-**第一次安装**仍需按“下载和安装”一节人工确认，这是无 Apple 签名 Alpha 版无法在
-软件内部绕过的系统边界。安装 alpha.4 或更高版本后，后续请优先使用 Vizruna 内的
-更新入口，不要再用浏览器手动下载新版；这样既能自动校验，也能避免浏览器重新附加
-下载隔离属性。若发布包缺少校验文件，Vizruna 会停止自动流程并打开官方发布页。
-
-覆盖 `/Applications/Vizruna.app` 不会删除以下外部数据：
+两种升级方式都不会删除以下外部数据：
 
 - `~/Library/Application Support/Vizruna`：产品设置、Agent 配置、提示词库、案例索引
   和数据库。
 - `~/.pi/agent`：Pi 会话、OAuth 与 Provider 配置。
 - `~/.vizruna/worktrees`：受管工作目录。
 
-请勿使用卸载清理工具删除这些目录。Alpha 阶段升级前建议备份上述目录；数据库只保证
-向前迁移，不建议安装新版后再降级。
+请勿手动或使用清理工具删除这些目录。Alpha 阶段升级前建议备份上述目录；数据库只
+保证向前迁移，不建议运行新版后再降级。
 
 ## 用户数据与隐私
 
 - 每位用户的 Pi 会话和认证信息保存在自己 Mac 的 `~/.pi/agent`。
 - Vizruna 的偏好设置和产品元数据保存在
   `~/Library/Application Support/Vizruna`。
-- 发布包来自经过清理的构建目录，不包含维护者的对话、最近项目、Token、代理密码
+- Release 源码包由 GitHub 从仓库提交生成，不包含维护者的对话、最近项目、Token、代理密码
   或本机路径。
 - 用户仍应避免在提示词中发送敏感信息，也不要把凭据提交进项目仓库。
 
@@ -191,22 +228,21 @@ Token 或私人对话内容。
 
 ## 本地开发
 
-环境要求：Node.js 22.19.x、npm、Git；当前安装包目标为 macOS Apple Silicon。
+环境要求：Node.js 22.19.0 或更高版本、npm 和 Git。当前用户发布流程已在 macOS
+完成验收；Windows 和 Linux 尚未承诺公开 Alpha 支持。
 
-源码开发环境与已安装的正式产品会自动隔离。开发模式显示为 **Vizruna Dev**，应用
-设置保存在 `~/Library/Application Support/Vizruna Dev`，Pi 凭据和会话使用该目录
-下独立的 `pi-agent` 文件夹，不会继承正式版用户在 `~/.pi/agent` 中的 OAuth 或
-API Key。需要构造受控测试数据时，显式设置的 `PI_CODING_AGENT_DIR` 仍具有最高
-优先级。
+`npm run dev:web` 使用与公开 Vizruna-web 相同的本机产品数据，便于复现真实使用状态；
+修改数据库或凭据相关功能前应先备份。自动化 E2E 使用独立临时用户目录和 Pi 目录，
+不会读取正式用户的 OAuth、API Key 或会话。
 
 ```bash
 nvm use
 npm ci
-npm run dev
+npm run dev:web
 ```
 
-不要把 `dist/mac-arm64/Vizruna.app` 当成开发入口；它是使用正式产品身份的打包候选
-产物。源码开发使用 `npm run dev`，产品验收则使用安装到“应用程序”的 DMG。
+日常产品开发和验收都使用 Vizruna-web。桌面客户端源码暂时保留作为共享运行时和回退
+参考，但停止功能迭代，也不进入预发布产物。
 
 执行完整质量检查：
 
@@ -214,21 +250,12 @@ npm run dev
 npm run verify
 ```
 
-本地开发测试包可以使用：
+运行浏览器端端到端测试：
 
 ```bash
-npm run package -- --mac
+npm run test:e2e:install
+npm run test:e2e:web
 ```
 
-当前无签名 Apple Silicon 预发布包使用：
-
-```bash
-npm run package:mac:unsigned
-```
-
-该命令明确关闭 Developer ID 自动发现，验证产物没有 Developer ID 签名，并确认
-Gatekeeper 会按文档所述拦截首次启动。GitHub 预发布工作流还会在隔离数据目录中启动
-打包应用、生成 SHA-256、SBOM 和构建来源证明。
-
-未来的正式版仍使用 `npm run package:mac:release`；只要 Developer ID 签名、Apple
-公证、票据装订或 Gatekeeper 校验有一项未通过，命令就会失败。
+打上版本 Tag 后，GitHub 工作流只生成版本化 Vizruna-web 源码 ZIP、SHA-256、SBOM
+和构建来源证明，不构建或上传 DMG、`.app` 或桌面 ZIP。

@@ -164,6 +164,15 @@
   "loading": "加载中…",
   "cancel": "取消",
   "confirm": "确定",
+  "webWorkspacePath": {
+    "title": "在 Vizruna-web 中打开项目",
+    "description": "输入或粘贴项目文件夹的完整路径。也可以尝试系统选择器；如果系统窗口没有出现在最前，请返回这里直接输入路径。",
+    "placeholder": "/Users/你的名字/Projects/项目文件夹",
+    "open": "打开项目",
+    "systemPicker": "使用系统选择器",
+    "invalid": "无法打开该文件夹，请确认路径存在并且是一个文件夹。",
+    "systemPickerFailed": "系统选择器未能打开，请直接输入完整路径。"
+  },
   "close": "关闭",
   "back": "返回",
   "error": "错误",

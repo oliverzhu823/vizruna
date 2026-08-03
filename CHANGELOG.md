@@ -2,6 +2,33 @@
 
 面向仓库的完整版本记录。发版时由 `scripts/generate-release-notes.mjs` 从对应章节生成 **GitHub Release 正文**（用户可读更新说明，应用内「发现新版本」弹窗展示）。发布与应用内更新流程见 [doc/RELEASE.md](doc/RELEASE.md)。
 
+## [Unreleased]
+
+## [0.1.0-alpha.5] — 2026-08-02
+
+### Vizruna-web
+
+- 新增浏览器入口 `Vizruna-web`，复用现有 React 界面、Pi Runtime、Agent Studio、
+  文件、终端、Review、Worktree 和多 Agent 架构，不再依赖 Electron 窗口或 DMG 安装
+- 新增 `npm run build:web`、`npm run start:web` 和 `npm run dev:web` 启动流程；启动后
+  自动打开默认浏览器；桌面客户端暂停开发和分发，仅保留共享运行时源码
+- 新增 macOS 双击启动器 `Start-Vizruna-web.command`，首次自动安装依赖，后续按需
+  更新依赖并重建页面，普通使用者无需记忆开发命令
+- Git 克隆版启动时只从官方仓库执行干净 `main` 分支的 fast-forward 更新；离线、
+  非官方来源、分叉或本地有修改时安全跳过，ZIP 覆盖升级继续保留外部用户数据
+- Alpha Release 只发布带双击启动器的版本化 Vizruna-web 源码 ZIP，不再构建或上传
+  DMG、`.app` 或桌面 ZIP；Web 发布物纳入 SHA-256、SBOM、构建来源证明和浏览器 E2E 门禁
+- Vizruna-web 的源码更新不会影响代码目录之外的 Vizruna 和 Pi 用户数据，因此不会
+  丢失会话、授权、Provider 设置、Agent 配置、提示词或案例
+- 本地服务强制绑定 `127.0.0.1` 和随机端口；使用 256-bit 启动令牌、HttpOnly 会话、
+  精确 Host/Origin 校验、CSRF 请求头、IPC 白名单、Zod 校验和安全响应头
+- 浏览器附件进入受控临时目录，单文件最大 16 MB，并自动清理过期文件
+- Vizruna-web 打开项目默认使用浏览器内路径对话框，先验证目录再切换工作区；同时
+  保留可选系统选择器，避免多个 Electron 进程并存时原生窗口层级导致卡住
+- 诊断包和脱敏审计日志在 Vizruna-web 中直接使用浏览器下载，临时导出文件读取后
+  立即清理
+- 新增独立 Vizruna-web E2E，验证未授权/跨站拒绝、浏览器认证、核心 RPC 和 Web 更新提示
+
 ## [0.1.0-alpha.4] — 2026-07-31
 
 ### macOS 无签名版更新体验

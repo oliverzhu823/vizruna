@@ -164,6 +164,15 @@
   "loading": "Loading…",
   "cancel": "Cancel",
   "confirm": "OK",
+  "webWorkspacePath": {
+    "title": "Open a project in Vizruna-web",
+    "description": "Enter or paste the full path to a project folder. You can also try the system picker; if it does not appear in front, return here and enter the path directly.",
+    "placeholder": "/Users/your-name/Projects/project-folder",
+    "open": "Open project",
+    "systemPicker": "Use system picker",
+    "invalid": "This folder could not be opened. Check that the path exists and is a directory.",
+    "systemPickerFailed": "The system picker could not open. Enter the full path instead."
+  },
   "close": "Close",
   "back": "Back",
   "error": "Error",

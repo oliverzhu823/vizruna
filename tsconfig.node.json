@@ -11,8 +11,10 @@
     "src/main/**/*",
     "src/preload/**/*",
     "src/worker/**/*",
+    "src/web/**/*",
     "src/extension-compat/*.ts",
     "packages/shared/**/*",
-    "electron.vite.config.ts"
+    "electron.vite.config.ts",
+    "playwright.web.config.ts"
   ]
 }

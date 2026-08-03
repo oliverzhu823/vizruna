@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  A visible, controllable, local-first desktop workspace for Pi-powered AI Agents.
+  A visible, controllable, local-first browser workspace for Pi-powered AI Agents.
 </p>
 
 <p align="center">
@@ -12,35 +12,34 @@
 
 # Vizruna
 
-Vizruna turns the Pi Agent runtime into a practical desktop product. You can
-chat with an Agent, watch its reasoning and tool activity, switch models and
-thinking levels, inspect changed files, run a terminal, and coordinate parallel
-work without leaving one workspace.
+Vizruna turns the Pi Agent runtime into a practical local Agent workspace.
+**Vizruna-web** runs in your browser. You can chat with an Agent, watch its
+reasoning and tool activity, switch models and thinking levels, inspect changed
+files, run a terminal, and coordinate parallel work without leaving one workspace.
 
-Status: **Public Alpha**. Everyone is welcome to download and use Vizruna. The
-current package supports **Apple-silicon Macs (M1/M2/M3/M4 and later)**. Avoid
-mission-critical work while the product is still in Alpha.
+Status: **Public Alpha**. Vizruna-web is the only user edition currently
+maintained and distributed. Desktop-client development and distribution are
+paused. Avoid mission-critical work while the product is still in Alpha.
 
-![Vizruna desktop workspace](docs/images/vizruna-desktop.png)
+![Vizruna-web workspace](docs/images/vizruna-web.png)
 
-## Highlights in v0.1.0-alpha.4
+## Highlights in v0.1.0-alpha.5
 
-- **Agent Profile Library** for named, scenario-specific Agents with a fixed
-  System Prompt.
-- **Session System Prompt Library** with create, edit, duplicate, archive, and
-  one-session temporary prompt workflows.
-- A new conversation selects exactly one of General Pi, a saved System Prompt,
-  or an Agent Profile. The first message stores an immutable snapshot.
-- **Agent Case Library** for turning successful conversations into indexed,
-  testable assets with model, thinking level, tags, and validation status.
-- Fixes for model discovery, provider configuration import, and prerelease
-  version comparison.
-- Improved message action spacing, composer typography, and immediate
-  “Thinking…” feedback.
-- Complete isolation between source development and the installed product.
-- Hardened unsigned-build updates: Vizruna accepts only assets from the matching
-  official Release, verifies `SHA256SUMS.txt`, and handles quarantine only for
-  that downloaded DMG before the user manually replaces the application.
+- **Vizruna-web** is now the only distributed entry point, providing the complete Agent
+  Studio, model login, conversations, files, terminal, Review, Worktree, and
+  multi-Agent features in the default browser without a desktop installer.
+- `Start-Vizruna-web.command` provides a double-click launcher. Git clones update
+  only from the official repository when `main` is clean and fast-forwardable.
+- The service binds only to `127.0.0.1` and uses a one-time random startup token,
+  an HttpOnly session, origin and CSRF checks, an RPC allowlist, and schema validation.
+- Conversations, Pi authentication, provider settings, Agent Profiles, prompts,
+  and cases live outside the source folder. Updating Vizruna-web does not delete
+  this user data.
+- Browser-native project path validation, controlled attachment storage, and
+  direct diagnostics/audit downloads replace fragile native-window interactions.
+- Browser end-to-end coverage now exercises provider events, model capability,
+  workspace switching, Review, Worktree, orchestration, exports, media APIs, and
+  critical security rejection paths.
 
 See [CHANGELOG.md](CHANGELOG.md) for the complete release notes.
 
@@ -78,14 +77,14 @@ See [CHANGELOG.md](CHANGELOG.md) for the complete release notes.
 - Right-side Review for changed files, diffs, Markdown, and code, with an option
   to open files in their default macOS app.
 - Run, Context, and Tree panels for evidence-based inspection.
-- Image paste, file/line references, and desktop previews for common tool results.
+- Image paste, file/line references, and browser previews for common tool results.
 
 ### Multi-Agent and extensibility
 
 - Managed Git worktrees for isolated branches and parallel work.
 - Child-Agent orchestration with task status and validation evidence.
 - Management for Pi Skills, Extensions, project context, and native prompt resources.
-- Configurable voice transcription and desktop alerts.
+- Configurable voice transcription and local system alerts.
 
 ### Interface, data, and reliability
 
@@ -93,33 +92,87 @@ See [CHANGELOG.md](CHANGELOG.md) for the complete release notes.
 - Local-first storage for conversations, authentication, Agent Profiles,
   prompts, and cases.
 - Database migration backup plus reliability, recovery, and redacted audit tools.
-- Automatic or manual checks for new GitHub Releases.
+- Safe source updates for official, clean, fast-forwardable Git clones; ZIP
+  upgrades keep user data outside the source folder.
 
-## Download and install
+## Install and run Vizruna-web
 
-1. Open the repository's [Releases](https://github.com/oliverzhu823/vizruna/releases).
-2. Download `Vizruna-*-arm64.dmg` from the newest prerelease.
-3. Download `SHA256SUMS.txt` and verify the package.
-4. Open the DMG and drag **Vizruna** into **Applications**.
-5. Launch Vizruna.
+Vizruna-web opens its interface in your default browser while the Pi Runtime,
+terminal, files, and credentials remain on your computer. The current public
+Alpha has been accepted on macOS and runs from a source bundle, with no `.app`
+or DMG installation.
 
-Current Alpha packages are **not Developer ID-signed or Apple-notarized**.
-After confirming the file came from this repository and its SHA-256 matches:
+### Option 1: Download the Release source bundle (recommended for users)
 
-1. Try opening Vizruna once.
-2. Open **System Settings → Privacy & Security** and choose **Open Anyway**.
-3. If macOS reports that the app is damaged, remove the download quarantine
-   attribute for this application only:
+1. Install [Node.js](https://nodejs.org/en/download) 22.19.0 or newer; npm is included.
+2. Open [Vizruna Releases](https://github.com/oliverzhu823/vizruna/releases),
+   download `Vizruna-web-VERSION-source.zip`, and optionally verify it against
+   `SHA256SUMS.txt`.
+3. Extract the ZIP and open its `Vizruna-web-VERSION` folder.
+4. Double-click `Start-Vizruna-web.command`. The first launch downloads local
+   dependencies and builds the browser UI, which may take a few minutes.
+5. Use Vizruna-web when the default browser opens. Keep the Terminal window open;
+   press `Control+C` there to stop the local runtime.
+
+To verify the download, place the ZIP and `SHA256SUMS.txt` in the same directory
+and run:
 
 ```bash
-xattr -dr com.apple.quarantine /Applications/Vizruna.app
+grep 'Vizruna-web-.*-source.zip' SHA256SUMS.txt | shasum -a 256 -c -
 ```
 
-Never use this command for software from an untrusted source, and do not disable
-Gatekeeper globally.
+Continue only when the source ZIP reports `OK`.
 
-The DMG is currently for Apple-silicon Macs only. Windows, Linux, and Intel Mac
-packages have not completed release acceptance.
+If macOS does not run the launcher directly, right-click it and choose **Open**.
+If it still lacks execute permission, open Terminal in that folder and run:
+
+```bash
+chmod +x Start-Vizruna-web.command
+./Start-Vizruna-web.command
+```
+
+Do not run these commands for a script from an untrusted source.
+
+### Option 2: Clone with Git (recommended for ongoing testing and development)
+
+Run:
+
+```bash
+git clone https://github.com/oliverzhu823/vizruna.git
+cd vizruna
+./Start-Vizruna-web.command
+```
+
+This option also requires Git. The launcher safely checks the official `main`
+branch on every launch. It updates only
+when origin points exactly to `oliverzhu823/vizruna`, the current branch is
+`main`, the worktree is clean, and the update is a fast-forward. Offline,
+untrusted, diverged, or locally modified copies are preserved and continue to
+start normally. To skip one update check, run:
+
+```bash
+VIZRUNA_WEB_SKIP_UPDATE=1 ./Start-Vizruna-web.command
+```
+
+Each Release contains one Vizruna-web source ZIP plus SHA-256 checksums, an SBOM,
+and GitHub build provenance. Desktop installers are no longer published.
+
+The service binds only to `127.0.0.1`, so other devices on the LAN cannot reach
+it. Every launch creates a new random access token, and the local API is further
+protected by an HttpOnly session, same-origin validation, and CSRF checks. Do
+not change the bind address to `0.0.0.0` or share the launch URL.
+
+### Startup troubleshooting
+
+- **Node.js is missing**: install Node.js 22.19.0 or newer, close Terminal, and retry.
+- **The launcher is not executable**: use the `chmod +x` command above for this
+  downloaded launcher only.
+- **The browser did not open**: press `Control+C`, then restart the launcher. Do
+  not reuse an old launch URL because its one-time token has expired.
+- **Another instance is running**: close every other Vizruna-web launcher window
+  and retry. Only one local runtime may write the product data at a time.
+- **First-time dependency installation failed**: confirm npm has internet access
+  and run the launcher again; it safely prepares the environment again.
 
 ## Quick start
 
@@ -156,39 +209,28 @@ Methods invoked dynamically during a run are better implemented as Skills.
 
 ## Updating without losing data
 
-Unsigned Alpha builds use an assisted update flow:
+**Git clones**: launch normally. When the origin is official, `main` is clean,
+and the remote update is fast-forwardable, the launcher safely updates source,
+installs changed dependencies, and rebuilds before startup.
 
-1. Vizruna checks for releases after launch, or check under
-   **Settings → General → App version**.
-2. Choose **Download and open installer**. Vizruna requires the installer and
-   `SHA256SUMS.txt` to come from the same official Release, then verifies the
-   downloaded file locally.
-3. After verification, Vizruna handles quarantine only for that DMG in its own
-   temporary update directory and opens it. It never disables or changes system
-   Gatekeeper and does not touch other files.
-4. Quit the old Vizruna completely.
-5. Drag the new app to Applications and choose **Replace**.
+**Release ZIP copies**: stop the old version, download the new ZIP, extract it
+into a new folder, and run the launcher from that folder. Delete the old source
+folder only after the new version works. ZIP copies never overwrite themselves,
+so a failed upgrade cannot damage the currently usable copy.
 
-The **first installation** still requires the manual approval described above;
-an unsigned Alpha cannot bypass that macOS boundary from inside the app. Once
-alpha.4 or later is installed, use Vizruna's in-app updater for future versions
-instead of downloading them in a browser. This enables automatic verification
-and avoids a browser adding download quarantine again. If verification metadata
-is absent, Vizruna stops the assisted flow and opens the official Release page.
-
-Replacing `/Applications/Vizruna.app` preserves data stored outside the app:
+Both upgrade paths preserve data stored outside the source folder:
 
 - `~/Library/Application Support/Vizruna` — settings, Agent Profiles, prompts,
   case index, and database.
 - `~/.pi/agent` — Pi sessions, OAuth, and provider configuration.
 - `~/.vizruna/worktrees` — managed worktrees.
 
-Do not remove those directories with an uninstall cleaner. Back them up before
-early Alpha upgrades, and avoid downgrading after a database migration.
+Do not remove those directories manually or with a cleanup utility. Back them
+up before early Alpha upgrades, and avoid downgrading after a database migration.
 
 ## User data and privacy
 
-- The release package is produced from a clean checkout and never contains the
+- GitHub produces the source bundle from a repository commit; it never contains the
   maintainer's conversations, recent projects, tokens, proxy passwords, or paths.
 - Users should still avoid putting secrets in prompts or committing credentials.
 - Source and binary redistribution terms are described in [NOTICE.md](NOTICE.md).
@@ -202,17 +244,23 @@ conversation content.
 
 ## Development
 
-Requirements: Node.js 22.19.x, npm, Git, and macOS Apple Silicon for packaging.
+Requirements: Node.js 22.19.0 or newer, npm, and Git. The current user release
+flow has completed macOS acceptance; Windows and Linux support is not yet promised.
 
-Source development runs as **Vizruna Dev** and stores both application state and
-Pi state under `~/Library/Application Support/Vizruna Dev`. It does not inherit
-the installed product's `~/.pi/agent` credentials or sessions.
+`npm run dev:web` uses the same local product data as public Vizruna-web so real
+usage can be reproduced; back up data before changing persistence or credential
+code. Automated E2E uses isolated temporary application and Pi directories and
+never reads production OAuth tokens, API keys, or conversations.
 
 ```bash
 nvm use
 npm ci
-npm run dev
+npm run dev:web
 ```
+
+Daily product development and acceptance use Vizruna-web. Desktop-client source
+is retained temporarily as a shared runtime and rollback reference, but receives
+no feature development and is excluded from prerelease artifacts.
 
 Run the complete local quality suite:
 
@@ -220,16 +268,13 @@ Run the complete local quality suite:
 npm run verify
 ```
 
-Build the current unsigned Apple Silicon prerelease:
+Run browser end-to-end tests:
 
 ```bash
-npm run package:mac:unsigned
+npm run test:e2e:install
+npm run test:e2e:web
 ```
 
-The command disables Developer ID identity discovery, verifies that the result
-has no Developer ID signature, and confirms the documented Gatekeeper rejection.
-The GitHub prerelease workflow also launches the package with isolated data and
-generates SHA-256 checksums, an SBOM, and build provenance.
-
-Future stable releases use `npm run package:mac:release`, which fails unless
-Developer ID signing, notarization, stapling, and Gatekeeper verification succeed.
+When a version tag is pushed, GitHub produces only the versioned Vizruna-web
+source ZIP, SHA-256 checksums, an SBOM, and build provenance. It does not build
+or upload a DMG, `.app`, or desktop ZIP.

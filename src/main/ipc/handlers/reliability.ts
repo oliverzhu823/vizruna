@@ -1,4 +1,6 @@
-import { BrowserWindow, dialog } from 'electron'
+import { app, BrowserWindow, dialog } from 'electron'
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { join } from 'node:path'
 import { getTrustedWorkspaceRoot } from '../../trusted-workspace'
 import { getReliabilityService } from '../../reliability/reliability-service'
 import { buildReconciliationSnapshot } from '../../reliability/reconciliation-service'
@@ -9,6 +11,34 @@ import {
   metadataRestoreSchema,
   reliabilityRootSchema,
 } from '../schemas'
+import { runtimeIdentity } from '../../bootstrap-path'
+
+const MAX_WEB_EXPORT_BYTES = 32 * 1024 * 1024
+
+async function webDownload(options: {
+  filename: string
+  mimeType: string
+  write: (path: string) => Promise<unknown>
+}) {
+  const directory = mkdtempSync(join(app.getPath('temp'), 'vizruna-web-export-'))
+  const path = join(directory, options.filename)
+  try {
+    await options.write(path)
+    const data = readFileSync(path)
+    if (data.byteLength > MAX_WEB_EXPORT_BYTES) throw new Error('WEB_EXPORT_TOO_LARGE')
+    return {
+      cancelled: false,
+      bytes: data.byteLength,
+      download: {
+        filename: options.filename,
+        mimeType: options.mimeType,
+        base64: data.toString('base64'),
+      },
+    }
+  } finally {
+    rmSync(directory, { recursive: true, force: true })
+  }
+}
 
 function trustedWorkspace(requested?: string): string | undefined {
   const trusted = getTrustedWorkspaceRoot()
@@ -24,6 +54,7 @@ async function savePath(options: {
   extension: string
   name: string
 }): Promise<string | null> {
+  if (BrowserWindow.getAllWindows().length === 0) app.focus({ steal: true })
   const win = BrowserWindow.getFocusedWindow() || BrowserWindow.getAllWindows()[0]
   const dialogOptions = {
     title: options.title,
@@ -66,6 +97,14 @@ export function registerReliabilityHandlers(): void {
   )
 
   registerHandlerWithSchema('ipc:audit.export', auditExportSchema, async (request) => {
+    if (runtimeIdentity.channel === 'web') {
+      const filename = `vizruna-audit-${timestamp()}.${request.format}`
+      return webDownload({
+        filename,
+        mimeType: request.format === 'jsonl' ? 'application/x-ndjson' : 'application/json',
+        write: (path) => getReliabilityService().exportAudit(request, path),
+      })
+    }
     const path = await savePath({
       title: '导出脱敏审计日志',
       defaultPath: `pi-enterprise-audit-${timestamp()}.${request.format}`,
@@ -91,6 +130,14 @@ export function registerReliabilityHandlers(): void {
     reliabilityRootSchema,
     async (request) => {
       const root = trustedWorkspace(request.rootWorkspacePath)
+      if (runtimeIdentity.channel === 'web') {
+        const filename = `vizruna-diagnostics-${timestamp()}.json.gz`
+        return webDownload({
+          filename,
+          mimeType: 'application/gzip',
+          write: (path) => getReliabilityService().exportDiagnostics(root, path),
+        })
+      }
       const path = await savePath({
         title: '导出脱敏诊断包',
         defaultPath: `pi-enterprise-diagnostics-${timestamp()}.json.gz`,
@@ -120,4 +167,3 @@ export function registerReliabilityHandlers(): void {
     async (request) => getReliabilityService().restoreBackup(request.backupId),
   )
 }
-

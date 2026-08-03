@@ -199,6 +199,7 @@
     "autoCheckUpdateDesc": "启动后后台查询 GitHub Releases；有更新时可下载并打开安装包，覆盖应用后会话和配置仍会保留",
     "appVersion": "应用版本",
     "appVersionDesc": "手动检查更新；有新版本时可下载并打开安装包，再手动覆盖现有应用",
+    "webVersionDesc": "Vizruna-web 通过启动包更新，不使用桌面安装包",
     "checkUpdate": "检查更新",
     "checking": "检查中…",
     "updateCheckFailed": "检查失败",
