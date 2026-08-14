@@ -9,6 +9,7 @@ import { PRODUCT_PACKAGE_NAME } from '@shared/product-identity'
 import {
   isSupportedPiSdkVersion,
   MINIMUM_SUPPORTED_PI_SDK_VERSION,
+  SUPPORTED_PI_SDK_MINOR_LINE,
 } from '@shared/pi-sdk-compat'
 import { emitOperationEvent } from './operation-events'
 import {
@@ -32,6 +33,7 @@ export interface SdkStatus {
   latest: string | null
   npmAvailable: boolean
   minimumSupportedVersion: string
+  supportedVersionLine: string
   /** Worker init 时目标 SDK 加载失败已回退内置（运行时信号）。 */
   workerFallback?: boolean
 }
@@ -71,6 +73,7 @@ export function readSdkStatus(userDataDir: string): SdkStatus {
     latest: null,
     npmAvailable: checkNpmAvailable(),
     minimumSupportedVersion: MINIMUM_SUPPORTED_PI_SDK_VERSION,
+    supportedVersionLine: SUPPORTED_PI_SDK_MINOR_LINE,
   }
 }
 
@@ -160,7 +163,7 @@ function userStageDir(): string {
 export function installVersion(version: string, onProgress: (line: string) => void): Promise<void> {
   if (!isSupportedPiSdkVersion(version)) {
     return Promise.reject(
-      new Error(`Pi SDK ${version || 'unknown'} 与当前产品不兼容；最低支持 ${MINIMUM_SUPPORTED_PI_SDK_VERSION}`),
+      new Error(`Pi SDK ${version || 'unknown'} 与当前产品不兼容；已验证版本线为 ${SUPPORTED_PI_SDK_MINOR_LINE}（最低 ${MINIMUM_SUPPORTED_PI_SDK_VERSION}）`),
     )
   }
   if (installing) return Promise.reject(new Error('正在安装，请等待当前升级完成'))
@@ -240,7 +243,7 @@ export function switchTo(target: SdkKind): Promise<void> {
     const version = readGlobalSdkVersion() || ''
     if (!isSupportedPiSdkVersion(version)) {
       return Promise.reject(
-        new Error(`全局 Pi SDK ${version || 'unknown'} 与当前产品不兼容；最低支持 ${MINIMUM_SUPPORTED_PI_SDK_VERSION}`),
+        new Error(`全局 Pi SDK ${version || 'unknown'} 与当前产品不兼容；已验证版本线为 ${SUPPORTED_PI_SDK_MINOR_LINE}（最低 ${MINIMUM_SUPPORTED_PI_SDK_VERSION}）`),
       )
     }
     writeActive('global')
@@ -254,7 +257,7 @@ export function switchTo(target: SdkKind): Promise<void> {
   const version = readUserSdkVersion(app.getPath('userData')) || ''
   if (!isSupportedPiSdkVersion(version)) {
     return Promise.reject(
-      new Error(`独立 Pi SDK ${version || 'unknown'} 与当前产品不兼容；最低支持 ${MINIMUM_SUPPORTED_PI_SDK_VERSION}`),
+      new Error(`独立 Pi SDK ${version || 'unknown'} 与当前产品不兼容；已验证版本线为 ${SUPPORTED_PI_SDK_MINOR_LINE}（最低 ${MINIMUM_SUPPORTED_PI_SDK_VERSION}）`),
     )
   }
   writeActive('user')

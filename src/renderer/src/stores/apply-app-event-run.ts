@@ -57,7 +57,22 @@ export function handleRun(event: RunEvent, api: StoreApi): void {
     const runPatch: Record<string, unknown> = {
       status: 'running',
       activeRunId: event.runId,
-      startTime: event.timestamp,
+    }
+    if (event.phase === 'started' || event.runId !== state.runState.activeRunId) {
+      runPatch.startTime = event.timestamp
+    }
+    if (event.phase === 'started' && event.runId !== state.runState.activeRunId) {
+      runPatch.toolCount = 0
+      runPatch.errorCount = 0
+      runPatch.usage = undefined
+      runPatch.activeTool = undefined
+      runPatch.activeToolStatus = undefined
+      runPatch.contextBefore = event.contextSnapshot
+      runPatch.contextAfter = undefined
+      runPatch.resourceEvidence = event.resourceEvidence
+    } else {
+      if (event.contextSnapshot) runPatch.contextBefore = event.contextSnapshot
+      if (event.resourceEvidence) runPatch.resourceEvidence = event.resourceEvidence
     }
     if (event.model != null && String(event.model).trim()) runPatch.model = event.model
     if (event.thinkingLevel != null && String(event.thinkingLevel).trim()) {
@@ -106,6 +121,7 @@ export function handleRun(event: RunEvent, api: StoreApi): void {
       activeRunId: undefined,
       activeTool: undefined,
       activeToolStatus: undefined,
+      ...(event.contextSnapshot ? { contextAfter: event.contextSnapshot } : {}),
     })
     markViewIdle(state)
     state.clearPendingQueue()

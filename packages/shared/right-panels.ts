@@ -1,6 +1,6 @@
 /** 右侧栏 Tab：核心栏目 + 适配器声明的 sidePanel（合并后用于 Tab / 设置开关） */
 
-export const CORE_RIGHT_PANEL_IDS = ['review', 'run', 'context', 'tree', 'files', 'terminal', 'worktrees', 'agents'] as const
+export const CORE_RIGHT_PANEL_IDS = ['review', 'run', 'pi', 'context', 'tree', 'files', 'terminal', 'worktrees', 'agents'] as const
 
 export type CoreRightPanelId = (typeof CORE_RIGHT_PANEL_IDS)[number]
 
@@ -25,6 +25,7 @@ export interface RightPanelCatalogItem {
 export const CORE_RIGHT_PANEL_CATALOG: RightPanelCatalogItem[] = [
   { id: 'review', labelKey: 'panel.review', fallbackLabel: 'Review', description: 'Git changes & diff (read-only)', descriptionKey: 'panel.reviewDesc', icon: 'GitBranch', source: 'core' },
   { id: 'run', labelKey: 'panel.run', fallbackLabel: 'Run', description: 'Current turn status & usage', descriptionKey: 'panel.runDesc', icon: 'Activity', source: 'core' },
+  { id: 'pi', labelKey: 'panel.pi', fallbackLabel: 'Pi', description: 'Effective Pi runtime and resources', descriptionKey: 'panel.piDesc', icon: 'Orbit', source: 'core' },
   { id: 'context', labelKey: 'panel.context', fallbackLabel: 'Context', description: 'Session context preview', descriptionKey: 'panel.contextDesc', icon: 'FileSearch', source: 'core' },
   { id: 'tree', labelKey: 'panel.tree', fallbackLabel: 'Tree', description: 'Session tree / rewind (like /tree)', descriptionKey: 'panel.treeDesc', icon: 'ListTree', source: 'core' },
   { id: 'files', labelKey: 'panel.files', fallbackLabel: 'Files', description: 'Workspace file preview & explorer', descriptionKey: 'panel.filesDesc', icon: 'FolderTree', source: 'core' },
@@ -43,6 +44,7 @@ export function defaultCoreRightPanelPrefs(): RightPanelPrefs {
   return {
     review: false,
     run: true,
+    pi: true,
     context: false,
     tree: false,
     files: true,

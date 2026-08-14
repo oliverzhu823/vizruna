@@ -1,0 +1,110 @@
+{
+  "title": "Pi Resource Center",
+  "description": "Inspect and manage the Pi Packages, Skills, Extensions, Prompt Templates, and Themes available to this project. Configuration remains compatible with Pi's native directories and settings.json.",
+  "refresh": "Refresh resources",
+  "loading": "Reading Pi-native resources…",
+  "loadFailed": "Failed to read resources",
+  "trusted": "Project resources trusted",
+  "untrusted": "Project resources untrusted",
+  "section": {
+    "overview": "Overview",
+    "packages": "Packages",
+    "skills": "Skills",
+    "extensions": "Extensions",
+    "prompts": "Prompt Templates",
+    "themes": "Themes"
+  },
+  "tab": {
+    "overview": "Overview",
+    "packages": "Packages",
+    "skills": "Skills",
+    "extensions": "Extensions",
+    "prompts": "Prompts & Context",
+    "themes": "Themes"
+  },
+  "metrics": {
+    "packages": "Configured packages",
+    "installed": "{{count}} installed locally",
+    "resources": "Enabled resources",
+    "enabled": "Resolved from the effective Pi configuration",
+    "project": "Project resources",
+    "user": "User resources",
+    "userDetail": "From user-level Pi configuration"
+  },
+  "composition": {
+    "title": "Effective resource composition",
+    "description": "Counts come from Pi SettingsManager and PackageManager resolution. Files that merely exist on disk are not presented as usable resources unless Pi resolves them."
+  },
+  "runtime": {
+    "title": "Resolution environment",
+    "sdk": "Pi Runtime",
+    "worker": "Current project Worker",
+    "loaded": "Loaded",
+    "notLoaded": "Not loaded",
+    "scope": "Project directory",
+    "inspectorHint": "The Resource Center organizes configuration. Use Effective Pi in the main workbench to verify what a particular session actually loaded."
+  },
+  "packages": {
+    "security": "A Pi Package may contain Extensions that execute local code, and Skills may instruct the Agent to run commands. Review the source and code before installing a third-party Package.",
+    "empty": "No Pi Package is configured in either the user or project settings.json.",
+    "pinned": "Pinned version",
+    "filtered": "Resource filters configured",
+    "installed": "Installed",
+    "missing": "Missing locally",
+    "installTitle": "Install a Pi Package",
+    "installDescription": "Accepts npm:, Git URLs/shorthand, and local paths. Pi performs the installation and writes directly to native settings.json.",
+    "sourceLabel": "Package source",
+    "sourcePlaceholder": "npm:@scope/package or git:github.com/user/repo",
+    "scopeLabel": "Installation scope",
+    "install": "Install",
+    "repair": "Install missing",
+    "update": "Update / sync",
+    "remove": "Remove",
+    "checkUpdates": "Check for updates",
+    "updateUnchecked": "Available updates have not been checked",
+    "updatesFound": "{{count}} Package update(s) available",
+    "noUpdates": "All Packages are current",
+    "updateAvailable": "Update available",
+    "operationFailed": "Package operation failed",
+    "reloadDeferred": "The native Pi configuration has been saved. Resource reload was deferred because an Agent is running in this project; new sessions will use the new configuration without interrupting the active run.",
+    "confirmInstallTitle": "Confirm Pi Package installation",
+    "confirmInstall": "Install and enable {{source}} at {{scope}} scope. This Package may execute local code; continue only if you reviewed and trust its source.",
+    "confirmUpdateTitle": "Confirm Pi Package update",
+    "confirmUpdate": "Pi will update or reconcile {{source}}. The active session will reload resources when the operation finishes.",
+    "confirmRemoveTitle": "Confirm Pi Package removal",
+    "confirmRemove": "Remove {{source}} from Pi settings and its managed installation directory. Resources supplied by this Package will no longer be available.",
+    "noResolvedResources": "Pi did not resolve any configurable resource from this Package.",
+    "resourceToggle": "Toggle resource: {{name}}",
+    "action": {
+      "install": "install",
+      "update": "update",
+      "remove": "remove"
+    },
+    "progress": {
+      "queued": "{{action}} operation queued",
+      "started": "Package {{action}} in progress",
+      "progress": "Package {{action}} in progress",
+      "completed": "Package {{action}} completed",
+      "failed": "Package {{action}} failed"
+    }
+  },
+  "scope": {
+    "user": "User",
+    "project": "Project",
+    "temporary": "Temporary"
+  },
+  "packageType": {
+    "npm": "npm",
+    "git": "Git",
+    "local": "Local path"
+  },
+  "themes": {
+    "empty": "No Theme resource was resolved by the current Pi configuration. Vizruna UI themes are independent from Pi terminal Themes."
+  },
+  "warning": {
+    "project-untrusted": "Pi does not trust this project, so project settings, Packages, and executable resources are not loaded",
+    "package-missing": "Package is configured but not installed locally",
+    "package-read-error": "Package metadata could not be read",
+    "resolve-error": "Pi PackageManager could not finish resolving resources"
+  }
+}

@@ -13,6 +13,8 @@ type SkillRow = {
   source?: string
   key: string
   enabled: boolean
+  piEnabled?: boolean
+  canToggle?: boolean
   command: string
 }
 
@@ -139,9 +141,10 @@ export function SkillsSettingsPanel() {
                   type="button"
                   role="switch"
                   aria-checked={s.enabled}
+                  disabled={s.canToggle === false}
                   onClick={() => toggle(s)}
                   className={cn(
-                    'h-5 w-9 shrink-0 rounded-full transition-colors',
+                    'h-5 w-9 shrink-0 rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-45',
                     s.enabled ? 'bg-primary' : 'bg-muted-foreground/25 dark:bg-[var(--bg-3)]',
                   )}
                 >
@@ -161,6 +164,11 @@ export function SkillsSettingsPanel() {
                   ) : null}
                   {s.description ? (
                     <div className="mt-0.5 text-[11px] text-muted-foreground/70 line-clamp-2">{s.description}</div>
+                  ) : null}
+                  {s.canToggle === false ? (
+                    <div className="mt-0.5 text-[10px] text-amber-700 dark:text-amber-300">
+                      {t('settings:skills.filteredDisabled')}
+                    </div>
                   ) : null}
                 </div>
               </li>

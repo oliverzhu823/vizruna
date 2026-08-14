@@ -8,14 +8,14 @@ const mocks = vi.hoisted(() => ({
     getSessionPromptBinding: vi.fn(),
   },
   getSessionAgentBinding: vi.fn(),
-  requireActiveAgentProfileSnapshot: vi.fn(),
+  resolveActiveAgentProfileSnapshot: vi.fn(),
   saveSessionAgentBinding: vi.fn(),
 }))
 
 vi.mock('./sqlite-index', () => ({ sqliteIndex: mocks.sqliteIndex }))
 vi.mock('./agent-profile-service', () => ({
   getSessionAgentBinding: mocks.getSessionAgentBinding,
-  requireActiveAgentProfileSnapshot: mocks.requireActiveAgentProfileSnapshot,
+  resolveActiveAgentProfileSnapshot: mocks.resolveActiveAgentProfileSnapshot,
   saveSessionAgentBinding: mocks.saveSessionAgentBinding,
 }))
 
@@ -66,8 +66,8 @@ describe('system prompt presets and conversation snapshots', () => {
     expect(() => requireActiveSystemPromptSnapshot(preset.id)).toThrow('archived')
   })
 
-  it('resolves a temporary prompt without storing a reusable preset', () => {
-    const snapshot = resolveConversationConfigSnapshot({
+  it('resolves a temporary prompt without storing a reusable preset', async () => {
+    const snapshot = await resolveConversationConfigSnapshot({
       kind: 'temporaryPrompt',
       name: 'Draft prompt',
       systemPrompt: 'Help build an Agent.',

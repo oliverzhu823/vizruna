@@ -20,7 +20,7 @@ import { ensureWorkspaceWorkerOnBoot } from '@renderer/lib/ensure-workspace-work
 import { refreshComposerRunDisplay } from '@renderer/lib/composer-run-display'
 import { useExtensionUIStore } from '@renderer/stores/extension-ui-store'
 import { useTranslation } from 'react-i18next'
-import { Bot, BriefcaseBusiness, Settings as SettingsIcon } from 'lucide-react'
+import { Bot, BriefcaseBusiness, FlaskConical, Settings as SettingsIcon } from 'lucide-react'
 import type { AgentCase } from '@shared/agent-case'
 import { buildRightPanelTabs } from '@renderer/lib/right-panel-catalog'
 import { RightPanelTabs } from '@renderer/features/shell/right-panel-tabs'
@@ -38,12 +38,17 @@ import { SessionLeaseConflictDialog } from '@renderer/features/session-lease/ses
 import { ProviderAuthFlowHost } from '@renderer/features/auth/provider-auth-flow-host'
 import { useAgentProfileStore } from '@renderer/stores/agent-profile-store'
 import { enterNewSessionPlaceholder } from '@renderer/lib/new-session'
+import { openReviewSessionForPath } from '@renderer/lib/open-workspace-path'
 import type { SettingsPageKey } from '@renderer/features/settings/settings-page'
+import {
+  OPEN_AGENT_EVALUATIONS_EVENT,
+  type AgentEvaluationOpenRequest,
+} from '@renderer/lib/agent-remediation-navigation'
 
 import { useDoubleEscapeTree } from '@renderer/hooks/use-double-escape-tree'
 import { WebWorkspacePathDialog } from '@renderer/features/workspace/web-workspace-path-dialog'
 
-type View = 'main' | 'agents' | 'cases' | 'settings'
+type View = 'main' | 'agents' | 'cases' | 'evaluations' | 'settings'
 type ProviderAuthManagerRequest = {
   mode: 'login' | 'logout'
   providerId?: string
@@ -82,6 +87,11 @@ const AgentProfilesPage = lazy(() =>
     default: m.AgentProfilesPage,
   })),
 )
+const AgentEvaluationsPage = lazy(() =>
+  import('@renderer/features/agent-evaluations/agent-evaluations-page').then((m) => ({
+    default: m.AgentEvaluationsPage,
+  })),
+)
 
 function ShellSuspenseFallback({ label }: { label: string }) {
   return <EmptyState compact title={label} className="min-h-[12rem]" />
@@ -97,6 +107,8 @@ export default function App() {
   const [providerAuthManager, setProviderAuthManager] =
     useState<ProviderAuthManagerRequest | null>(null)
   const [webWorkspacePathOpen, setWebWorkspacePathOpen] = useState(false)
+  const [evaluationOpenRequest, setEvaluationOpenRequest] =
+    useState<AgentEvaluationOpenRequest | null>(null)
   const handleProviderAuthFlowStarted = useCallback(() => {
     // Replace the provider chooser with the active Pi authorization step.
     // Keeping both dialogs mounted used to hide the new step behind the chooser.
@@ -163,6 +175,17 @@ export default function App() {
   }, [])
 
   useEffect(() => {
+    const openAgentEvaluations = (event: Event) => {
+      const detail = (event as CustomEvent<AgentEvaluationOpenRequest>).detail
+      if (!detail?.profileId || !detail.versionId) return
+      setEvaluationOpenRequest(detail)
+      setView('evaluations')
+    }
+    window.addEventListener(OPEN_AGENT_EVALUATIONS_EVENT, openAgentEvaluations)
+    return () => window.removeEventListener(OPEN_AGENT_EVALUATIONS_EVENT, openAgentEvaluations)
+  }, [])
+
+  useEffect(() => {
     const openAgentProfiles = () => setView('agents')
     window.addEventListener('vizruna:open-agent-profiles', openAgentProfiles)
     return () => window.removeEventListener('vizruna:open-agent-profiles', openAgentProfiles)
@@ -173,14 +196,26 @@ export default function App() {
       setSettingsInitialPage('prompts')
       setView('settings')
     }
+    const openPiResources = () => {
+      setSettingsInitialPage('resources')
+      setView('settings')
+    }
+    const openPiSettings = () => {
+      setSettingsInitialPage('pi')
+      setView('settings')
+    }
     const useSystemPrompt = () => {
       enterNewSessionPlaceholder()
       setView('main')
     }
     window.addEventListener('vizruna:open-system-prompts', openSystemPrompts)
+    window.addEventListener('vizruna:open-pi-resources', openPiResources)
+    window.addEventListener('vizruna:open-pi-settings', openPiSettings)
     window.addEventListener('vizruna:use-system-prompt', useSystemPrompt)
     return () => {
       window.removeEventListener('vizruna:open-system-prompts', openSystemPrompts)
+      window.removeEventListener('vizruna:open-pi-resources', openPiResources)
+      window.removeEventListener('vizruna:open-pi-settings', openPiSettings)
       window.removeEventListener('vizruna:use-system-prompt', useSystemPrompt)
     }
   }, [])
@@ -348,9 +383,41 @@ export default function App() {
     })
   }
 
-  const handleUseAgent = (profileId: string) => {
-    useAgentProfileStore.getState().selectProfile(profileId)
+  const handleUseAgent = (profileId: string, versionId?: string) => {
+    useAgentProfileStore.getState().selectProfile(profileId, versionId)
     enterNewSessionPlaceholder()
+    setView('main')
+  }
+
+  const handleRunEvaluationScenario = async (
+    workspacePath: string,
+    profileId: string,
+    versionId: string,
+    prompt: string,
+  ) => {
+    if (useUIStore.getState().currentWorkspace !== workspacePath) {
+      await activateWorkspace(workspacePath, { preferHome: true })
+    }
+    useAgentProfileStore.getState().selectProfile(profileId, versionId)
+    enterNewSessionPlaceholder()
+    useUIStore.getState().setComposerPrefill(prompt)
+    setView('main')
+  }
+
+  const handleOpenEvaluationSource = async (
+    workspacePath: string,
+    sessionId: string,
+    sessionFile: string,
+  ) => {
+    setView('main')
+    await activateWorkspace(workspacePath, { sessionId, sessionFile })
+  }
+
+  const handleOpenRunArtifact = async (workspacePath: string, path: string) => {
+    if (useUIStore.getState().currentWorkspace !== workspacePath) {
+      await activateWorkspace(workspacePath, { preferHome: true })
+    }
+    openReviewSessionForPath(path)
     setView('main')
   }
 
@@ -365,6 +432,7 @@ export default function App() {
         }}
         onOpenAgentProfiles={() => setView('agents')}
         onOpenAgentCases={() => setView('cases')}
+        onOpenAgentEvaluations={() => setView('evaluations')}
         onOpenSessionTree={canUseTree ? () => setTreeOpen(true) : undefined}
         onOpenShortcuts={() => setShortcutsOpen(true)}
       />
@@ -428,7 +496,37 @@ export default function App() {
           <TopBar onBack={() => setView('main')} title={t('agents:title')} />
           <ErrorBoundary label="agent-profiles">
             <Suspense fallback={<ShellSuspenseFallback label={t('common:loading')} />}>
-              <AgentProfilesPage onUseAgent={handleUseAgent} />
+              <AgentProfilesPage onUseAgent={handleUseAgent} onOpenRunSource={handleOpenEvaluationSource} onOpenRunArtifact={handleOpenRunArtifact} />
+            </Suspense>
+          </ErrorBoundary>
+        </div>
+        <AppToaster />
+        <ProviderAuthFlowHost onFlowStarted={handleProviderAuthFlowStarted} />
+        <Suspense fallback={null}>
+          <ProviderAuthManagerDialog
+            request={providerAuthManager}
+            onClose={() => setProviderAuthManager(null)}
+          />
+        </Suspense>
+        {paletteAndShortcuts}
+        <AppUpdateHost />
+      </ErrorBoundary>
+    )
+  }
+
+  if (view === 'evaluations') {
+    return (
+      <ErrorBoundary>
+        <div className="flex h-screen flex-col overflow-hidden bg-background text-foreground">
+          <TopBar onBack={() => setView('main')} title={t('evaluations:title')} />
+          <ErrorBoundary label="agent-evaluations">
+            <Suspense fallback={<ShellSuspenseFallback label={t('common:loading')} />}>
+              <AgentEvaluationsPage
+                onRunScenario={handleRunEvaluationScenario}
+                onOpenSource={handleOpenEvaluationSource}
+                initialOpenRequest={evaluationOpenRequest}
+                onInitialOpenRequestConsumed={() => setEvaluationOpenRequest(null)}
+              />
             </Suspense>
           </ErrorBoundary>
         </div>
@@ -465,6 +563,11 @@ export default function App() {
                   label={t('cases:title')}
                   icon={<BriefcaseBusiness className="h-4 w-4" />}
                   onClick={() => setView('cases')}
+                />
+                <SidebarItem
+                  label={t('evaluations:title')}
+                  icon={<FlaskConical className="h-4 w-4" />}
+                  onClick={() => setView('evaluations')}
                 />
                 <SidebarItem
                   label={t('sidebar.settings')}

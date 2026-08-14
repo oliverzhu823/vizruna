@@ -1,8 +1,195 @@
 # Changelog
 
+## Unreleased
+
+- Agent Run Desk 新增 Pi 运行健康度：基于当前分支真实时间线汇总 Token、缓存、费用、工具调用/失败和 Context 增量；高 Context、压缩与工具失败会显示可解释信号。
+- 能力证据现在继续区分“已加载”和“实际调用”；长会话超过 500 条时间线记录时明确标注抽样范围，避免把局部数据冒充完整用量。
+- 新增逐轮 Pi 证据索引：每次 `agent_start` 到 `agent_end` 都按 session/run 独立保存 Context、Token、工具、压缩、文件与错误；后续轮次不再覆盖前一轮。
+- Run Desk 可展开最近 50 轮的持续时间、Context 变化、缓存读写、费用和工具详情；旧会话不反推历史，只提示从新运行开始采集。
+- 两次运行比较升级为证据化 Pi 差异：并排展示版本、模型、思考度、实际能力、Token、费用、工具、Context 和压缩变化，并用确定性阈值提示关注信号。
+- 比较结果不调用模型推断原因；任一侧缺少或抽样 Runtime 证据时会明确标注不完整，避免把相关变化误写成因果结论。
+- Run Desk 新增 Pi 证据诊断：按固定优先级解释运行失败、能力漂移、Context 压力、工具失败、压缩和抽样边界，并提供唯一主操作。
+- 诊断操作只定位原运行、重新运行、Pi 资源中心或 Agent 配置；不会自动修改配置，也不会用模型猜测根因。
+
+- Added an Agent-centered lifecycle workspace that derives configured, immutable,
+  validated, and delivered stages from real version, evaluation, and Package evidence.
+- The workspace now aggregates bound cases, current-version fixed tasks, latest-per-task
+  runs, human verdicts, and validation blockers to calculate the next actionable step.
+- A single contextual primary action now opens the exact evaluation suite, version gate,
+  Package flow, or immutable-version run without bypassing existing confirmations.
+- Added a live local-run preflight for Pi Runtime, authorized model, Provider capabilities,
+  explicit Pi resources, project context, and tool policy. Main also rejects missing or
+  disabled explicitly selected resources before persisting a session snapshot.
+- Preflight repair now preserves the current Agent workspace across settings navigation,
+  rechecks automatically after OAuth completion, and provides per-check repair plus retry.
+- Added a Pi-native Agent run history that joins immutable session bindings with the real
+  local Pi session, live runtime status, failure evidence, generated files, and saved cases.
+- Agent workspaces can now reopen the exact source conversation, promote a real run to the
+  Case Library, or create and attach it as evidence in the current version evaluation suite.
+- Reworked recent runs into an object-focused run desk: select a run on the left and inspect
+  its immutable configuration, failure, metrics, and artifacts on the right. File artifacts
+  open in the existing Review panel, and two runs can be compared without adding an arena.
+- Added a Pi Capability Manifest to each Agent workspace. It resolves built-in tools,
+  Pi Packages, Extensions and their registered tools, Skills, Prompt Templates, and project
+  context with source, scope, inherited state, and explicit missing/disabled blockers.
+- New Agent runs now persist the Pi AgentSession's actual start-time tools, Skills,
+  Extensions, Prompt Templates, Context files, System Prompt sources, and before/after
+  context usage. The run desk compares that evidence with the immutable session snapshot
+  and explains missing, additionally loaded, inherited, exact, or unavailable evidence.
+
+- Added receive-side Agent Package inspection and reproduction planning. Vizruna validates the five-file artifact, immutable source digest, active trusted-workspace boundary, and this machine's actual Pi Runtime, model authorization, Package, resource, context, and tool state before applying changes.
+- Imported Agent configurations are deliberate local forks with durable source provenance and a new local candidate version. Source validation/release evidence never bypasses the local evaluation gate, and machine-specific Pi resource IDs are remapped by Package source and resource identity after dependency installation.
+- Package installation, dependency installation, and configuration import are independently selectable confirmed actions; no credentials are imported or copied.
+- Added a target-environment delivery readiness manifest to Pi Package Studio, separately checking validation evidence, Pi Runtime, fixed model availability, Provider authorization, Pi Packages/resources, project context, and tool policy.
+- Export validity no longer implies immediate target-machine readiness: credentials remain local, setup actions are explicit, and every package includes a credential-free `DELIVERY_CHECKLIST.md`.
+- Upgraded Agent Configurations into an evidence-derived asset catalog with overlapping In development, Validated assets, and Delivery versions views.
+- Agent cards now retain visibility of older validated/released versions while a newer candidate is being edited.
+- Delivery evidence checks the managed Pi Package files and immutable Agent/version digest in the active trusted workspace, distinguishing available, missing, invalid, and unverified artifacts.
+- Strengthened the Agent Version Gate with validation-readiness checks. Later candidates must compare against the latest validated baseline and may advance only when the outcome is improved or equivalent.
+- Version history now explains missing evidence, pending review, prompt drift, baseline mismatch, insufficient evidence, regression, and mixed-result blockers before validation.
+- Validation now uses the latest run from the exact immutable Agent version, so stale passing evidence cannot hide a newer failure.
+- Added privacy-aware Markdown regression reports for Agent version comparisons, using the same evidence rules as the UI.
+- Shareable reports exclude prompts, outputs, System Prompts, session paths, credentials, and hidden reasoning by default; task content requires explicit opt-in.
+- Added one-click background regression for Agent evaluation suites. Fixed tasks now run sequentially in isolated Pi sessions bound to the selected immutable Agent version.
+- Added durable batch/task progress, cancellation, per-task failure isolation, timeout handling, and direct Pi JSONL evidence capture without polluting the Agent case library.
+- Added an explicit API/tool side-effect confirmation and automatic evaluation refresh when a batch finishes.
+
 面向仓库的完整版本记录。发版时由 `scripts/generate-release-notes.mjs` 从对应章节生成 **GitHub Release 正文**（用户可读更新说明，应用内「发现新版本」弹窗展示）。发布与应用内更新流程见 [doc/RELEASE.md](doc/RELEASE.md)。
 
-## [Unreleased]
+## [0.1.0-alpha.6] — 2026-08-14
+
+### Pi-native Harness
+
+- **Agent 生命周期工作台**：从配置卡片进入同一个 Agent 的连续上下文，以不可变版本、
+  真实评测和本地 Package 为证据展示生命周期，并集中提供运行、编辑、版本、评测和交付操作。
+  工作台同时汇总绑定案例、当前版本固定任务、每个任务最新运行和验证阻断，按真实缺口依次
+  引导建评测、补任务、补运行、人工复核、修复阻断、验证或打包。
+- **上下文主操作**：证据区只突出当前唯一合理动作，并定位到对应评测集、版本门禁或 Package；
+  人工复核、验证确认、安装确认和交付检查仍由原有安全流程执行。
+- **本机运行预检**：工作台从当前 Pi Runtime 重算模型授权、Provider 能力、Pi 资源、项目
+  上下文和工具策略；阻断项直接进入授权或资源中心。Main Runtime 在创建会话前再次拒绝
+  缺失或禁用的显式资源，避免 Agent 静默丢失能力后继续运行。
+- **预检修复闭环**：进入设置或资源中心时保留当前 Agent，OAuth 成功后自动复检；每个阻断
+  项都可独立修复，也可在外部调整后手动重新检查。明确返回配置库才清除当前工作上下文。
+
+- Agent 配置库新增“导入 Package”：接收端先在活动可信项目边界内核验五文件交付物、来源
+  版本摘要与本机 Runtime/模型授权/Package/资源状态，再由用户分别确认依赖安装、Agent
+  Package 安装和配置入库，任何凭据都不会被复制
+- 导入配置不是伪装成来源机器的同一成熟版本，而是保留来源 Profile/Version/摘要的持久
+  溯源并创建本地候选版本。导入后的就绪检查现在提供引导式修复：Provider 缺少授权可直接
+  打开登录流程并在成功后自动复检；Pi Package/资源可进入资源中心；上下文和工具策略可
+  打开导入后的 Agent 编辑器；候选版本可携带 Agent 与版本预选直接建立评测。目标机器必须
+  重新通过评测门禁。安装依赖后，Package 与资源 ID
+  会按 source、类型和名称映射为本机 Pi 的真实 ID，避免路径变化造成假复现；数据库升级到 v16
+- Pi Package Studio 新增目标环境交付就绪检查，分别核验版本证据、Pi Runtime、固定模型、
+  Provider 授权、Pi Packages/资源、项目上下文和工具策略；“可以导出”不再被误解为“目标
+  机器无需配置即可运行”
+- 每个生成包新增不含凭据的 `DELIVERY_CHECKLIST.md`；API Key、OAuth Token 和代理密码
+  始终留在本机，目标机器需要登录或补装依赖时会显示为明确操作项，缺失硬依赖则标为阻断
+- 重新明确 Vizruna 是面向 Pi Agent 的可视化、本地优先轻量 Harness；Agent Studio、
+  Agent 工厂和 Runtime 保留为资产成熟路线，不以追赶通用 Coding Agent 功能为目标
+- 内嵌 Pi Runtime 从 `0.82.1` 迁移并固定到已验证的 `0.84.1`；外部/独立 SDK 只接受
+  `0.84.x` 已测兼容线，并同时检查 ModelRuntime、会话、Settings 与 Package 生命周期
+  所需的真实导出能力，避免仅凭版本号加载不完整 Runtime
+- 新增嵌入式 Runtime 契约测试，实际创建无网络 ModelRuntime，并通过 Pi
+  `SettingsManager`、`SessionManager` 与 `DefaultPackageManager` 验证模型、认证、会话和
+  Package 主链路；依赖清单同步升级 Undici、DOMPurify、brace-expansion 与 fast-uri，
+  生产依赖 `npm audit` 当前为零已知漏洞
+- 修正 npm 11 在 `--omit=dev` SBOM 中漏掉生产/开发路径共享依赖的问题：清单现在从
+  完整安装图生成，再按实际生产依赖树过滤，确保发布物中的 fast-uri 等组件不会漏报
+- 跟进 Pi 0.84 的项目上下文语义：同一目录存在 `AGENTS.override.md` 时优先使用它，
+  同时保留祖先上下文分层；项目未受信任时不再把本地上下文误报为已进入有效配置
+- 右侧工作台新增 **Pi 有效配置**面板，集中展示当前会话实际使用的 Pi Runtime、模型、
+  思考强度、认证、Provider 网络路线和 Agent/提示词不可变快照
+- 展示最终 System Prompt 的来源与只读预览，并汇总当前工具、Skills、Extensions、
+  Prompt Templates 和 Pi Packages
+- 明确区分资源“已配置、已加载、已禁用和加载失败”；检查历史会话时不借用其他
+  Worker 状态，未加载会话仍可读取持久化的模型与思考强度
+- 新面板按需加载，不增加工作台初始主包；Local Web 继续使用同一套 IPC 白名单、
+  HttpOnly 会话和本地 `127.0.0.1` 安全边界
+- 设置中新增统一的 **Pi 资源中心**，将 Pi Packages、Skills、Extensions、Prompt
+  Templates、项目上下文和 Themes 从分散入口收拢为一个工作区；Agent Studio 的
+  “系统提示词库”保持独立，避免与 Pi 原生 Prompt Template 混淆
+- 资源中心直接使用 Pi `SettingsManager` 和 `DefaultPackageManager` 解析用户级与项目级
+  Package，展示来源类型、版本锁定、资源过滤、安装路径、安装状态和 Package 内容构成
+- Skills 管理不再只扫描 `.pi/skills`，现在能够列出 Pi PackageManager 实际解析的
+  `~/.agents/skills`、Package Skills 和项目 Skills；被 Pi 过滤规则禁用的 Skill 不再被
+  Vizruna 误判为可直接启用
+- Pi Inspector 新增“管理资源”入口，可从会话的有效配置直接进入资源中心，形成
+  “观察实际加载结果 → 调整 Pi 原生配置”的闭环
+- 资源中心现可直接安装、补装、检查更新、更新和移除用户级/项目级 Pi Package；所有
+  操作复用 Pi `DefaultPackageManager`，保留 npm/Git/本地路径和 Pi 原生安装目录语义
+- Package 卡片可展开查看并单独启停 Skills、Extensions、Prompt Templates 与 Themes，
+  设置保存为 Pi 原生 `+path`/`-path` 精确过滤规则，完成后自动热重载当前 Worker
+- Package 操作新增明确确认、第三方本机代码风险提示、原生进度、错误反馈、串行保护、
+  活动可信工作区校验和脱敏审计；远程 URL 中的内嵌凭据、查询令牌与片段会被拒绝
+- Agent 配置库升级为首版 **Agent Composer**：除 System Prompt、模型、思考强度和基础
+  工具外，可选择继承全部 Pi 资源，或只使用指定 Pi Packages、Skills、Extensions 与
+  Prompt Templates，并可单独禁用项目上下文
+- Composer 右侧新增 OMPChamber 风格的最终有效配置预览，实时显示 Pi Runtime、资源
+  数量、项目上下文和缺失/禁用告警；创建会话时把 Package 展开的真实资源保存为不可变
+  快照，Worker 按快照过滤资源
+- Agent 可声明必须支持推理、图片输入及最低上下文窗口；Composer 依据 Pi 已授权模型
+  即时阻止不兼容配置，Main Runtime 在创建会话前再次校验，并把要求冻结进会话快照
+- Composer 可发现已选 Extension 注册的工具，并选择允许全部或逐项授权；Worker 只把
+  快照允许的 Extension 工具交给模型，Slash Command 与模型工具权限保持分离
+- Pi Inspector 现在同时显示 Agent 会话的资源模式、项目上下文策略与快照解析数量，
+  以及模型能力要求和 Extension 工具权限，形成“组合 → 预览 → 运行 → 检查”的闭环
+- Run 面板新增首版 **Pi Run Debugger**：按当前轮次隔离并展示固定 Agent/提示词配置、
+  有效模型、当前上下文、真实工具顺序、工具来源与耗时、上下文压缩和错误；失败会初步
+  归因到认证、Provider/模型、上下文、Extension、Pi 工具或 Runtime 层
+- 每个新 Pi run 会重置本轮工具、错误与 Token 统计，工具结束时间进入实时 Timeline，
+  避免上一轮指标污染当前调试结果
+- Pi Run Debugger 现直接冻结每轮开始/结束时的 `AgentSession.getContextUsage()`，展示
+  上下文 Token 与消息数差值；同时记录本轮真正暴露给模型的有效工具、Skills、Prompt
+  Templates、Extensions、项目上下文文件与 System Prompt 来源，不再用资源目录反推
+- Agent 配置卡片新增 **Pi Package Studio**：导出前检查项目信任、缺失/禁用资源、继承项
+  与外部依赖，生成标准 `package.json#pi`、Pi 生命周期 Extension、双语 README 和不可变
+  元数据；可仅导出，或通过 Pi `DefaultPackageManager` 直接按项目安装
+- Package Studio 默认写入当前项目 `.vizruna/pi-packages/`，落盘前后执行结构与所有权
+  校验；第三方 Package/Skill/Extension 不会被静默复制，认证、API Key 与 OAuth 信息不会
+  进入生成包
+- 新归档的 Agent 案例现在绑定 Agent 快照指纹、Agent 配置版本、Pi Runtime 版本以及依赖
+  Package 的来源/作用域/版本；案例卡片可复验原会话、Agent、Runtime 和 Package 是否仍
+  与归档时一致，并持久化最近一次复验报告
+- SQLite 元数据架构升级到 v11，为案例新增来源证据和复验报告；旧案例保持可读但明确
+  标注没有版本证据，不会伪装成可复现资产
+- 新增 **Agent Evaluation Studio**：评测集绑定一个 Agent 配置，包含可重复的固定输入和
+  人工验收标准；同一测试任务可加入多个真实案例结果，对比不同 Agent 快照版本
+- 评测结果从 Pi JSONL 当前分支的最后一轮采集实际输入、正文输出、模型、思考强度、
+  Token、成本、耗时、工具调用与失败；不会保存隐藏思考，也不会用另一个模型伪造质量分数
+- 新增“运行此任务”闭环：以评测集绑定的 Agent 和固定输入直接开启新对话；完成后沉淀
+  案例并加入测试任务，由用户标记通过、不通过或待复核并记录改进说明
+- 产品元数据数据库升级到 schema v12，评测集、测试任务和运行证据纳入既有迁移备份、
+  类型化 IPC、可信工作区约束和脱敏审计体系
+- 新增正式 **Agent Version Gate**：Agent 创建及有效配置变化会自动生成稳定 SHA-256
+  不可变版本；工具和 Pi 资源选择会先规范化，无实际变化时不会产生虚假新版本
+- Agent 版本历史采用左侧时间线、右侧差异证据布局，可比较提示词、模型、思考度、工具、
+  Pi 资源和 Provider 能力要求，并可从任一历史版本启动真实 Pi 会话
+- 评测集改为固定绑定具体 Agent Version；案例结果必须来自同一版本，且每个固定任务都在
+  输入未漂移的情况下通过人工验收，版本才能从候选晋级为已验证
+- Pi Package Studio 只允许导出已验证/已发布版本；生成包使用版本化目录和 SemVer，
+  `package.json`、双语 README 与 `vizruna-agent.json` 均保存版本号和稳定摘要，导出后状态
+  推进为已发布
+- 产品元数据数据库升级到 schema v13，既有 Agent 自动迁移为 v1，旧评测集自动绑定迁移时
+  的 Agent 版本；版本和评测继续进入迁移备份、类型化 IPC、可信工作区及审计体系
+- Agent 评测新增“评测另一版本”：把固定输入、人工标准、标签和顺序在单一事务中复制到
+  目标不可变版本，但不复制旧运行；新评测集记录明确基线，避免手工重建任务导致比较失真
+- 新增版本效果对比：按规范化固定任务配对，并只取每个任务最新真实运行；人工结论与
+  Prompt 一致性决定进步、持平、退化、混合结果或证据不足，耗时、Token、成本、模型和
+  工具失败作为辅助差值展示，不引入自动模型裁判
+- 产品元数据数据库升级到 schema v14，为版本评测链路保存基线关系；旧数据库升级前继续
+  自动创建完整备份，现有评测集保持可读且可以作为手动选择的比较基线
+- Agent Version Gate 新增验证就绪检查：已有已验证/已发布版本时，新候选必须关联最近的
+  已验证基线，并且版本比较为进步或持平；退步、混合或证据不足不能晋级
+- 版本历史会在验证前展示缺运行、待复核、任务失败、Prompt 漂移、基线缺失/错配和比较
+  退步等具体阻断原因；Main Runtime 写入状态前执行同一门禁，不能从 UI 或 IPC 绕过
+- 门禁改为只读取当前精确 Agent Version 的最新任务运行，避免较早的通过记录掩盖后来失败
+- Agent 配置库升级为证据驱动的资产目录，顶部提供“开发中、成熟 Agent、交付版本”三个
+  可重叠视角；即使最新版本仍在迭代，也会保留更早已验证或已发布资产的可见性
+- 交付状态不再只看 released 标签：活动可信项目会检查受管 Pi Package 的四个必需文件，
+  并核对 Agent ID、Version ID、版本号和稳定摘要，区分可用、缺失、无效和暂不可核验
+- 版本验证与 Package 导出成功后资产目录即时刷新，不需要退出页面重新加载
 
 ## [0.1.0-alpha.5] — 2026-08-02
 
@@ -109,8 +296,8 @@
 
 ### 当前边界
 
-- alpha.3 仍处于 Agent Studio 阶段；尚未实现 Agent Version、自动评测、
-  `.vizagent` 导出或客户 Runtime
+- 当前仍处于 Agent Studio 阶段；已经具备基于真实案例和人工验收的评测闭环，但尚未提供
+  自主批量执行、模型自动裁判、正式 Agent Version 或客户 Runtime
 - pi-app 已补充 MIT LICENSE 并确认欢迎二次开发，源码许可不再阻断商业使用；
   正式客户版仍受 Apple 签名/公证与真实设备验收门禁约束
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { lazy, Suspense, useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@renderer/lib/utils'
@@ -7,10 +7,9 @@ import { useUIStore } from '@renderer/stores/ui-store'
 import { useSettingsDraft } from '@renderer/features/settings/settings-draft-context'
 import { ExtensionConfigSubpage } from '@renderer/features/extension-ui/extension-config-subpage'
 import { ModelsSettingsPanel } from '@renderer/features/settings/models-settings-panel'
-import { Settings as SettingsIcon, Palette, Cpu, Puzzle, Zap, MessageSquareText, Mic,
+import { Settings as SettingsIcon, Palette, Cpu, Orbit, MessageSquareText, Mic,
   Layers, ChevronLeft, LayoutPanelLeft, Boxes, ShieldCheck, Network, type LucideIcon
 } from 'lucide-react'
-import { SkillsSettingsPanel } from '@renderer/features/settings/skills-settings-panel'
 import { PromptsSettingsPanel } from '@renderer/features/settings/prompts-settings-panel'
 import {
   SettingsMain,
@@ -24,12 +23,17 @@ import { SettingsDraftProvider } from '@renderer/features/settings/settings-draf
 import { SettingsSaveBar } from '@renderer/features/settings/settings-save-bar'
 import { invalidateRightPanelCatalog } from '@renderer/lib/right-panel-runtime'
 import { GeneralSettings, AppearanceSettings, PiSettings } from '@renderer/features/settings/settings-general-appearance'
-import { ExtensionsSettings } from '@renderer/features/settings/settings-extensions-panel'
 import { AdaptersSettings } from '@renderer/features/settings/settings-adapters-panel'
 import { ReliabilitySettingsPanel } from '@renderer/features/settings/reliability-settings-panel'
 import { ProviderRoutingSettingsPanel } from '@renderer/features/settings/provider-routing-settings-panel'
 
-export type SettingsPageKey = 'general' | 'appearance' | 'rightPanels' | 'pi' | 'models' | 'providerRouting' | 'skills' | 'prompts' | 'extensions' | 'adapters' | 'voice' | 'reliability'
+const PiResourceCenterPage = lazy(() =>
+  import('@renderer/features/pi-resources/pi-resource-center-page').then((module) => ({
+    default: module.PiResourceCenterPage,
+  })),
+)
+
+export type SettingsPageKey = 'general' | 'appearance' | 'rightPanels' | 'pi' | 'models' | 'providerRouting' | 'resources' | 'prompts' | 'adapters' | 'voice' | 'reliability'
 
 export function SettingsPage({ initialPage = 'general' }: { initialPage?: SettingsPageKey }) {
   const { t } = useTranslation()
@@ -45,9 +49,8 @@ export function SettingsPage({ initialPage = 'general' }: { initialPage?: Settin
     { key: 'pi', icon: Cpu, label: t('settings:nav.pi') },
     { key: 'models', icon: Boxes, label: t('settings:nav.models') },
     { key: 'providerRouting', icon: Network, label: t('settings:nav.providerRouting') },
-    { key: 'skills', icon: Zap, label: t('settings:nav.skills') },
+    { key: 'resources', icon: Orbit, label: t('settings:nav.resources') },
     { key: 'prompts', icon: MessageSquareText, label: t('settings:nav.prompts') },
-    { key: 'extensions', icon: Puzzle, label: t('settings:nav.extensions') },
     { key: 'adapters', icon: Layers, label: t('settings:nav.adapters') },
     { key: 'voice', icon: Mic, label: t('settings:nav.voice') },
     { key: 'reliability', icon: ShieldCheck, label: t('settings:nav.reliability') },
@@ -92,7 +95,7 @@ export function SettingsPage({ initialPage = 'general' }: { initialPage?: Settin
     )
   }
 
-  const widePages: SettingsPageKey[] = ['rightPanels', 'pi', 'models', 'providerRouting', 'skills', 'prompts', 'extensions', 'adapters', 'voice', 'reliability']
+  const widePages: SettingsPageKey[] = ['rightPanels', 'pi', 'models', 'providerRouting', 'resources', 'prompts', 'adapters', 'voice', 'reliability']
   const wide = widePages.includes(page)
 
   return (
@@ -116,9 +119,12 @@ export function SettingsPage({ initialPage = 'general' }: { initialPage?: Settin
           {page === 'pi' && <PiSettings />}
           {page === 'models' && <ModelsSettingsPanel />}
           {page === 'providerRouting' && <ProviderRoutingSettingsPanel />}
-          {page === 'skills' && <SkillsSettingsPanel />}
+          {page === 'resources' && (
+            <Suspense fallback={<p className="text-[12px] text-muted-foreground">{t('common:loading')}</p>}>
+              <PiResourceCenterPage />
+            </Suspense>
+          )}
           {page === 'prompts' && <PromptsSettingsPanel />}
-          {page === 'extensions' && <ExtensionsSettings />}
           {page === 'adapters' && <AdaptersSettings />}
           {page === 'voice' && <VoiceSettingsPanel />}
           {page === 'reliability' && <ReliabilitySettingsPanel />}

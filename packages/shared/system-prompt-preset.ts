@@ -54,7 +54,7 @@ export type ConversationConfigBinding =
     }
 
 export type ConversationConfigSelection =
-  | { kind: 'agent'; profileId: string }
+  | { kind: 'agent'; profileId: string; versionId?: string }
   | { kind: 'prompt'; presetId: string }
   | {
       kind: 'temporaryPrompt'

@@ -30,6 +30,11 @@ export type WorkerModelRow = {
   id?: string
   provider?: string
   name?: string
+  contextWindow?: number
+  maxOutput?: number
+  available?: boolean
+  reasoning?: boolean
+  input?: Array<'text' | 'image'>
   [key: string]: unknown
 }
 

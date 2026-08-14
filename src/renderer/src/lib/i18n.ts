@@ -15,8 +15,11 @@ import zhLease from '../locales/zh/lease.json'
 import zhWorktrees from '../locales/zh/worktrees.json'
 import zhOrchestration from '../locales/zh/orchestration.json'
 import zhCases from '../locales/zh/cases.json'
+import zhEvaluations from '../locales/zh/evaluations.json'
 import zhAgents from '../locales/zh/agents.json'
 import zhSystemPrompts from '../locales/zh/systemPrompts.json'
+import zhPiInspector from '../locales/zh/piInspector.json'
+import zhPiResources from '../locales/zh/piResources.json'
 import enCommon from '../locales/en/common.json'
 import enTimeline from '../locales/en/timeline.json'
 import enReview from '../locales/en/review.json'
@@ -32,8 +35,11 @@ import enLease from '../locales/en/lease.json'
 import enWorktrees from '../locales/en/worktrees.json'
 import enOrchestration from '../locales/en/orchestration.json'
 import enCases from '../locales/en/cases.json'
+import enEvaluations from '../locales/en/evaluations.json'
 import enAgents from '../locales/en/agents.json'
 import enSystemPrompts from '../locales/en/systemPrompts.json'
+import enPiInspector from '../locales/en/piInspector.json'
+import enPiResources from '../locales/en/piResources.json'
 import { ipcClient } from './ipc-client'
 
 type AppLanguage = 'zh' | 'en'
@@ -73,8 +79,11 @@ const i18nInitialization = i18n.use(initReactI18next).init({
       worktrees: zhWorktrees,
       orchestration: zhOrchestration,
       cases: zhCases,
+      evaluations: zhEvaluations,
       agents: zhAgents,
       systemPrompts: zhSystemPrompts,
+      piInspector: zhPiInspector,
+      piResources: zhPiResources,
     },
     en: {
       common: enCommon,
@@ -93,8 +102,11 @@ const i18nInitialization = i18n.use(initReactI18next).init({
       worktrees: enWorktrees,
       orchestration: enOrchestration,
       cases: enCases,
+      evaluations: enEvaluations,
       agents: enAgents,
       systemPrompts: enSystemPrompts,
+      piInspector: enPiInspector,
+      piResources: enPiResources,
     },
   },
   lng: detectInitialLanguage(),

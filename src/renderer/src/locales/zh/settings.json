@@ -6,8 +6,9 @@
     "rightPanels": "右侧栏",
     "pi": "Pi",
     "models": "模型",
+    "resources": "Pi 资源中心",
     "skills": "Skills",
-    "prompts": "提示词",
+    "prompts": "系统提示词库",
     "extensions": "扩展",
     "adapters": "适配器",
     "voice": "语音",
@@ -278,7 +279,7 @@
     "fallbackUser": "独立环境不可用，已回退内置",
     "fallbackGlobal": "全局版本不可用，已回退内置",
     "fallbackWorker": "目标 SDK 加载失败，已回退内置",
-    "fallbackIncompatible": "检测到 Pi SDK {{version}} 低于当前架构最低兼容版本 {{minimum}}，已安全回退到内嵌版本。",
+    "fallbackIncompatible": "检测到 Pi SDK {{version}} 不在当前已验证版本线 {{line}}，已安全回退到内嵌版本。",
     "switchEnv": "切换生效环境",
     "switchEnvBuiltin": "内置",
     "switchEnvGlobal": "全局",
@@ -587,7 +588,7 @@
   },
   "prompts": {
     "title": "提示词与上下文",
-    "description": "按进入对话上下文的方式分组：项目上下文（AGENTS.md / CLAUDE.md）、全局与每轮 system。未创建全局 SYSTEM.md 时，打开「全局」项会预填当前内置文案，保存后即生效；带「每轮 system」标记的会随会话注入。",
+    "description": "按进入对话上下文的方式分组：项目上下文（AGENTS.override.md / AGENTS.md / CLAUDE.md）、全局与每轮 system。同一目录的 AGENTS.override.md 优先于常规上下文文件。未创建全局 SYSTEM.md 时，打开「全局」项会预填当前内置文案，保存后即生效；带「每轮 system」标记的会随会话注入。",
     "groupAgentsContext": "项目上下文（AGENTS.md 等）",
     "loading": "加载中…",
     "empty": "未发现条目（打开工作区后刷新）",
@@ -644,6 +645,7 @@
     }
   },
   "skills": {
+    "filteredDisabled": "该 Skill 已被 Pi Package 或项目过滤规则禁用，请在 Package 配置中调整。",
     "description": "写入 desktopSkillOverrides。修改后请用页面底部「保存」（即时写盘，不重载 Worker）。",
     "hint": "默认全部启用。启停写入 ~/.pi/agent/settings.json",
     "empty": "未发现 skill（先打开工作区）"

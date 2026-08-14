@@ -16,7 +16,14 @@ describe('runtime SBOM reflects the packaged Pi dependency patches', () => {
 
   it('inspects installed production dependencies instead of stale shrinkwrap metadata', () => {
     assert.doesNotMatch(sbomScript, /--package-lock-only/)
-    assert.match(sbomScript, /brace-expansion', '5\.0\.8'/)
+    assert.match(sbomScript, /npm 11 can omit hoisted packages/)
+    assert.match(sbomScript, /'ls', '--omit=dev', '--all', '--json'/)
+    assert.match(sbomScript, /productionPackages/)
+    assert.match(sbomScript, /pi-coding-agent', '0\.84\.1'/)
+    assert.match(sbomScript, /brace-expansion', '5\.0\.9'/)
+    assert.match(sbomScript, /dompurify', '3\.4\.13'/)
+    assert.match(sbomScript, /fast-uri', '3\.1\.5'/)
     assert.match(sbomScript, /protobufjs', '7\.6\.5'/)
+    assert.match(sbomScript, /undici', '8\.9\.0'/)
   })
 })

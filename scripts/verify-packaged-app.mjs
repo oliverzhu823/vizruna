@@ -58,13 +58,19 @@ assert.equal(manifest.productName, 'Vizruna')
 assert.equal(manifest.version, sourceManifest.version)
 
 const braceExpansion = readAsarJson('node_modules/brace-expansion/package.json')
+const piCodingAgent = readAsarJson('node_modules/@earendil-works/pi-coding-agent/package.json')
+const dompurify = readAsarJson('node_modules/dompurify/package.json')
+const fastUri = readAsarJson('node_modules/fast-uri/package.json')
 const protobuf = readAsarJson('node_modules/protobufjs/package.json')
 const proxyChain = readAsarJson('node_modules/proxy-chain/package.json')
 const undici = readAsarJson('node_modules/undici/package.json')
-assert.equal(braceExpansion.version, '5.0.8')
+assert.equal(piCodingAgent.version, '0.84.1')
+assert.equal(braceExpansion.version, '5.0.9')
+assert.equal(dompurify.version, '3.4.13')
+assert.equal(fastUri.version, '3.1.5')
 assert.equal(protobuf.version, '7.6.5')
 assert.equal(proxyChain.version, '3.0.0')
-assert.equal(undici.version, '8.5.0')
+assert.equal(undici.version, '8.9.0')
 
 const plistResult = spawnSync(
   'plutil',

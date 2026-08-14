@@ -26,6 +26,7 @@ function pushAssistantItem(
     timestamp: number
     sessionEntryId?: string
     stopReason?: string
+    usage?: PiSessionMessage['usage']
     /** Same assistant message also emitted toolCall blocks — not a crash leaf. */
     hasToolCalls?: boolean
   },
@@ -43,6 +44,7 @@ function pushAssistantItem(
     thinkingText: opts.thinkingText || undefined,
     timestamp: opts.timestamp,
     ...(opts.sessionEntryId ? { sessionEntryId: opts.sessionEntryId } : {}),
+    ...(opts.usage ? { usage: opts.usage } : {}),
     ...(incomplete
       ? { incomplete: true, stopReason: opts.stopReason || 'interrupted' }
       : opts.stopReason
@@ -74,6 +76,7 @@ export function normalizeMessages(messages: unknown[]): Array<Record<string, unk
         thinkingText,
         timestamp: ts,
         stopReason: pm.stopReason,
+        usage: pm.usage,
         hasToolCalls: toolCalls.length > 0,
       })
       for (const c of toolCalls) {
@@ -114,6 +117,8 @@ export function normalizeMessages(messages: unknown[]): Array<Record<string, unk
       }
       if (targetIdx !== undefined && items[targetIdx]) {
         items[targetIdx].toolOutput = text.slice(0, 4000)
+        items[targetIdx].isError = pm.isError === true
+        items[targetIdx].toolEndedAt = ts
         if (toolName && items[targetIdx].toolName === 'tool') items[targetIdx].toolName = toolName
       } else if (text) {
         items.push({
@@ -122,6 +127,7 @@ export function normalizeMessages(messages: unknown[]): Array<Record<string, unk
           toolName: toolName || 'result',
           toolPhase: 'end',
           toolOutput: text.slice(0, 2000),
+          isError: pm.isError === true,
           timestamp: ts,
         })
       }
@@ -198,6 +204,7 @@ export function timelineItemsFromBranchPath(path: unknown[]): Array<Record<strin
         timestamp: ts,
         sessionEntryId: sid,
         stopReason: m.stopReason,
+        usage: m.usage,
         hasToolCalls: toolCalls.length > 0,
       })
       for (const c of toolCalls) {
@@ -244,6 +251,8 @@ export function timelineItemsFromBranchPath(path: unknown[]): Array<Record<strin
       }
       if (targetIdx !== undefined && items[targetIdx]) {
         items[targetIdx].toolOutput = text.slice(0, 4000)
+        items[targetIdx].isError = m.isError === true
+        items[targetIdx].toolEndedAt = ts
         if (toolName && items[targetIdx].toolName === 'tool') items[targetIdx].toolName = toolName
       } else if (text) {
         items.push({
@@ -252,6 +261,7 @@ export function timelineItemsFromBranchPath(path: unknown[]): Array<Record<strin
           toolName: toolName || 'result',
           toolPhase: 'end',
           toolOutput: text.slice(0, 2000),
+          isError: m.isError === true,
           timestamp: ts,
           sessionEntryId: sid,
         })

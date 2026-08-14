@@ -12,7 +12,10 @@
 
 # Vizruna
 
-Vizruna turns the Pi Agent runtime into a practical local Agent workspace.
+Vizruna is a visual, composable, local-first Agent Harness built specifically for Pi Agent.
+It turns the Pi Agent runtime into a practical local workspace and makes Pi models,
+authentication, Skills, Extensions, prompts, tools, and session behavior easier to understand
+and debug.
 **Vizruna-web** runs in your browser. You can chat with an Agent, watch its
 reasoning and tool activity, switch models and thinking levels, inspect changed
 files, run a terminal, and coordinate parallel work without leaving one workspace.
@@ -23,23 +26,21 @@ paused. Avoid mission-critical work while the product is still in Alpha.
 
 ![Vizruna-web workspace](docs/images/vizruna-web.png)
 
-## Highlights in v0.1.0-alpha.5
+## Highlights in v0.1.0-alpha.6
 
-- **Vizruna-web** is now the only distributed entry point, providing the complete Agent
-  Studio, model login, conversations, files, terminal, Review, Worktree, and
-  multi-Agent features in the default browser without a desktop installer.
-- `Start-Vizruna-web.command` provides a double-click launcher. Git clones update
-  only from the official repository when `main` is clean and fast-forwardable.
-- The service binds only to `127.0.0.1` and uses a one-time random startup token,
-  an HttpOnly session, origin and CSRF checks, an RPC allowlist, and schema validation.
-- Conversations, Pi authentication, provider settings, Agent Profiles, prompts,
-  and cases live outside the source folder. Updating Vizruna-web does not delete
-  this user data.
-- Browser-native project path validation, controlled attachment storage, and
-  direct diagnostics/audit downloads replace fragile native-window interactions.
-- Browser end-to-end coverage now exercises provider events, model capability,
-  workspace switching, Review, Worktree, orchestration, exports, media APIs, and
-  critical security rejection paths.
+- Agent Profiles are now a complete Pi-native Agent workspace that composes models,
+  thinking levels, System Prompts, tools, Skills, Extensions, Prompt Templates,
+  Packages, and project context with an effective-configuration preview.
+- Immutable Agent Versions, fixed-task evaluations, version comparisons, and a
+  validation gate connect improvements and releases to real Pi evidence and human review.
+- Pi Package Studio and Package import can export, install, and reproduce mature Agents
+  while preserving provenance, target-readiness checks, and credential isolation.
+- Pi Inspector, the Resource Center, and Run Debugger expose Runtime, authorization,
+  loaded resources, tool calls, context, tokens, cost, compaction, errors, and per-turn evidence.
+- The embedded Pi Runtime is upgraded to verified `0.84.1`, with Runtime contracts,
+  production SBOM coverage, and zero known production dependency vulnerabilities.
+- The right-side tool navigation is grouped into session/runtime, project workspace,
+  and extension sections with three compact items per row and direct switching.
 
 See [CHANGELOG.md](CHANGELOG.md) for the complete release notes.
 
@@ -48,7 +49,8 @@ See [CHANGELOG.md](CHANGELOG.md) for the complete release notes.
 ### Conversations, models, and execution
 
 - **Native Pi model workflow**: choose provider, model, and thinking level;
-  authenticate with `/login`, `/logout`, OAuth, or an API key.
+  authenticate with `/login`, `/logout`, OAuth, or an API key. The embedded and
+  tested Pi Runtime is currently `0.84.1`.
 - **Effective defaults for new conversations**: reuse the last valid model and
   thinking level and show them immediately.
 - **Provider-specific routing**: send overseas providers through a V2Ray-style
@@ -61,15 +63,103 @@ See [CHANGELOG.md](CHANGELOG.md) for the complete release notes.
 
 ### Agent Studio
 
-- **Agent Profile Library**: create, edit, duplicate, and archive named Agents
-  with scenario-specific System Prompts.
+- **Agent Composer**: create, edit, duplicate, and archive named Agents that
+  combine a System Prompt, model, thinking level, base tools, Pi Packages,
+  Skills, Extensions, Prompt Templates, and project context; declare reasoning,
+  image-input, and minimum-context requirements; and grant Extension-registered
+  tools individually, with an effective preview before starting a conversation.
+- **Immutable runtime snapshots**: each new conversation stores the Pi resources
+  actually resolved at creation time. Later profile edits cannot change existing
+  conversations, and Pi Inspector shows the resource policy and resolved count.
+- **Agent Versions**: every effective configuration change creates a stable,
+  immutable version. Compare changes, run historical versions, and promote a version
+  only after its complete fixed-task evaluation passes. When a validated version already
+  exists, the candidate must also improve on or match that latest baseline; regressions,
+  mixed results, and insufficient evidence are explained and blocked.
+- **Agent Asset Catalog**: summarize and filter In-development, Validated, and Delivery
+  assets without forcing them into mutually exclusive labels. A newer candidate does not
+  hide an older mature version, and the delivery view verifies that the managed Pi Package
+  still exists and matches the immutable Agent/version identity in the active project.
+- **Pi Run Debugger**: inspect the actual per-turn tool order, Pi-base versus
+  Extension origin, duration, context compaction, and errors, with an initial
+  failure-layer diagnosis across authentication, provider, context, tools, and Runtime.
+  Each turn also keeps before/after context deltas and evidence of the Pi resources
+  actually exposed by the live session.
+- **Pi Package Studio**: generate a standard local Pi Package from a validated
+  Agent Version, enforcing the evaluation gate before portability and dependency
+  checks, then export it or install it through Pi's native PackageManager. A target-
+  environment manifest separately checks Runtime, model, Provider authorization, Pi
+  resources, project context, and tool policy; its `DELIVERY_CHECKLIST.md` never contains credentials.
+- **Package import and local reproduction**: inspect immutable package identity and
+  this machine's real Pi environment inside a trusted project, then independently
+  confirm dependency installation, Agent Package installation, and configuration import.
+  Imported configurations preserve source provenance but start as local candidates for
+  re-evaluation; source maturity, machine paths, and credentials are never copied.
+- **Agent lifecycle workspace**: open one Agent as a continuous working context,
+  inspect its Pi configuration, immutable version, bound cases, current fixed tasks,
+  latest evaluation verdicts, validation blockers, and local Package evidence. Vizruna
+  derives one contextual primary action and opens the exact run, review, validation,
+  or delivery workflow without bypassing its confirmation gates.
+- **Local run preflight**: recompute Pi Runtime, model authorization, Provider capabilities,
+  Pi resources, project context, and tool policy before launch. Missing explicit dependencies
+  block a false-success start and route to per-check repair. OAuth completion triggers an
+  automatic recheck, manual retry remains available, and settings navigation preserves the Agent context.
+- **Agent run evidence chain**: the workspace lists real Pi sessions bound to this exact Agent
+  snapshot, including immutable version, live/failure status, error evidence, message count,
+  generated files, and saved cases. Reopen the source or promote a real run into a case and
+  the current version's evaluation evidence. Its object-focused run desk uses a left-side run
+  list and right-side detail view; file artifacts open in Review and two runs can be compared.
+- **Pi Capability Manifest**: move beyond resource counts by grouping built-in tools,
+  Pi Packages, Extensions, Skills, Prompt Templates, and project context. Each item exposes
+  provenance, scope, Extension-registered tools, inherited state, and missing/disabled blockers,
+  with a direct repair route to the Pi Resource Center.
+- **Runtime capability evidence and drift diagnosis**: new runs persist what Pi AgentSession
+  actually loaded—tools, Skills, Extensions, Prompts, Context files, System Prompt sources,
+  and before/after context usage. The run desk compares it with the session's immutable Agent
+  snapshot and explains missing, additional, inherited, or exact capabilities. Older runs
+  without evidence are explicitly unknown rather than inferred.
+- **Pi run health**: the Run Desk aggregates tokens, cache usage, cost, tool calls, and failures
+  from the active Pi branch timeline, then combines run-boundary Context snapshots to flag high
+  pressure, material growth, and compaction. Loaded capabilities remain distinct from capabilities
+  actually invoked; long sessions explicitly disclose the latest-500-record sample boundary.
+- **Per-turn Pi evidence**: every Agent run persists start/end Context, tokens, tools, compaction,
+  files, and errors under its session/run identity. The Run Desk expands the latest 50 turns to
+  locate where a problem began; later runs never overwrite earlier evidence and legacy history is
+  never inferred from the current environment.
+- **Evidence-based run comparison**: select another run to compare version, model, thinking,
+  actual capabilities, tokens, cost, tool failures, Context, and compaction. Deterministic rules
+  flag notable changes without model-generated causal claims, and missing or sampled evidence is
+  disclosed explicitly.
+- **Evidence-to-action diagnosis**: the Run Desk applies fixed rules to run failures, capability
+  drift, Context pressure, tool failures, compaction, and sampling boundaries, then offers one
+  precise route to the source run, rerun, Pi Resource Center, or Agent configuration. It neither
+  edits the Agent automatically nor asks a model to invent a root cause.
 - **System Prompt Library**: manage reusable prompts or enter a temporary prompt
   for the next conversation without saving it.
 - **One prompt source per conversation**: General Pi, one System Prompt, or one
   Agent Profile; the choice is fixed after the first message.
 - **Agent Case Library**: archive useful conversations with name, description,
   tags, source project/session, model, thinking level, and validation status.
-  Cases reference the original Pi history and never copy credentials.
+  New cases also freeze the Agent snapshot fingerprint, Pi Runtime version, and
+  dependent Package versions, and can verify whether the current environment still
+  reproduces that evidence. Cases reference the original Pi history and never copy credentials.
+- **Agent Evaluation Studio**: define fixed tasks for one Agent and attach real
+  case runs after each revision. Vizruna freezes the Agent snapshot version,
+  actual input and output, model, latency, tokens, recorded cost, tool calls,
+  and failures, while the user records a Passed, Failed, or Needs review verdict
+  against explicit human criteria. Copy the exact task set to another immutable
+  version, then compare human verdicts, prompt integrity, latency, tokens, cost,
+  and tool failures task by task. Vizruna conservatively reports improvement,
+  equivalence, regression, mixed results, or insufficient evidence. After explicit
+  confirmation of API usage and tool side effects, a full suite can also run
+  sequentially in isolated background Pi sessions, with durable progress,
+  cancellation, per-task failure isolation, and no test-only case-library clutter.
+  Version comparisons can be exported as privacy-aware Markdown reports; task
+  content and model outputs remain excluded unless explicitly enabled.
+- **Pi Effective Configuration Inspector**: inspect the active Pi Runtime,
+  model, authentication, network route, final System Prompt sources, tools,
+  Skills, Extensions, Prompt Templates, and Packages for the current session,
+  with configured and runtime-loaded resources shown separately.
 
 ### Workspace and review
 
@@ -83,7 +173,11 @@ See [CHANGELOG.md](CHANGELOG.md) for the complete release notes.
 
 - Managed Git worktrees for isolated branches and parallel work.
 - Child-Agent orchestration with task status and validation evidence.
-- Management for Pi Skills, Extensions, project context, and native prompt resources.
+- Management for Pi Skills, Extensions, project context, and native prompt resources,
+  including Pi 0.84 same-directory `AGENTS.override.md` precedence.
+- A unified **Pi Resource Center** for user/project Packages, Skills, Extensions,
+  Prompt Templates, and Themes, with Package install/repair, update checks,
+  update, removal, and per-resource controls native to Pi directories and `settings.json`.
 - Configurable voice transcription and local system alerts.
 
 ### Interface, data, and reliability

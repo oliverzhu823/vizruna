@@ -12,6 +12,8 @@ const mocks = vi.hoisted(() => {
       saveAgentCase: vi.fn(() => true),
     },
     auditWrite: vi.fn(),
+    captureAgentCaseProvenance: vi.fn(),
+    verifyAgentCaseProvenance: vi.fn(),
   }
 })
 
@@ -32,6 +34,10 @@ vi.mock('../../trusted-workspace', () => ({
 vi.mock('../../sqlite-index', () => ({ sqliteIndex: mocks.sqliteIndex }))
 vi.mock('../../audit/audit-repository', () => ({
   auditRepository: { write: mocks.auditWrite },
+}))
+vi.mock('../../agent-case-provenance', () => ({
+  captureAgentCaseProvenance: mocks.captureAgentCaseProvenance,
+  verifyAgentCaseProvenance: mocks.verifyAgentCaseProvenance,
 }))
 
 import { registerAgentCaseHandlers } from './agent-case'
@@ -57,6 +63,11 @@ describe('Agent Case IPC handlers', () => {
     mocks.trustedWorkspace = '/workspace'
     mocks.sqliteIndex.getAgentCase.mockReturnValue(existingCase)
     mocks.sqliteIndex.saveAgentCase.mockReturnValue(true)
+    mocks.captureAgentCaseProvenance.mockResolvedValue({
+      capturedAt: 100,
+      piRuntimeVersion: '0.84.1',
+      packages: [],
+    })
     registerAgentCaseHandlers()
   })
 
@@ -67,6 +78,7 @@ describe('Agent Case IPC handlers', () => {
       tags: ['research', 'research', 'report'],
       workspacePath: '/workspace',
       sourceSessionId: 'session-1',
+      provenance: { piRuntimeVersion: '0.84.1' },
       sourceSessionFile: '/sessions/session-1.jsonl',
       modelId: 'openai-codex/gpt-5.6-sol',
       thinkingLevel: 'high',
@@ -121,6 +133,25 @@ describe('Agent Case IPC handlers', () => {
     expect(mocks.sqliteIndex.saveAgentCase).toHaveBeenCalledOnce()
     expect(mocks.auditWrite).toHaveBeenCalledWith(
       expect.objectContaining({ action: 'agent-case.archive', outcome: 'success' }),
+    )
+  })
+
+  it('persists a reproducibility report when re-verifying a case', async () => {
+    const verification = {
+      checkedAt: 200,
+      reproducible: true,
+      checks: [{ code: 'provenance-present', status: 'passed' }],
+    }
+    mocks.verifyAgentCaseProvenance.mockResolvedValue(verification)
+    const response = await mocks.handlers.get('ipc:agentCase.verify')!({ id: existingCase.id }) as {
+      agentCase: AgentCase
+      verification: typeof verification
+    }
+
+    expect(response.verification.reproducible).toBe(true)
+    expect(response.agentCase.lastVerification).toEqual(verification)
+    expect(mocks.auditWrite).toHaveBeenCalledWith(
+      expect.objectContaining({ action: 'agent-case.verify', outcome: 'success' }),
     )
   })
 })

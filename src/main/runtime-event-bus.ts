@@ -1,6 +1,7 @@
 import type { AppEvent } from '@shared/app-events'
 import type { ProviderAuthFlowEvent } from '@shared/provider-auth'
 import type { TerminalDataEvent, TerminalExitEvent } from '@shared/terminal'
+import type { PiPackageMutationProgress } from '@shared/pi-resource-center'
 
 export type RuntimeEventMap = {
   'ipc:events': AppEvent
@@ -12,6 +13,7 @@ export type RuntimeEventMap = {
   'ipc:provider-auth-flow': ProviderAuthFlowEvent
   'ipc:terminal-data': TerminalDataEvent
   'ipc:terminal-exit': TerminalExitEvent
+  'ipc:pi-resource-operation-progress': PiPackageMutationProgress
 }
 
 export type RuntimeEventChannel = keyof RuntimeEventMap

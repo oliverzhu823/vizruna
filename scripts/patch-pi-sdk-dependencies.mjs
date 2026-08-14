@@ -6,7 +6,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const piSdkRoot = join(root, 'node_modules', '@earendil-works', 'pi-coding-agent')
 
 const patches = [
-  { packageName: 'brace-expansion', expectedVersion: '5.0.8' },
+  { packageName: 'brace-expansion', expectedVersion: '5.0.9' },
   { packageName: 'protobufjs', expectedVersion: '7.6.5' },
 ]
 

@@ -1,0 +1,201 @@
+{
+  "eyebrow": "Agent Evaluation",
+  "title": "Agent 评测",
+  "description": "用固定任务和真实 Pi 会话证据，比较 Agent 不同版本的结果、耗时、Token、工具调用和失败情况。",
+  "sidebarTitle": "评测集",
+  "count": "{{count}} 个评测集",
+  "newSuite": "新建评测集",
+  "newScenario": "添加测试任务",
+  "runScenario": "运行此任务",
+  "attachCase": "加入案例结果",
+  "archive": "归档评测集",
+  "openSource": "打开原对话",
+  "review": "人工验收",
+  "showArchived": "显示已归档",
+  "hideArchived": "隐藏已归档",
+  "empty": {
+    "title": "还没有评测集",
+    "description": "为一个 Agent 建立固定测试任务，之后每次改版都用同一组任务复测。",
+    "select": "从左侧选择一个评测集",
+    "scenario": "还没有测试任务。先添加一个可重复运行的真实任务。",
+    "run": "还没有结果。运行任务、沉淀为案例，再把案例加入这里。"
+  },
+  "suite": {
+    "title": "新建 Agent 评测集",
+    "name": "评测集名称",
+    "namePlaceholder": "例如：市场调研 Agent 回归测试",
+    "description": "说明",
+    "descriptionPlaceholder": "说明这组任务验证什么能力",
+    "agent": "目标 Agent",
+    "version": "目标 Agent 版本",
+    "workspaceRequired": "请先打开一个可信项目，再创建评测集。",
+    "submit": "创建评测集",
+    "archived": "已归档"
+  },
+  "versionStatus": {
+    "candidate": "候选",
+    "validated": "已验证",
+    "released": "已发布"
+  },
+  "clone": {
+    "action": "评测另一版本",
+    "title": "用相同任务评测另一版本",
+    "description": "把当前评测集的 {{count}} 个固定任务原样复制到目标 Agent 版本。",
+    "targetVersion": "目标 Agent 版本",
+    "name": "新评测集名称",
+    "defaultName": "{{name}} · v{{version}}",
+    "guarantee": "任务输入、人工验收标准、标签和顺序都会保持不变；历史运行结果不会复制。这样两个版本可以使用同一把尺子重新测试。",
+    "noVersion": "这个 Agent 还没有其他可评测版本。请先修改并保存 Agent 配置。",
+    "taskRequired": "先添加至少一个固定测试任务",
+    "submit": "创建版本评测"
+  },
+  "comparison": {
+    "title": "Agent 版本效果对比",
+    "description": "以每个固定任务的最新真实运行和人工验收为准；速度、Token 与成本只作为辅助指标。",
+    "baseline": "基线",
+    "loading": "正在核对两个版本的运行证据…",
+    "noRun": "无结果",
+    "versionPair": "v{{baseline}} → v{{candidate}}",
+    "pairedRuns": "{{count}} 组可比较运行",
+    "counts": "进步 {{improved}} · 持平 {{equivalent}} · 退化 {{regressed}} · 证据不足 {{insufficient}}",
+    "outcome": {
+      "improved": "新版进步",
+      "equivalent": "质量持平",
+      "regressed": "新版退化",
+      "mixed": "有进步也有退化",
+      "insufficient": "证据不足"
+    },
+    "explanation": {
+      "improved": "至少一个固定任务由不通过变为通过，且没有退化或缺失证据。",
+      "equivalent": "所有可验证任务的人工结论都没有变化。",
+      "regressed": "至少一个固定任务由通过变为不通过，应先修复再交付。",
+      "mixed": "部分任务改善、部分任务退化，不能把新版整体判断为升级。",
+      "insufficient": "存在未运行、待复核、输入漂移或任务不一致，暂时不能下结论。"
+    },
+    "metric": {
+      "passRate": "通过率变化",
+      "duration": "平均耗时变化",
+      "tokens": "Token 变化",
+      "cost": "记录成本变化",
+      "toolFailures": "工具失败变化"
+    },
+    "columns": {
+      "task": "固定任务",
+      "verdict": "基线 → 新版",
+      "model": "模型（基线 / 新版）",
+      "delta": "耗时 / 成本变化"
+    },
+    "reason": {
+      "scenario-missing": "两边任务不一致",
+      "run-missing": "缺少真实运行",
+      "review-pending": "等待人工复核",
+      "prompt-drifted": "实际输入发生漂移"
+    }
+  },
+  "report": {
+    "action": "导出回归报告",
+    "title": "导出 Agent 回归报告",
+    "description": "生成与当前版本对比完全一致的本地 Markdown 报告。",
+    "safeSummary": "默认生成可分享摘要：包含版本身份、配置变化字段、人工结论和运行指标，但不包含 System Prompt、任务输入全文、模型输出全文、会话路径、凭据或隐藏思考。",
+    "includeContent": "包含任务输入和模型输出",
+    "includeContentWarning": "仅用于可信的内部复盘。勾选后，报告会包含固定输入、人工验收标准和两个版本的模型输出，分享前请自行检查敏感信息。",
+    "download": "下载 Markdown"
+  },
+  "batch": {
+    "title": "一键批量回归",
+    "description": "在隔离的后台 Pi 会话中依次运行全部固定任务，自动采集真实结果，完成后等待人工验收。不会占用当前聊天，也不会把测试会话塞进 Agent 案例库。",
+    "start": "运行整套回归",
+    "rerun": "重新运行整套回归",
+    "cancel": "取消回归",
+    "progress": "{{finished}} / {{total}} 个任务",
+    "confirmTitle": "运行整套 Agent 回归？",
+    "confirmDescription": "将使用当前不可变 Agent 版本，依次运行 {{count}} 个固定任务。",
+    "costNotice": "每个任务都会发起一次真实模型调用，并可能执行 Agent 已授权的工具，因此会产生相应的 API 用量和本地文件操作。任务串行执行，单项失败不会中断其余任务。",
+    "confirm": "确认并开始",
+    "status": {
+      "queued": "正在准备 Pi 运行环境",
+      "running": "正在后台运行",
+      "completed": "本轮回归已完成",
+      "cancelled": "本轮回归已取消",
+      "failed": "本轮回归未能完成"
+    },
+    "itemStatus": {
+      "pending": "等待运行",
+      "running": "正在运行",
+      "completed": "等待人工复核",
+      "cancelled": "已取消",
+      "failed": "运行失败"
+    }
+  },
+  "scenario": {
+    "title": "添加固定测试任务",
+    "name": "任务名称",
+    "namePlaceholder": "例如：生成一份竞品调研报告",
+    "prompt": "固定输入",
+    "promptPlaceholder": "每个 Agent 版本都应使用同一段输入",
+    "expected": "人工验收标准",
+    "expectedPlaceholder": "描述什么结果算通过；不会交给另一个模型自动打分",
+    "tags": "标签",
+    "tagsPlaceholder": "用逗号分隔",
+    "submit": "保存测试任务"
+  },
+  "attach": {
+    "title": "加入真实案例结果",
+    "description": "只显示由当前 Agent 在此项目中产生的案例。系统读取案例最后一轮 Pi 会话并冻结证据。",
+    "case": "选择 Agent 案例",
+    "none": "没有可用案例。请先运行此任务并沉淀为 Agent 案例。",
+    "submit": "采集并加入"
+  },
+  "assessment": {
+    "title": "人工验收",
+    "description": "根据固定验收标准判断结果，不使用隐藏的自动模型评分。",
+    "verdict": "结论",
+    "pending": "待复核",
+    "passed": "通过",
+    "failed": "不通过",
+    "notes": "验收说明",
+    "notesPlaceholder": "记录通过原因、缺陷和下一版改进方向",
+    "submit": "保存验收"
+  },
+  "summary": {
+    "scenarios": "测试任务",
+    "runs": "真实运行",
+    "passRate": "人工通过率",
+    "pending": "待复核",
+    "notAvailable": "—"
+  },
+  "metrics": {
+    "version": "Agent 版本",
+    "model": "模型",
+    "duration": "耗时",
+    "tokens": "输入 / 输出 Token",
+    "tools": "工具 / 失败",
+    "cost": "记录成本",
+    "output": "实际输出",
+    "promptMatched": "输入与固定任务一致",
+    "promptDrifted": "实际输入与固定任务不一致，比较结果需谨慎",
+    "generalPi": "未绑定 Agent",
+    "seconds": "{{value}} 秒",
+    "versionShort": "版本 {{value}}"
+  },
+  "messages": {
+    "loadFailed": "加载 Agent 评测失败",
+    "suiteCreated": "评测集已创建",
+    "suiteCreateFailed": "创建评测集失败",
+    "cloned": "已为目标版本复制固定测试任务",
+    "cloneFailed": "创建版本评测失败",
+    "runFailed": "无法启动评测任务",
+    "batchStartFailed": "无法启动批量回归",
+    "batchCancelFailed": "无法取消批量回归",
+    "reportExported": "Agent 回归报告已下载",
+    "reportExportFailed": "导出 Agent 回归报告失败",
+    "scenarioCreated": "测试任务已添加",
+    "scenarioCreateFailed": "添加测试任务失败",
+    "caseAttached": "真实运行证据已加入",
+    "caseAttachFailed": "加入案例失败",
+    "assessed": "人工验收已保存",
+    "assessFailed": "保存验收失败",
+    "archived": "评测集已归档",
+    "archiveFailed": "归档评测集失败"
+  }
+}

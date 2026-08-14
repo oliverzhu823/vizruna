@@ -14,10 +14,18 @@ import { PRODUCT_PACKAGE_NAME } from '@shared/product-identity'
 import type { ManagedWorktree } from '@shared/managed-worktree'
 import type { AgentCase } from '@shared/agent-case'
 import type {
+  AgentEvaluationBatch,
+  AgentEvaluationRun,
+  AgentEvaluationScenario,
+  AgentEvaluationSuite,
+} from '@shared/agent-evaluation'
+import type {
   AgentProfile,
   AgentProfileSnapshot,
   SessionAgentBinding,
 } from '@shared/agent-profile'
+import type { AgentVersion } from '@shared/agent-version'
+import type { AgentRunHistoryItem } from '@shared/agent-run-history'
 import type {
   SessionPromptBinding,
   SystemPromptPreset,
@@ -57,7 +65,7 @@ type SqliteDb = {
 let DatabaseCtor: (new (path: string) => SqliteDb) | null = null
 let db: SqliteDb | null = null
 let loadFailed = false
-const SCHEMA_VERSION = 7
+const SCHEMA_VERSION = 16
 const MAX_BACKUPS = 20
 
 function databasePath(): string {
@@ -229,6 +237,24 @@ function initSchema(d: SqliteDb): void {
       started_at INTEGER,
       ended_at INTEGER
     );
+    CREATE TABLE IF NOT EXISTS agent_run_runtime_evidence (
+      session_file TEXT PRIMARY KEY,
+      run_id TEXT,
+      resource_json TEXT,
+      context_before_json TEXT,
+      context_after_json TEXT,
+      captured_at INTEGER NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS agent_run_turn_evidence (
+      session_file TEXT NOT NULL,
+      run_id TEXT NOT NULL,
+      evidence_json TEXT NOT NULL,
+      started_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL,
+      PRIMARY KEY (session_file, run_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_agent_run_turn_evidence_session
+      ON agent_run_turn_evidence(session_file, started_at DESC);
     CREATE TABLE IF NOT EXISTS turn_index (
       turn_id TEXT PRIMARY KEY,
       run_id TEXT,
@@ -348,6 +374,8 @@ function initSchema(d: SqliteDb): void {
       source_session_file TEXT NOT NULL,
       model_id TEXT,
       thinking_level TEXT,
+      provenance_json TEXT,
+      verification_json TEXT,
       created_at INTEGER NOT NULL,
       updated_at INTEGER NOT NULL
     );
@@ -355,6 +383,61 @@ function initSchema(d: SqliteDb): void {
       ON agent_case(status, updated_at);
     CREATE INDEX IF NOT EXISTS idx_agent_case_workspace_updated
       ON agent_case(workspace_path, updated_at);
+    CREATE TABLE IF NOT EXISTS agent_evaluation_suite (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      description TEXT,
+      workspace_path TEXT NOT NULL,
+      profile_id TEXT NOT NULL,
+      version_id TEXT,
+      baseline_suite_id TEXT,
+      status TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_agent_evaluation_suite_workspace
+      ON agent_evaluation_suite(workspace_path, status, updated_at);
+    CREATE INDEX IF NOT EXISTS idx_agent_evaluation_suite_profile
+      ON agent_evaluation_suite(profile_id, updated_at);
+    CREATE TABLE IF NOT EXISTS agent_evaluation_scenario (
+      id TEXT PRIMARY KEY,
+      suite_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      prompt TEXT NOT NULL,
+      expected_outcome TEXT,
+      tags_json TEXT NOT NULL DEFAULT '[]',
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_agent_evaluation_scenario_suite
+      ON agent_evaluation_scenario(suite_id, sort_order, created_at);
+    CREATE TABLE IF NOT EXISTS agent_evaluation_run (
+      id TEXT PRIMARY KEY,
+      suite_id TEXT NOT NULL,
+      scenario_id TEXT NOT NULL,
+      source_case_id TEXT NOT NULL,
+      evidence_json TEXT NOT NULL,
+      verdict TEXT NOT NULL,
+      notes TEXT,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_agent_evaluation_run_scenario
+      ON agent_evaluation_run(scenario_id, created_at);
+    CREATE INDEX IF NOT EXISTS idx_agent_evaluation_run_suite
+      ON agent_evaluation_run(suite_id, created_at);
+    CREATE TABLE IF NOT EXISTS agent_evaluation_batch (
+      id TEXT PRIMARY KEY,
+      suite_id TEXT NOT NULL,
+      workspace_path TEXT NOT NULL,
+      status TEXT NOT NULL,
+      batch_json TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_agent_evaluation_batch_suite
+      ON agent_evaluation_batch(suite_id, created_at DESC);
     CREATE TABLE IF NOT EXISTS agent_profile (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
@@ -364,12 +447,33 @@ function initSchema(d: SqliteDb): void {
       model_id TEXT,
       thinking_level TEXT,
       tools_json TEXT,
+      extension_tools_json TEXT,
+      resource_selection_json TEXT,
+      provider_requirements_json TEXT,
+      import_provenance_json TEXT,
       status TEXT NOT NULL,
       created_at INTEGER NOT NULL,
       updated_at INTEGER NOT NULL
     );
     CREATE INDEX IF NOT EXISTS idx_agent_profile_status_updated
       ON agent_profile(status, updated_at);
+    CREATE TABLE IF NOT EXISTS agent_profile_version (
+      id TEXT PRIMARY KEY,
+      profile_id TEXT NOT NULL,
+      version_number INTEGER NOT NULL,
+      digest TEXT NOT NULL,
+      config_json TEXT NOT NULL,
+      status TEXT NOT NULL,
+      validation_json TEXT,
+      released_at INTEGER,
+      created_at INTEGER NOT NULL,
+      UNIQUE(profile_id, version_number),
+      UNIQUE(profile_id, digest)
+    );
+    CREATE INDEX IF NOT EXISTS idx_agent_profile_version_profile
+      ON agent_profile_version(profile_id, version_number DESC);
+    CREATE INDEX IF NOT EXISTS idx_agent_profile_version_status
+      ON agent_profile_version(status, created_at DESC);
     CREATE TABLE IF NOT EXISTS session_agent_binding (
       session_file TEXT PRIMARY KEY,
       session_id TEXT NOT NULL UNIQUE,
@@ -413,6 +517,46 @@ function initSchema(d: SqliteDb): void {
   } catch {
     // Existing and new databases both converge on the same column.
   }
+  try {
+    d.exec('ALTER TABLE agent_profile ADD COLUMN extension_tools_json TEXT')
+  } catch {
+    // Existing and new databases both converge on the same column.
+  }
+  try {
+    d.exec('ALTER TABLE agent_profile ADD COLUMN resource_selection_json TEXT')
+  } catch {
+    // Existing and new databases both converge on the same column.
+  }
+  try {
+    d.exec('ALTER TABLE agent_profile ADD COLUMN provider_requirements_json TEXT')
+  } catch {
+    // Existing and new databases both converge on the same column.
+  }
+  try {
+    d.exec('ALTER TABLE agent_profile ADD COLUMN import_provenance_json TEXT')
+  } catch {
+    // Existing and new databases both converge on the same column.
+  }
+  try {
+    d.exec('ALTER TABLE agent_case ADD COLUMN provenance_json TEXT')
+  } catch {
+    // Existing and new databases both converge on the same column.
+  }
+  try {
+    d.exec('ALTER TABLE agent_case ADD COLUMN verification_json TEXT')
+  } catch {
+    // Existing and new databases both converge on the same column.
+  }
+  try {
+    d.exec('ALTER TABLE agent_evaluation_suite ADD COLUMN version_id TEXT')
+  } catch {
+    // Existing and new databases both converge on the same column.
+  }
+  try {
+    d.exec('ALTER TABLE agent_evaluation_suite ADD COLUMN baseline_suite_id TEXT')
+  } catch {
+    // Existing and new databases both converge on the same column.
+  }
   d.pragma(`user_version = ${SCHEMA_VERSION}`)
 }
 
@@ -451,6 +595,22 @@ function mapAgentCaseRow(row: unknown): AgentCase | null {
   } catch {
     tags = []
   }
+  let provenance: AgentCase['provenance']
+  let lastVerification: AgentCase['lastVerification']
+  try {
+    if (value.provenance_json) {
+      provenance = JSON.parse(String(value.provenance_json)) as AgentCase['provenance']
+    }
+  } catch {
+    provenance = undefined
+  }
+  try {
+    if (value.verification_json) {
+      lastVerification = JSON.parse(String(value.verification_json)) as AgentCase['lastVerification']
+    }
+  } catch {
+    lastVerification = undefined
+  }
   return {
     id: String(value.id || ''),
     name: String(value.name || ''),
@@ -462,8 +622,112 @@ function mapAgentCaseRow(row: unknown): AgentCase | null {
     sourceSessionFile: String(value.source_session_file || ''),
     modelId: value.model_id ? String(value.model_id) : undefined,
     thinkingLevel: value.thinking_level ? String(value.thinking_level) : undefined,
+    provenance,
+    lastVerification,
     createdAt: Number(value.created_at || 0),
     updatedAt: Number(value.updated_at || 0),
+  }
+}
+
+function mapAgentEvaluationSuiteRow(row: unknown): AgentEvaluationSuite | null {
+  if (!row || typeof row !== 'object') return null
+  const value = row as Record<string, unknown>
+  const id = String(value.id || '')
+  const profileId = String(value.profile_id || '')
+  if (!id || !profileId) return null
+  return {
+    id,
+    name: String(value.name || ''),
+    description: value.description ? String(value.description) : undefined,
+    workspacePath: String(value.workspace_path || ''),
+    profileId,
+    versionId: value.version_id ? String(value.version_id) : undefined,
+    baselineSuiteId: value.baseline_suite_id ? String(value.baseline_suite_id) : undefined,
+    status: String(value.status || 'active') as AgentEvaluationSuite['status'],
+    createdAt: Number(value.created_at || 0),
+    updatedAt: Number(value.updated_at || 0),
+  }
+}
+
+function mapAgentEvaluationScenarioRow(row: unknown): AgentEvaluationScenario | null {
+  if (!row || typeof row !== 'object') return null
+  const value = row as Record<string, unknown>
+  let tags: string[] = []
+  try {
+    const parsed = JSON.parse(String(value.tags_json || '[]')) as unknown
+    if (Array.isArray(parsed)) tags = parsed.filter((tag): tag is string => typeof tag === 'string')
+  } catch {
+    tags = []
+  }
+  const id = String(value.id || '')
+  const suiteId = String(value.suite_id || '')
+  if (!id || !suiteId) return null
+  return {
+    id,
+    suiteId,
+    name: String(value.name || ''),
+    prompt: String(value.prompt || ''),
+    expectedOutcome: value.expected_outcome ? String(value.expected_outcome) : undefined,
+    tags,
+    sortOrder: Number(value.sort_order || 0),
+    createdAt: Number(value.created_at || 0),
+    updatedAt: Number(value.updated_at || 0),
+  }
+}
+
+function mapAgentEvaluationRunRow(row: unknown): AgentEvaluationRun | null {
+  if (!row || typeof row !== 'object') return null
+  const value = row as Record<string, unknown>
+  let evidence: AgentEvaluationRun['evidence']
+  try {
+    evidence = JSON.parse(String(value.evidence_json || '')) as AgentEvaluationRun['evidence']
+  } catch {
+    return null
+  }
+  const id = String(value.id || '')
+  const suiteId = String(value.suite_id || '')
+  const scenarioId = String(value.scenario_id || '')
+  if (!id || !suiteId || !scenarioId || !evidence?.sourceSessionFile) return null
+  return {
+    id,
+    suiteId,
+    scenarioId,
+    sourceCaseId: String(value.source_case_id || ''),
+    evidence,
+    verdict: String(value.verdict || 'pending') as AgentEvaluationRun['verdict'],
+    notes: value.notes ? String(value.notes) : undefined,
+    createdAt: Number(value.created_at || 0),
+    updatedAt: Number(value.updated_at || 0),
+  }
+}
+
+function mapAgentVersionRow(row: unknown): AgentVersion | null {
+  if (!row || typeof row !== 'object') return null
+  const value = row as Record<string, unknown>
+  let config: AgentVersion['config']
+  let validation: AgentVersion['validation']
+  try {
+    config = JSON.parse(String(value.config_json || '')) as AgentVersion['config']
+    if (value.validation_json) {
+      validation = JSON.parse(String(value.validation_json)) as AgentVersion['validation']
+    }
+  } catch {
+    return null
+  }
+  const id = String(value.id || '')
+  const profileId = String(value.profile_id || '')
+  const digest = String(value.digest || '')
+  if (!id || !profileId || !digest || !config?.name || !config.systemPrompt) return null
+  return {
+    id,
+    profileId,
+    number: Number(value.version_number || 0),
+    digest,
+    config,
+    status: String(value.status || 'candidate') as AgentVersion['status'],
+    validation,
+    releasedAt: value.released_at ? Number(value.released_at) : undefined,
+    createdAt: Number(value.created_at || 0),
   }
 }
 
@@ -481,6 +745,72 @@ function mapAgentProfileRow(row: unknown): AgentProfile | null {
       tools = undefined
     }
   }
+  let extensionTools: string[] | undefined
+  if (value.extension_tools_json != null) {
+    try {
+      const parsed = JSON.parse(String(value.extension_tools_json)) as unknown
+      if (Array.isArray(parsed)) {
+        extensionTools = parsed.filter((tool): tool is string => typeof tool === 'string')
+      }
+    } catch {
+      extensionTools = undefined
+    }
+  }
+  let resourceSelection: AgentProfile['resourceSelection']
+  if (value.resource_selection_json != null) {
+    try {
+      const parsed = JSON.parse(String(value.resource_selection_json)) as unknown
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        const candidate = parsed as Record<string, unknown>
+        if (
+          (candidate.mode === 'inherit' || candidate.mode === 'selected') &&
+          Array.isArray(candidate.packageIds) &&
+          Array.isArray(candidate.resourceIds) &&
+          (candidate.projectContext === 'inherit' || candidate.projectContext === 'none')
+        ) {
+          resourceSelection = {
+            mode: candidate.mode,
+            packageIds: candidate.packageIds.filter(
+              (id): id is string => typeof id === 'string',
+            ),
+            resourceIds: candidate.resourceIds.filter(
+              (id): id is string => typeof id === 'string',
+            ),
+            projectContext: candidate.projectContext,
+          }
+        }
+      }
+    } catch {
+      resourceSelection = undefined
+    }
+  }
+  let providerRequirements: AgentProfile['providerRequirements']
+  if (value.provider_requirements_json != null) {
+    try {
+      const parsed = JSON.parse(String(value.provider_requirements_json)) as unknown
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        const candidate = parsed as Record<string, unknown>
+        providerRequirements = {
+          reasoning: candidate.reasoning === true,
+          imageInput: candidate.imageInput === true,
+          minContextWindow:
+            typeof candidate.minContextWindow === 'number' && candidate.minContextWindow > 0
+              ? candidate.minContextWindow
+              : undefined,
+        }
+      }
+    } catch {
+      providerRequirements = undefined
+    }
+  }
+  let importProvenance: AgentProfile['importProvenance']
+  if (value.import_provenance_json != null) {
+    try {
+      importProvenance = JSON.parse(String(value.import_provenance_json)) as AgentProfile['importProvenance']
+    } catch {
+      importProvenance = undefined
+    }
+  }
   return {
     id: String(value.id || ''),
     name: String(value.name || ''),
@@ -490,6 +820,10 @@ function mapAgentProfileRow(row: unknown): AgentProfile | null {
     modelId: value.model_id ? String(value.model_id) : undefined,
     thinkingLevel: value.thinking_level ? String(value.thinking_level) : undefined,
     tools,
+    extensionTools,
+    resourceSelection,
+    providerRequirements,
+    importProvenance,
     status: String(value.status || 'active') as AgentProfile['status'],
     createdAt: Number(value.created_at || 0),
     updatedAt: Number(value.updated_at || 0),
@@ -730,8 +1064,9 @@ export const sqliteIndex = {
     d.prepare(
       `INSERT INTO agent_profile
         (id, name, description, system_prompt, prompt_mode, model_id, thinking_level,
-         tools_json, status, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         tools_json, extension_tools_json, resource_selection_json, provider_requirements_json,
+         import_provenance_json, status, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(id) DO UPDATE SET
          name = excluded.name,
          description = excluded.description,
@@ -740,6 +1075,10 @@ export const sqliteIndex = {
          model_id = excluded.model_id,
          thinking_level = excluded.thinking_level,
          tools_json = excluded.tools_json,
+         extension_tools_json = excluded.extension_tools_json,
+         resource_selection_json = excluded.resource_selection_json,
+         provider_requirements_json = excluded.provider_requirements_json,
+         import_provenance_json = excluded.import_provenance_json,
          status = excluded.status,
          updated_at = excluded.updated_at`,
     ).run(
@@ -751,6 +1090,14 @@ export const sqliteIndex = {
       profile.modelId ?? null,
       profile.thinkingLevel ?? null,
       profile.tools === undefined ? null : JSON.stringify(profile.tools),
+      profile.extensionTools === undefined ? null : JSON.stringify(profile.extensionTools),
+      profile.resourceSelection === undefined
+        ? null
+        : JSON.stringify(profile.resourceSelection),
+      profile.providerRequirements === undefined
+        ? null
+        : JSON.stringify(profile.providerRequirements),
+      profile.importProvenance === undefined ? null : JSON.stringify(profile.importProvenance),
       profile.status,
       profile.createdAt,
       profile.updatedAt,
@@ -773,6 +1120,69 @@ export const sqliteIndex = {
       .all()
       .map(mapAgentProfileRow)
       .filter((profile): profile is AgentProfile => profile != null)
+  },
+
+  saveAgentVersion(version: AgentVersion): boolean {
+    const d = getDb()
+    if (!d) return false
+    d.prepare(
+      `INSERT INTO agent_profile_version
+        (id, profile_id, version_number, digest, config_json, status,
+         validation_json, released_at, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET
+         status = excluded.status,
+         validation_json = excluded.validation_json,
+         released_at = excluded.released_at`,
+    ).run(
+      version.id,
+      version.profileId,
+      version.number,
+      version.digest,
+      JSON.stringify(version.config),
+      version.status,
+      version.validation ? JSON.stringify(version.validation) : null,
+      version.releasedAt ?? null,
+      version.createdAt,
+    )
+    return true
+  },
+
+  getAgentVersion(id: string): AgentVersion | null {
+    const d = getDb()
+    if (!d) return null
+    return mapAgentVersionRow(
+      d.prepare('SELECT * FROM agent_profile_version WHERE id = ?').get(id),
+    )
+  },
+
+  getLatestAgentVersion(profileId: string): AgentVersion | null {
+    const d = getDb()
+    if (!d) return null
+    return mapAgentVersionRow(
+      d
+        .prepare(
+          'SELECT * FROM agent_profile_version WHERE profile_id = ? ORDER BY version_number DESC LIMIT 1',
+        )
+        .get(profileId),
+    )
+  },
+
+  listAgentVersions(profileId?: string): AgentVersion[] {
+    const d = getDb()
+    if (!d) return []
+    const rows = profileId
+      ? d
+          .prepare(
+            'SELECT * FROM agent_profile_version WHERE profile_id = ? ORDER BY version_number DESC',
+          )
+          .all(profileId)
+      : d
+          .prepare(
+            'SELECT * FROM agent_profile_version ORDER BY created_at DESC, version_number DESC',
+          )
+          .all()
+    return rows.map(mapAgentVersionRow).filter((version): version is AgentVersion => version != null)
   },
 
   bindSessionAgent(binding: SessionAgentBinding): boolean {
@@ -820,14 +1230,104 @@ export const sqliteIndex = {
     return null
   },
 
+  saveAgentRunRuntimeEvidence(
+    sessionFile: string,
+    evidence: NonNullable<AgentRunHistoryItem['runtimeEvidence']>,
+  ): boolean {
+    const d = getDb()
+    if (!d) return false
+    d.prepare(
+      `INSERT INTO agent_run_runtime_evidence
+        (session_file, run_id, resource_json, context_before_json, context_after_json, captured_at)
+       VALUES (?, ?, ?, ?, ?, ?)
+       ON CONFLICT(session_file) DO UPDATE SET
+         run_id = excluded.run_id,
+         resource_json = COALESCE(excluded.resource_json, agent_run_runtime_evidence.resource_json),
+         context_before_json = COALESCE(excluded.context_before_json, agent_run_runtime_evidence.context_before_json),
+         context_after_json = CASE
+           WHEN excluded.run_id IS NOT agent_run_runtime_evidence.run_id THEN excluded.context_after_json
+           ELSE COALESCE(excluded.context_after_json, agent_run_runtime_evidence.context_after_json)
+         END,
+         captured_at = excluded.captured_at`,
+    ).run(
+      sessionFile,
+      evidence.runId || null,
+      evidence.resourceEvidence ? JSON.stringify(evidence.resourceEvidence) : null,
+      evidence.contextBefore ? JSON.stringify(evidence.contextBefore) : null,
+      evidence.contextAfter ? JSON.stringify(evidence.contextAfter) : null,
+      evidence.capturedAt,
+    )
+    return true
+  },
+
+  getAgentRunRuntimeEvidence(sessionFile: string): AgentRunHistoryItem['runtimeEvidence'] | undefined {
+    const d = getDb()
+    if (!d) return undefined
+    const row = d.prepare('SELECT * FROM agent_run_runtime_evidence WHERE session_file = ?').get(sessionFile) as Record<string, unknown> | undefined
+    if (!row) return undefined
+    const parse = <T>(value: unknown): T | undefined => {
+      if (!value) return undefined
+      try { return JSON.parse(String(value)) as T } catch { return undefined }
+    }
+    return {
+      runId: row.run_id ? String(row.run_id) : undefined,
+      resourceEvidence: parse(row.resource_json),
+      contextBefore: parse(row.context_before_json),
+      contextAfter: parse(row.context_after_json),
+      capturedAt: Number(row.captured_at || 0),
+    }
+  },
+
+  saveAgentRunTurnEvidence(sessionFile: string, evidence: NonNullable<AgentRunHistoryItem['turns']>[number]): boolean {
+    const d = getDb()
+    if (!d) return false
+    d.prepare(
+      `INSERT INTO agent_run_turn_evidence
+        (session_file, run_id, evidence_json, started_at, updated_at)
+       VALUES (?, ?, ?, ?, ?)
+       ON CONFLICT(session_file, run_id) DO UPDATE SET
+         evidence_json = excluded.evidence_json,
+         started_at = excluded.started_at,
+         updated_at = excluded.updated_at`,
+    ).run(sessionFile, evidence.runId, JSON.stringify(evidence), evidence.startedAt, evidence.endedAt || Date.now())
+    return true
+  },
+
+  getAgentRunTurnEvidence(sessionFile: string, runId: string): NonNullable<AgentRunHistoryItem['turns']>[number] | undefined {
+    const d = getDb()
+    if (!d) return undefined
+    const row = d.prepare('SELECT evidence_json FROM agent_run_turn_evidence WHERE session_file = ? AND run_id = ?').get(sessionFile, runId) as { evidence_json?: string } | undefined
+    if (!row?.evidence_json) return undefined
+    try { return JSON.parse(row.evidence_json) as NonNullable<AgentRunHistoryItem['turns']>[number] } catch { return undefined }
+  },
+
+  listAgentRunTurnEvidence(sessionFile: string, limit = 50): NonNullable<AgentRunHistoryItem['turns']> {
+    const d = getDb()
+    if (!d) return []
+    return d.prepare('SELECT evidence_json FROM agent_run_turn_evidence WHERE session_file = ? ORDER BY started_at DESC LIMIT ?').all(sessionFile, limit).flatMap((row: unknown) => {
+      try { return [JSON.parse(String((row as { evidence_json?: string }).evidence_json || '')) as NonNullable<AgentRunHistoryItem['turns']>[number]] } catch { return [] }
+    }).reverse()
+  },
+
+  listSessionAgentBindings(profileId: string): SessionAgentBinding[] {
+    const d = getDb()
+    if (!d) return []
+    return d
+      .prepare('SELECT * FROM session_agent_binding WHERE profile_id = ? ORDER BY created_at DESC')
+      .all(profileId)
+      .map(mapSessionAgentBindingRow)
+      .filter((binding): binding is SessionAgentBinding => binding != null)
+  },
+
   saveAgentCase(agentCase: AgentCase): boolean {
     const d = getDb()
     if (!d) return false
     d.prepare(
       `INSERT INTO agent_case
         (id, name, summary, tags_json, status, workspace_path, source_session_id,
-         source_session_file, model_id, thinking_level, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         source_session_file, model_id, thinking_level, provenance_json, verification_json,
+         created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(id) DO UPDATE SET
          name = excluded.name,
          summary = excluded.summary,
@@ -838,6 +1338,8 @@ export const sqliteIndex = {
          source_session_file = excluded.source_session_file,
          model_id = excluded.model_id,
          thinking_level = excluded.thinking_level,
+         provenance_json = excluded.provenance_json,
+         verification_json = excluded.verification_json,
          updated_at = excluded.updated_at`,
     ).run(
       agentCase.id,
@@ -850,6 +1352,8 @@ export const sqliteIndex = {
       agentCase.sourceSessionFile,
       agentCase.modelId ?? null,
       agentCase.thinkingLevel ?? null,
+      agentCase.provenance ? JSON.stringify(agentCase.provenance) : null,
+      agentCase.lastVerification ? JSON.stringify(agentCase.lastVerification) : null,
       agentCase.createdAt,
       agentCase.updatedAt,
     )
@@ -881,6 +1385,260 @@ export const sqliteIndex = {
       .all(...args)
       .map(mapAgentCaseRow)
       .filter((agentCase): agentCase is AgentCase => agentCase != null)
+  },
+
+  saveAgentEvaluationSuite(suite: AgentEvaluationSuite): boolean {
+    const d = getDb()
+    if (!d) return false
+    d.prepare(
+      `INSERT INTO agent_evaluation_suite
+        (id, name, description, workspace_path, profile_id, version_id, baseline_suite_id, status, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET
+         name = excluded.name,
+         description = excluded.description,
+         workspace_path = excluded.workspace_path,
+         profile_id = excluded.profile_id,
+         version_id = excluded.version_id,
+         baseline_suite_id = excluded.baseline_suite_id,
+         status = excluded.status,
+         updated_at = excluded.updated_at`,
+    ).run(
+      suite.id,
+      suite.name,
+      suite.description ?? null,
+      suite.workspacePath,
+      suite.profileId,
+      suite.versionId ?? null,
+      suite.baselineSuiteId ?? null,
+      suite.status,
+      suite.createdAt,
+      suite.updatedAt,
+    )
+    return true
+  },
+
+  saveAgentEvaluationSuiteClone(
+    suite: AgentEvaluationSuite,
+    scenarios: AgentEvaluationScenario[],
+  ): boolean {
+    const d = getDb()
+    if (!d) return false
+    d.exec('BEGIN IMMEDIATE')
+    try {
+      d.prepare(
+        `INSERT INTO agent_evaluation_suite
+          (id, name, description, workspace_path, profile_id, version_id, baseline_suite_id, status, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ).run(
+        suite.id,
+        suite.name,
+        suite.description ?? null,
+        suite.workspacePath,
+        suite.profileId,
+        suite.versionId ?? null,
+        suite.baselineSuiteId ?? null,
+        suite.status,
+        suite.createdAt,
+        suite.updatedAt,
+      )
+      const statement = d.prepare(
+        `INSERT INTO agent_evaluation_scenario
+          (id, suite_id, name, prompt, expected_outcome, tags_json, sort_order, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      for (const scenario of scenarios) {
+        statement.run(
+          scenario.id,
+          scenario.suiteId,
+          scenario.name,
+          scenario.prompt,
+          scenario.expectedOutcome ?? null,
+          JSON.stringify(scenario.tags),
+          scenario.sortOrder,
+          scenario.createdAt,
+          scenario.updatedAt,
+        )
+      }
+      d.exec('COMMIT')
+      return true
+    } catch (error) {
+      d.exec('ROLLBACK')
+      throw error
+    }
+  },
+
+  getAgentEvaluationSuite(id: string): AgentEvaluationSuite | null {
+    const d = getDb()
+    if (!d) return null
+    return mapAgentEvaluationSuiteRow(
+      d.prepare('SELECT * FROM agent_evaluation_suite WHERE id = ?').get(id),
+    )
+  },
+
+  listAgentEvaluationSuites(options?: {
+    workspacePath?: string
+    includeArchived?: boolean
+  }): AgentEvaluationSuite[] {
+    const d = getDb()
+    if (!d) return []
+    const clauses: string[] = []
+    const args: unknown[] = []
+    if (options?.workspacePath) {
+      clauses.push('workspace_path = ?')
+      args.push(options.workspacePath)
+    }
+    if (options?.includeArchived !== true) clauses.push("status != 'archived'")
+    const where = clauses.length ? ` WHERE ${clauses.join(' AND ')}` : ''
+    return d
+      .prepare(`SELECT * FROM agent_evaluation_suite${where} ORDER BY updated_at DESC`)
+      .all(...args)
+      .map(mapAgentEvaluationSuiteRow)
+      .filter((suite): suite is AgentEvaluationSuite => suite != null)
+  },
+
+  saveAgentEvaluationScenario(scenario: AgentEvaluationScenario): boolean {
+    const d = getDb()
+    if (!d) return false
+    d.prepare(
+      `INSERT INTO agent_evaluation_scenario
+        (id, suite_id, name, prompt, expected_outcome, tags_json, sort_order, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET
+         suite_id = excluded.suite_id,
+         name = excluded.name,
+         prompt = excluded.prompt,
+         expected_outcome = excluded.expected_outcome,
+         tags_json = excluded.tags_json,
+         sort_order = excluded.sort_order,
+         updated_at = excluded.updated_at`,
+    ).run(
+      scenario.id,
+      scenario.suiteId,
+      scenario.name,
+      scenario.prompt,
+      scenario.expectedOutcome ?? null,
+      JSON.stringify(scenario.tags),
+      scenario.sortOrder,
+      scenario.createdAt,
+      scenario.updatedAt,
+    )
+    return true
+  },
+
+  getAgentEvaluationScenario(id: string): AgentEvaluationScenario | null {
+    const d = getDb()
+    if (!d) return null
+    return mapAgentEvaluationScenarioRow(
+      d.prepare('SELECT * FROM agent_evaluation_scenario WHERE id = ?').get(id),
+    )
+  },
+
+  listAgentEvaluationScenarios(suiteId: string): AgentEvaluationScenario[] {
+    const d = getDb()
+    if (!d) return []
+    return d
+      .prepare(
+        'SELECT * FROM agent_evaluation_scenario WHERE suite_id = ? ORDER BY sort_order, created_at',
+      )
+      .all(suiteId)
+      .map(mapAgentEvaluationScenarioRow)
+      .filter((scenario): scenario is AgentEvaluationScenario => scenario != null)
+  },
+
+  saveAgentEvaluationRun(run: AgentEvaluationRun): boolean {
+    const d = getDb()
+    if (!d) return false
+    d.prepare(
+      `INSERT INTO agent_evaluation_run
+        (id, suite_id, scenario_id, source_case_id, evidence_json, verdict, notes, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET
+         evidence_json = excluded.evidence_json,
+         verdict = excluded.verdict,
+         notes = excluded.notes,
+         updated_at = excluded.updated_at`,
+    ).run(
+      run.id,
+      run.suiteId,
+      run.scenarioId,
+      run.sourceCaseId,
+      JSON.stringify(run.evidence),
+      run.verdict,
+      run.notes ?? null,
+      run.createdAt,
+      run.updatedAt,
+    )
+    return true
+  },
+
+  getAgentEvaluationRun(id: string): AgentEvaluationRun | null {
+    const d = getDb()
+    if (!d) return null
+    return mapAgentEvaluationRunRow(
+      d.prepare('SELECT * FROM agent_evaluation_run WHERE id = ?').get(id),
+    )
+  },
+
+  listAgentEvaluationRuns(suiteId: string): AgentEvaluationRun[] {
+    const d = getDb()
+    if (!d) return []
+    return d
+      .prepare('SELECT * FROM agent_evaluation_run WHERE suite_id = ? ORDER BY created_at DESC')
+      .all(suiteId)
+      .map(mapAgentEvaluationRunRow)
+      .filter((run): run is AgentEvaluationRun => run != null)
+  },
+
+  saveAgentEvaluationBatch(batch: AgentEvaluationBatch): boolean {
+    const d = getDb()
+    if (!d) return false
+    d.prepare(
+      `INSERT INTO agent_evaluation_batch
+        (id, suite_id, workspace_path, status, batch_json, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET
+         status = excluded.status,
+         batch_json = excluded.batch_json,
+         updated_at = excluded.updated_at`,
+    ).run(
+      batch.id,
+      batch.suiteId,
+      batch.workspacePath,
+      batch.status,
+      JSON.stringify(batch),
+      batch.createdAt,
+      Date.now(),
+    )
+    return true
+  },
+
+  getAgentEvaluationBatch(id: string): AgentEvaluationBatch | null {
+    const d = getDb()
+    if (!d) return null
+    const row = d.prepare('SELECT batch_json FROM agent_evaluation_batch WHERE id = ?').get(id) as
+      | { batch_json?: unknown }
+      | undefined
+    if (!row?.batch_json) return null
+    try {
+      return JSON.parse(String(row.batch_json)) as AgentEvaluationBatch
+    } catch {
+      return null
+    }
+  },
+
+  getLatestAgentEvaluationBatch(suiteId: string): AgentEvaluationBatch | null {
+    const d = getDb()
+    if (!d) return null
+    const row = d.prepare(
+      'SELECT batch_json FROM agent_evaluation_batch WHERE suite_id = ? ORDER BY created_at DESC LIMIT 1',
+    ).get(suiteId) as { batch_json?: unknown } | undefined
+    if (!row?.batch_json) return null
+    try {
+      return JSON.parse(String(row.batch_json)) as AgentEvaluationBatch
+    } catch {
+      return null
+    }
   },
 
   upsertWorkspace(workspaceId: string, name: string, path: string): void {

@@ -17,6 +17,7 @@ export type SdkStatus = {
   npmAvailable?: boolean
   workerFallback?: boolean
   minimumSupportedVersion?: string
+  supportedVersionLine?: string
   active?: { version?: string; kind?: 'builtin' | 'global' | 'user'; fallbackReason?: string }
 }
 

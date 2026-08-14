@@ -1,24 +1,23 @@
-## Vizruna-web v0.1.0-alpha.5
+## Vizruna-web v0.1.0-alpha.6
 
-### 首个 Vizruna-web 公开测试版
+### Pi-native Agent Harness 升级
 
-- Vizruna-web 成为唯一维护和发布的用户版本；桌面客户端暂停开发与分发。
-- 在默认浏览器中提供完整的 Pi 对话、模型登录、Agent Studio、文件、终端、Review、
-  Worktree 和多 Agent 能力。
-- 本地服务只绑定 `127.0.0.1`，并使用一次性启动令牌、HttpOnly 会话、同源与 CSRF
-  校验、RPC 白名单和参数校验。
-- 会话、OAuth、Provider 设置、Agent 配置、提示词和案例保存在源码目录之外，更新
-  Vizruna-web 不会删除这些数据。
+- Agent 配置库升级为完整工作台，可组合并检查模型、System Prompt、工具和 Pi 原生资源。
+- 新增不可变 Agent Version、固定任务评测、版本对比和验证门禁。
+- 新增 Pi Package Studio、目标环境就绪检查和安全的 Package 导入流程。
+- 新增 Pi 有效配置、资源中心和 Run Debugger，提供逐轮运行、Context、Token、费用、工具与错误证据。
+- 内嵌 Pi Runtime 升级到已验证的 `0.84.1`。
+- 右侧工具导航改为紧凑分组布局，所有面板可以直接点击切换。
 
 ### 安装方法
 
 1. 安装 Node.js 22.19.0 或更高版本。
-2. 下载 `Vizruna-web-0.1.0-alpha.5-source.zip` 和 `SHA256SUMS.txt`。
+2. 下载 `Vizruna-web-0.1.0-alpha.6-source.zip` 和 `SHA256SUMS.txt`。
 3. 解压 ZIP，双击 `Start-Vizruna-web.command`。
 4. 首次启动等待依赖安装和页面构建完成，默认浏览器会自动打开。
 5. 保持启动终端运行；需要停止时按 `Control+C`。
 
-完整安装、升级和故障处理说明见 [README.md](README.md)。
+完整安装、升级、功能和故障处理说明见 [README.md](README.md)。
 
 ### 发布物
 

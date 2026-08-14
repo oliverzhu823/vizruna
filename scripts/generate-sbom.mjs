@@ -15,7 +15,6 @@ const result = spawnSync(
   npmCommand,
   [
     'sbom',
-    '--omit=dev',
     '--sbom-format=cyclonedx',
     '--sbom-type=application',
   ],
@@ -32,14 +31,70 @@ if (result.status !== 0) {
   process.exit(result.status ?? 1)
 }
 
+const productionTreeResult = spawnSync(
+  npmCommand,
+  ['ls', '--omit=dev', '--all', '--json'],
+  {
+    cwd: root,
+    encoding: 'utf8',
+    env: process.env,
+    maxBuffer: 20 * 1024 * 1024,
+  },
+)
+
+if (productionTreeResult.status !== 0) {
+  process.stderr.write(
+    productionTreeResult.stderr ||
+      productionTreeResult.stdout ||
+      '[sbom] npm ls production tree failed\n',
+  )
+  process.exit(productionTreeResult.status ?? 1)
+}
+
+const packageKey = (name, version) => `${name ?? ''}\u0000${version ?? ''}`
+const productionPackages = new Set()
+const collectProductionPackages = (node, inferredName) => {
+  if (!node || typeof node !== 'object') return
+  const name = typeof node.name === 'string' ? node.name : inferredName
+  if (typeof name === 'string' && typeof node.version === 'string') {
+    productionPackages.add(packageKey(name, node.version))
+  }
+  for (const [dependencyName, dependency] of Object.entries(node.dependencies ?? {})) {
+    collectProductionPackages(dependency, dependencyName)
+  }
+}
+collectProductionPackages(JSON.parse(productionTreeResult.stdout))
+
+// npm 11 can omit hoisted packages that are shared by production and dev paths
+// when `npm sbom --omit=dev` is used (for example fast-uri). Generate the full
+// installed graph, then retain only packages proven reachable by `npm ls
+// --omit=dev` so the inventory matches the actual packaged runtime.
 const sbom = JSON.parse(result.stdout)
-const components = Array.isArray(sbom.components) ? sbom.components : []
+sbom.components = (Array.isArray(sbom.components) ? sbom.components : []).filter(
+  (component) => productionPackages.has(packageKey(component.name, component.version)),
+)
+const allowedReferences = new Set([
+  sbom.metadata?.component?.['bom-ref'],
+  ...sbom.components.map((component) => component['bom-ref']),
+].filter(Boolean))
+sbom.dependencies = (Array.isArray(sbom.dependencies) ? sbom.dependencies : [])
+  .filter((dependency) => allowedReferences.has(dependency.ref))
+  .map((dependency) => ({
+    ...dependency,
+    dependsOn: (dependency.dependsOn ?? []).filter((reference) =>
+      allowedReferences.has(reference),
+    ),
+  }))
+
+const components = sbom.components
 const requiredVersions = new Map([
-  ['@earendil-works/pi-coding-agent', '0.82.1'],
-  ['brace-expansion', '5.0.8'],
+  ['@earendil-works/pi-coding-agent', '0.84.1'],
+  ['brace-expansion', '5.0.9'],
+  ['dompurify', '3.4.13'],
+  ['fast-uri', '3.1.5'],
   ['protobufjs', '7.6.5'],
   ['proxy-chain', '3.0.0'],
-  ['undici', '8.5.0'],
+  ['undici', '8.9.0'],
 ])
 
 for (const [name, version] of requiredVersions) {
@@ -50,7 +105,9 @@ for (const [name, version] of requiredVersions) {
 }
 
 const forbiddenVersions = new Map([
-  ['brace-expansion', new Set(['5.0.6', '5.0.7'])],
+  ['brace-expansion', new Set(['5.0.6', '5.0.7', '5.0.8'])],
+  ['dompurify', new Set(['3.4.11', '3.4.12'])],
+  ['fast-uri', new Set(['3.1.4'])],
   ['protobufjs', new Set(['7.6.4'])],
 ])
 

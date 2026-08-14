@@ -1,7 +1,7 @@
 import { app } from 'electron'
 import { pathToFileURL } from 'node:url'
 import { resolveActiveSdk } from '../sdk-loader'
-import { hasRequiredPiSdkCapabilities } from '@shared/pi-sdk-compat'
+import { inspectPiSdkCompatibility } from '@shared/pi-sdk-compat'
 
 export async function getActiveSdkModule(): Promise<typeof import('@earendil-works/pi-coding-agent')> {
   const active = resolveActiveSdk(app.getPath('userData'))
@@ -10,8 +10,11 @@ export async function getActiveSdkModule(): Promise<typeof import('@earendil-wor
   }
   try {
     const candidate = await import(pathToFileURL(active.entryPath).href)
-    if (!hasRequiredPiSdkCapabilities(candidate)) {
-      throw new Error(`Pi SDK ${active.version || 'unknown'} is missing required ModelRuntime capabilities`)
+    const compatibility = inspectPiSdkCompatibility(candidate)
+    if (!compatibility.compatible) {
+      throw new Error(
+        `Pi SDK ${active.version || 'unknown'} is missing required capabilities: ${compatibility.missingCapabilities.join(', ')}`,
+      )
     }
     return candidate as typeof import('@earendil-works/pi-coding-agent')
   } catch (error) {

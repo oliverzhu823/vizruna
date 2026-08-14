@@ -47,6 +47,54 @@
   "noModel": "No model",
   "contextBreakdown": "Context",
   "contextEmpty": "Share appears after you send a message",
+  "debugger": {
+    "title": "Pi Run Debugger",
+    "hint": "Explains the effective configuration, tool order, context state, and failure layer for this turn.",
+    "live": "Live",
+    "lastRun": "Latest turn",
+    "fixedConfig": "Fixed configuration",
+    "generalPi": "General Pi",
+    "contextNow": "Current context",
+    "runContext": "Run context",
+    "contextDelta": "Turn delta",
+    "loadedResources": "Loaded Pi resources",
+    "noLoadedResources": "No additional Pi resources were exposed for this run.",
+    "resources": {
+      "activeTools": "Active tools",
+      "skills": "Skills",
+      "promptTemplates": "Prompt templates",
+      "extensions": "Extensions",
+      "contextFiles": "Context files",
+      "systemPromptSources": "System prompt sources"
+    },
+    "effectiveModel": "Effective model",
+    "tools": "Tools",
+    "failures": "Failures",
+    "compactions": "Compactions",
+    "compaction": "Context compaction",
+    "empty": "No tool, compaction, or error events for this turn yet. Events will appear in their real order while it runs.",
+    "failureAt": "Likely failure layer: {{layer}}",
+    "failureLayerLabel": "Failure layer",
+    "noDetail": "Pi did not provide additional detail.",
+    "origin": {
+      "pi-base": "Pi base",
+      "extension": "Extension"
+    },
+    "entryStatus": {
+      "running": "Running",
+      "success": "Succeeded",
+      "failed": "Failed",
+      "info": "Information"
+    },
+    "failureLayer": {
+      "authentication": "Authentication",
+      "provider": "Provider / model",
+      "context": "Context",
+      "extension": "Extension",
+      "tool": "Pi tool",
+      "runtime": "Pi Runtime"
+    }
+  },
   "role": {
     "system": "System",
     "user": "User",

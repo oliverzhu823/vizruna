@@ -105,6 +105,62 @@ describe('handleRun idle (agent completion)', () => {
     vi.clearAllMocks()
   })
 
+  it('starts each Pi run with fresh turn counters and usage', () => {
+    const { api, state } = makeApi()
+    Object.assign(state.runState as RunState, {
+      toolCount: 4,
+      errorCount: 2,
+      usage: { input: 10, output: 20, cacheRead: 0, cacheWrite: 0, cost: 0 },
+      contextAfter: {
+        tokens: 900,
+        contextWindow: 10_000,
+        percent: 9,
+        messageCount: 2,
+        capturedAt: 1,
+      },
+    })
+
+    handleRun(
+      {
+        type: 'run',
+        phase: 'started',
+        seq: 4,
+        workspaceId: '/w',
+        sessionFile: '/s.jsonl',
+        runId: 'run-2',
+        contextSnapshot: {
+          tokens: 1_000,
+          contextWindow: 10_000,
+          percent: 10,
+          messageCount: 3,
+          capturedAt: 2,
+        },
+        resourceEvidence: {
+          capturedAt: 2,
+          activeTools: [{ name: 'read' }],
+          skills: [],
+          promptTemplates: [],
+          extensions: [],
+          contextFiles: [],
+          systemPromptSources: [],
+        },
+        timestamp: Date.now(),
+      } as never,
+      api,
+    )
+
+    expect(state.runState).toMatchObject({
+      status: 'running',
+      activeRunId: 'run-2',
+      toolCount: 0,
+      errorCount: 0,
+      usage: undefined,
+      contextAfter: undefined,
+      contextBefore: { tokens: 1_000 },
+      resourceEvidence: { activeTools: [{ name: 'read' }] },
+    })
+  })
+
   it('clears running UI even when empty optimistic assistant remains', () => {
     const { api, state } = makeApi()
     handleRun(

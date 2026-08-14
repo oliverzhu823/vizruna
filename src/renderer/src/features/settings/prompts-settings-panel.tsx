@@ -31,44 +31,10 @@ const GROUP_ICON: Record<PromptCategory, typeof FileText> = {
 }
 
 export function PromptsSettingsPanel() {
-  const { t } = useTranslation('systemPrompts')
-  const [section, setSection] = useState<'conversation' | 'pi'>('conversation')
-
-  return (
-    <div className="w-full space-y-5">
-      <div className="inline-flex rounded-xl border border-border/60 bg-muted/25 p-1">
-        <button
-          type="button"
-          onClick={() => setSection('conversation')}
-          className={cn(
-            'rounded-lg px-3 py-1.5 text-[11px] font-medium transition-colors',
-            section === 'conversation'
-              ? 'bg-background text-foreground shadow-sm'
-              : 'text-muted-foreground hover:text-foreground',
-          )}
-        >
-          {t('libraryTab')}
-        </button>
-        <button
-          type="button"
-          onClick={() => setSection('pi')}
-          className={cn(
-            'rounded-lg px-3 py-1.5 text-[11px] font-medium transition-colors',
-            section === 'pi'
-              ? 'bg-background text-foreground shadow-sm'
-              : 'text-muted-foreground hover:text-foreground',
-          )}
-        >
-          {t('piResourcesTab')}
-        </button>
-      </div>
-
-      {section === 'conversation' ? <SystemPromptPresetsPanel /> : <PiPromptResourcesPanel />}
-    </div>
-  )
+  return <SystemPromptPresetsPanel />
 }
 
-function PiPromptResourcesPanel() {
+export function PiPromptResourcesPanel() {
   const { t, i18n } = useTranslation()
   const [flat, setFlat] = useState<PromptRow[]>([])
   const [loading, setLoading] = useState(true)

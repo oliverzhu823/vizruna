@@ -1,0 +1,201 @@
+{
+  "eyebrow": "Agent Evaluation",
+  "title": "Agent Evaluations",
+  "description": "Compare Agent versions using fixed tasks and real Pi session evidence: output, latency, tokens, tool calls, and failures.",
+  "sidebarTitle": "Evaluation suites",
+  "count": "{{count}} suites",
+  "newSuite": "New suite",
+  "newScenario": "Add test task",
+  "runScenario": "Run this task",
+  "attachCase": "Attach case result",
+  "archive": "Archive suite",
+  "openSource": "Open source chat",
+  "review": "Human review",
+  "showArchived": "Show archived",
+  "hideArchived": "Hide archived",
+  "empty": {
+    "title": "No evaluation suites yet",
+    "description": "Create fixed tasks for an Agent, then repeat the same tasks after every change.",
+    "select": "Select an evaluation suite from the left",
+    "scenario": "No test tasks yet. Add one real task that can be repeated.",
+    "run": "No results yet. Run the task, save it as a case, then attach that case here."
+  },
+  "suite": {
+    "title": "Create Agent evaluation suite",
+    "name": "Suite name",
+    "namePlaceholder": "For example: Market Research Agent regression",
+    "description": "Description",
+    "descriptionPlaceholder": "Explain which capabilities this suite verifies",
+    "agent": "Target Agent",
+    "version": "Target Agent version",
+    "workspaceRequired": "Open a trusted project before creating an evaluation suite.",
+    "submit": "Create suite",
+    "archived": "Archived"
+  },
+  "versionStatus": {
+    "candidate": "Candidate",
+    "validated": "Validated",
+    "released": "Released"
+  },
+  "clone": {
+    "action": "Evaluate another version",
+    "title": "Evaluate another version with the same tasks",
+    "description": "Copy all {{count}} fixed tasks in this suite to another immutable Agent version.",
+    "targetVersion": "Target Agent version",
+    "name": "New suite name",
+    "defaultName": "{{name}} · v{{version}}",
+    "guarantee": "Task input, human acceptance criteria, tags, and order stay unchanged. Historical runs are not copied, so both versions are measured with the same ruler.",
+    "noVersion": "This Agent has no other version to evaluate. Edit and save its configuration first.",
+    "taskRequired": "Add at least one fixed test task first",
+    "submit": "Create version evaluation"
+  },
+  "comparison": {
+    "title": "Agent version outcome comparison",
+    "description": "Uses the latest real run and human verdict for each fixed task. Speed, tokens, and cost remain supporting signals only.",
+    "baseline": "Baseline",
+    "loading": "Checking evidence from both Agent versions…",
+    "noRun": "No result",
+    "versionPair": "v{{baseline}} → v{{candidate}}",
+    "pairedRuns": "{{count}} comparable run pairs",
+    "counts": "Improved {{improved}} · Equal {{equivalent}} · Regressed {{regressed}} · Insufficient {{insufficient}}",
+    "outcome": {
+      "improved": "Candidate improved",
+      "equivalent": "Quality unchanged",
+      "regressed": "Candidate regressed",
+      "mixed": "Mixed improvement and regression",
+      "insufficient": "Insufficient evidence"
+    },
+    "explanation": {
+      "improved": "At least one fixed task changed from failed to passed, with no regressions or missing evidence.",
+      "equivalent": "Human verdicts are unchanged across every verifiable task.",
+      "regressed": "At least one fixed task changed from passed to failed. Fix it before delivery.",
+      "mixed": "Some tasks improved while others regressed, so the candidate is not an overall upgrade.",
+      "insufficient": "A run, review, matching input, or matching task is missing, so no conclusion is safe yet."
+    },
+    "metric": {
+      "passRate": "Pass-rate change",
+      "duration": "Average latency change",
+      "tokens": "Token change",
+      "cost": "Recorded cost change",
+      "toolFailures": "Tool-failure change"
+    },
+    "columns": {
+      "task": "Fixed task",
+      "verdict": "Baseline → candidate",
+      "model": "Model (baseline / candidate)",
+      "delta": "Latency / cost change"
+    },
+    "reason": {
+      "scenario-missing": "Tasks do not match",
+      "run-missing": "Real run missing",
+      "review-pending": "Human review pending",
+      "prompt-drifted": "Actual input drifted"
+    }
+  },
+  "report": {
+    "action": "Export regression report",
+    "title": "Export Agent regression report",
+    "description": "Generate a local Markdown report using the exact comparison currently shown.",
+    "safeSummary": "The default shareable summary includes version identity, changed configuration fields, human verdicts, and runtime metrics. It excludes the System Prompt, full task inputs, full model outputs, session paths, credentials, and hidden reasoning.",
+    "includeContent": "Include task inputs and model outputs",
+    "includeContentWarning": "Use only for trusted internal review. The report will include fixed inputs, human acceptance criteria, and outputs from both versions; inspect it for sensitive data before sharing.",
+    "download": "Download Markdown"
+  },
+  "batch": {
+    "title": "One-click regression",
+    "description": "Runs every fixed task sequentially in isolated background Pi sessions and captures real evidence for human review. It does not occupy the active chat or add test-only assets to the Agent case library.",
+    "start": "Run full regression",
+    "rerun": "Run full regression again",
+    "cancel": "Cancel regression",
+    "progress": "{{finished}} / {{total}} tasks",
+    "confirmTitle": "Run the full Agent regression?",
+    "confirmDescription": "Vizruna will run {{count}} fixed tasks sequentially with the current immutable Agent version.",
+    "costNotice": "Each task makes a real model request and may execute tools already authorized for this Agent, so API usage and local file operations may occur. Tasks run sequentially and one failure will not stop the rest.",
+    "confirm": "Confirm and start",
+    "status": {
+      "queued": "Preparing the Pi runtime",
+      "running": "Running in the background",
+      "completed": "Regression completed",
+      "cancelled": "Regression cancelled",
+      "failed": "Regression could not complete"
+    },
+    "itemStatus": {
+      "pending": "Waiting",
+      "running": "Running",
+      "completed": "Awaiting human review",
+      "cancelled": "Cancelled",
+      "failed": "Run failed"
+    }
+  },
+  "scenario": {
+    "title": "Add a fixed test task",
+    "name": "Task name",
+    "namePlaceholder": "For example: Produce a competitor research report",
+    "prompt": "Fixed input",
+    "promptPlaceholder": "Every Agent version should receive the same input",
+    "expected": "Human acceptance criteria",
+    "expectedPlaceholder": "Describe what counts as passing; no second model will auto-score it",
+    "tags": "Tags",
+    "tagsPlaceholder": "Comma separated",
+    "submit": "Save test task"
+  },
+  "attach": {
+    "title": "Attach a real case result",
+    "description": "Only cases produced by this Agent in this project are shown. Vizruna reads the final Pi turn and freezes its evidence.",
+    "case": "Select Agent case",
+    "none": "No eligible cases. Run this task and save the conversation as an Agent case first.",
+    "submit": "Capture and attach"
+  },
+  "assessment": {
+    "title": "Human review",
+    "description": "Judge the result against the fixed criteria without hidden automatic model scoring.",
+    "verdict": "Verdict",
+    "pending": "Needs review",
+    "passed": "Passed",
+    "failed": "Failed",
+    "notes": "Review notes",
+    "notesPlaceholder": "Record why it passed, defects, and the next improvement",
+    "submit": "Save review"
+  },
+  "summary": {
+    "scenarios": "Test tasks",
+    "runs": "Real runs",
+    "passRate": "Human pass rate",
+    "pending": "Needs review",
+    "notAvailable": "—"
+  },
+  "metrics": {
+    "version": "Agent version",
+    "model": "Model",
+    "duration": "Duration",
+    "tokens": "Input / output tokens",
+    "tools": "Tools / failures",
+    "cost": "Recorded cost",
+    "output": "Actual output",
+    "promptMatched": "Input matches the fixed task",
+    "promptDrifted": "Actual input differs from the fixed task; compare with caution",
+    "generalPi": "No Agent binding",
+    "seconds": "{{value}} sec",
+    "versionShort": "Version {{value}}"
+  },
+  "messages": {
+    "loadFailed": "Failed to load Agent evaluations",
+    "suiteCreated": "Evaluation suite created",
+    "suiteCreateFailed": "Failed to create evaluation suite",
+    "cloned": "Fixed tasks copied for the target version",
+    "cloneFailed": "Failed to create version evaluation",
+    "runFailed": "Failed to start evaluation task",
+    "batchStartFailed": "Failed to start regression",
+    "batchCancelFailed": "Failed to cancel regression",
+    "reportExported": "Agent regression report downloaded",
+    "reportExportFailed": "Failed to export Agent regression report",
+    "scenarioCreated": "Test task added",
+    "scenarioCreateFailed": "Failed to add test task",
+    "caseAttached": "Real run evidence attached",
+    "caseAttachFailed": "Failed to attach case",
+    "assessed": "Human review saved",
+    "assessFailed": "Failed to save review",
+    "archived": "Evaluation suite archived",
+    "archiveFailed": "Failed to archive evaluation suite"
+  }
+}

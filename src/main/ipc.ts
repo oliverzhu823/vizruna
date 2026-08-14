@@ -21,14 +21,24 @@ import { registerProviderRoutingHandlers } from './ipc/handlers/provider-routing
 import { registerProviderAuthHandlers } from './ipc/handlers/provider-auth'
 import { registerTerminalHandlers } from './ipc/handlers/terminal'
 import { registerAgentCaseHandlers } from './ipc/handlers/agent-case'
+import { registerAgentEvaluationHandlers } from './ipc/handlers/agent-evaluation'
 import { registerAgentProfileHandlers } from './ipc/handlers/agent-profile'
+import { registerAgentVersionHandlers } from './ipc/handlers/agent-version'
+import { registerAgentAssetHandlers } from './ipc/handlers/agent-asset'
+import { registerAgentRunHandlers } from './ipc/handlers/agent-run'
 import { registerSystemPromptPresetHandlers } from './ipc/handlers/system-prompt-preset'
+import { registerPiInspectorHandlers } from './ipc/handlers/pi-inspector'
+import { registerPiResourceCenterHandlers } from './ipc/handlers/pi-resource-center'
 
 export { registerHandler, sendEvent } from './ipc/registry'
 
 export function registerAllHandlers(): void {
+  registerAgentAssetHandlers()
+  registerAgentRunHandlers()
   registerAgentCaseHandlers()
+  registerAgentEvaluationHandlers()
   registerAgentProfileHandlers()
+  registerAgentVersionHandlers()
   registerSystemPromptPresetHandlers()
   registerDialogHandlers()
   registerWorkspaceFsHandlers()
@@ -46,6 +56,8 @@ export function registerAllHandlers(): void {
   registerCommandsSlashHandlers()
   registerAsrHandlers()
   registerPiSdkHandlers()
+  registerPiInspectorHandlers()
+  registerPiResourceCenterHandlers()
   registerWorktreeHandlers()
   registerOrchestrationHandlers()
   registerReliabilityHandlers()

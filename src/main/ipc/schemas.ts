@@ -1,5 +1,9 @@
 import { z } from 'zod'
 
+export const agentAssetListSchema = z.object({
+  workspacePath: z.string().min(1).max(4_000).optional(),
+})
+
 const agentCaseTagsSchema = z
   .array(z.string().trim().min(1).max(40))
   .max(20)
@@ -9,6 +13,24 @@ const agentProfileToolsSchema = z
   .array(z.string().trim().min(1).max(120))
   .max(64)
   .transform((tools) => [...new Set(tools)])
+
+const agentProfileResourceIdsSchema = z
+  .array(z.string().trim().min(1).max(4_000))
+  .max(512)
+  .transform((ids) => [...new Set(ids)])
+
+const agentProfileResourceSelectionSchema = z.object({
+  mode: z.enum(['inherit', 'selected']),
+  packageIds: agentProfileResourceIdsSchema,
+  resourceIds: agentProfileResourceIdsSchema,
+  projectContext: z.enum(['inherit', 'none']),
+})
+
+const agentProviderRequirementsSchema = z.object({
+  reasoning: z.boolean(),
+  imageInput: z.boolean(),
+  minContextWindow: z.number().int().min(1).max(10_000_000).optional(),
+})
 
 const agentThinkingLevelSchema = z.enum([
   'off',
@@ -31,6 +53,9 @@ export const agentProfileCreateSchema = z.object({
   modelId: z.string().trim().min(1).max(500).optional(),
   thinkingLevel: agentThinkingLevelSchema.optional(),
   tools: agentProfileToolsSchema.optional(),
+  extensionTools: agentProfileToolsSchema.optional(),
+  resourceSelection: agentProfileResourceSelectionSchema.optional(),
+  providerRequirements: agentProviderRequirementsSchema.optional(),
 })
 
 export const agentProfileUpdateSchema = z.object({
@@ -42,10 +67,58 @@ export const agentProfileUpdateSchema = z.object({
   modelId: z.union([z.string().trim().min(1).max(500), z.null()]).optional(),
   thinkingLevel: z.union([agentThinkingLevelSchema, z.null()]).optional(),
   tools: z.union([agentProfileToolsSchema, z.null()]).optional(),
+  extensionTools: z.union([agentProfileToolsSchema, z.null()]).optional(),
+  resourceSelection: z.union([agentProfileResourceSelectionSchema, z.null()]).optional(),
+  providerRequirements: z.union([agentProviderRequirementsSchema, z.null()]).optional(),
+})
+
+export const agentProfilePreviewSchema = z.object({
+  workspaceId: z.string().min(1).max(4_000).optional(),
+  resourceSelection: agentProfileResourceSelectionSchema.optional(),
 })
 
 export const agentProfileArchiveSchema = z.object({
   id: z.string().uuid(),
+})
+
+export const agentRunHistoryListSchema = z.object({
+  profileId: z.string().uuid(),
+  workspacePath: z.string().min(1).max(4_000),
+  limit: z.number().int().min(1).max(100).optional(),
+})
+
+export const agentVersionListSchema = z.object({
+  profileId: z.string().uuid().optional(),
+})
+
+export const agentVersionValidateSchema = z.object({
+  versionId: z.string().uuid(),
+  suiteId: z.string().uuid(),
+})
+
+export const agentVersionReadinessSchema = agentVersionValidateSchema
+
+export const piPackageStudioPreviewSchema = z.object({
+  profileId: z.string().uuid(),
+  versionId: z.string().uuid(),
+  workspaceId: z.string().min(1).max(4_000).optional(),
+})
+
+export const piPackageStudioExportSchema = piPackageStudioPreviewSchema.extend({
+  install: z.boolean(),
+  confirmed: z.literal(true),
+})
+
+export const piPackageImportPreviewSchema = z.object({
+  workspaceId: z.string().min(1).max(4_000).optional(),
+  packagePath: z.string().trim().min(1).max(4_000),
+})
+
+export const piPackageImportApplySchema = piPackageImportPreviewSchema.extend({
+  installAgentPackage: z.boolean(),
+  installDependencies: z.boolean(),
+  importConfiguration: z.boolean(),
+  confirmed: z.literal(true),
 })
 
 export const sessionAgentBindingGetSchema = z
@@ -110,6 +183,85 @@ export const agentCaseArchiveSchema = z.object({
   id: z.string().uuid(),
 })
 
+export const agentCaseVerifySchema = z.object({
+  id: z.string().uuid(),
+})
+
+export const agentEvaluationListSchema = z.object({
+  workspacePath: z.string().min(1).max(4_000).optional(),
+  includeArchived: z.boolean().optional(),
+})
+
+export const agentEvaluationSuiteCreateSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  description: z.string().trim().max(2_000).optional(),
+  workspacePath: z.string().min(1).max(4_000),
+  profileId: z.string().uuid(),
+  versionId: z.string().uuid(),
+})
+
+export const agentEvaluationSuiteCloneVersionSchema = z.object({
+  sourceSuiteId: z.string().uuid(),
+  targetVersionId: z.string().uuid(),
+  name: z.string().trim().min(1).max(120).optional(),
+})
+
+export const agentEvaluationScenarioCreateSchema = z.object({
+  suiteId: z.string().uuid(),
+  name: z.string().trim().min(1).max(120),
+  prompt: z.string().trim().min(1).max(200_000),
+  expectedOutcome: z.string().trim().max(20_000).optional(),
+  tags: agentCaseTagsSchema.optional(),
+})
+
+export const agentEvaluationAttachCaseSchema = z.object({
+  suiteId: z.string().uuid(),
+  scenarioId: z.string().uuid(),
+  caseId: z.string().uuid(),
+})
+
+export const agentEvaluationBatchStartSchema = z.object({
+  suiteId: z.string().uuid(),
+})
+
+export const agentEvaluationBatchGetSchema = z.object({
+  batchId: z.string().uuid(),
+})
+
+export const agentEvaluationBatchLatestSchema = z.object({
+  suiteId: z.string().uuid(),
+})
+
+export const agentEvaluationBatchCancelSchema = agentEvaluationBatchGetSchema
+
+export const agentEvaluationCompareSchema = z.object({
+  baselineSuiteId: z.string().uuid(),
+  candidateSuiteId: z.string().uuid(),
+}).refine((value) => value.baselineSuiteId !== value.candidateSuiteId, {
+  message: 'Baseline and candidate suites must be different',
+  path: ['candidateSuiteId'],
+})
+
+export const agentEvaluationReportExportSchema = z.object({
+  baselineSuiteId: z.string().uuid(),
+  candidateSuiteId: z.string().uuid(),
+  locale: z.enum(['zh', 'en']),
+  includeContent: z.boolean().optional(),
+}).refine((value) => value.baselineSuiteId !== value.candidateSuiteId, {
+  message: 'Baseline and candidate suites must be different',
+  path: ['candidateSuiteId'],
+})
+
+export const agentEvaluationAssessSchema = z.object({
+  runId: z.string().uuid(),
+  verdict: z.enum(['pending', 'passed', 'failed']),
+  notes: z.string().trim().max(20_000).optional(),
+})
+
+export const agentEvaluationArchiveSchema = z.object({
+  suiteId: z.string().uuid(),
+})
+
 export const shellOpenPathSchema = z.object({
   path: z.string(),
 })
@@ -162,6 +314,7 @@ export const sessionNewSchema = z.object({
       z.object({
         kind: z.literal('agent'),
         profileId: z.string().uuid(),
+        versionId: z.string().uuid().optional(),
       }),
       z.object({
         kind: z.literal('prompt'),
@@ -377,6 +530,34 @@ export const browserUploadTempFileSchema = z
 
 export const piSettingsSetSchema = z.object({
   patch: z.record(z.unknown()),
+})
+
+const piResourceWorkspaceSchema = z.string().trim().min(1).max(4_000).optional()
+
+export const piPackageMutationSchema = z.discriminatedUnion('action', [
+  z.object({
+    workspaceId: piResourceWorkspaceSchema,
+    action: z.literal('install'),
+    source: z.string().trim().min(1).max(2_000),
+    scope: z.enum(['user', 'project']),
+    confirmed: z.literal(true),
+  }),
+  z.object({
+    workspaceId: piResourceWorkspaceSchema,
+    action: z.enum(['update', 'remove']),
+    packageId: z.string().min(3).max(2_100),
+    confirmed: z.literal(true),
+  }),
+])
+
+export const piPackageUpdateCheckSchema = z.object({
+  workspaceId: piResourceWorkspaceSchema,
+})
+
+export const piResourceFilterSetSchema = z.object({
+  workspaceId: piResourceWorkspaceSchema,
+  resourceId: z.string().min(3).max(8_000),
+  enabled: z.boolean(),
 })
 
 export const shellReadImagePreviewSchema = z.object({

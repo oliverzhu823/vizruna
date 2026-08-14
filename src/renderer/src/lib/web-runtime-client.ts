@@ -2,6 +2,7 @@ import type { AppEvent } from '@shared/app-events'
 import type { AppUpdateAvailableInfo, AppUpdateDownloadProgress } from '@shared/app-update'
 import type { ProviderAuthFlowEvent } from '@shared/provider-auth'
 import type { TerminalDataEvent, TerminalExitEvent } from '@shared/terminal'
+import type { PiPackageMutationProgress } from '@shared/pi-resource-center'
 
 type EventPayloads = {
   'ipc:events': AppEvent
@@ -15,6 +16,7 @@ type EventPayloads = {
   'ipc:provider-auth-flow': ProviderAuthFlowEvent
   'ipc:terminal-data': TerminalDataEvent
   'ipc:terminal-exit': TerminalExitEvent
+  'ipc:pi-resource-operation-progress': PiPackageMutationProgress
 }
 
 type EventChannel = keyof EventPayloads
@@ -34,6 +36,7 @@ export type WebRuntimeBridge = {
   onProviderAuthFlow: (callback: Listener<'ipc:provider-auth-flow'>) => () => void
   onTerminalData: (callback: Listener<'ipc:terminal-data'>) => () => void
   onTerminalExit: (callback: Listener<'ipc:terminal-exit'>) => () => void
+  onPiResourceOperationProgress: (callback: Listener<'ipc:pi-resource-operation-progress'>) => () => void
   ping: () => string
 }
 
@@ -133,6 +136,8 @@ class WebRuntimeClient {
       onProviderAuthFlow: (callback) => this.subscribe('ipc:provider-auth-flow', callback),
       onTerminalData: (callback) => this.subscribe('ipc:terminal-data', callback),
       onTerminalExit: (callback) => this.subscribe('ipc:terminal-exit', callback),
+      onPiResourceOperationProgress: (callback) =>
+        this.subscribe('ipc:pi-resource-operation-progress', callback),
       ping: () => 'web-pong',
     }
   }

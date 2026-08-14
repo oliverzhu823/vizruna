@@ -23,7 +23,15 @@ export const PI_AGENT_DIR = join(homedir(), '.pi', 'agent')
 export const PI_GLOBAL_SYSTEM_MD = join(PI_AGENT_DIR, 'SYSTEM.md')
 
 const AGENT_DIR = PI_AGENT_DIR
-const CONTEXT_NAMES = ['AGENTS.md', 'AGENTS.MD', 'CLAUDE.md', 'CLAUDE.MD']
+// Keep this order aligned with Pi 0.84+: an override file replaces the regular
+// context file in the same directory while ancestor/global files still layer.
+const CONTEXT_NAMES = [
+  'AGENTS.override.md',
+  'AGENTS.md',
+  'AGENTS.MD',
+  'CLAUDE.md',
+  'CLAUDE.MD',
+]
 
 function loadContextFileFromDir(dir: string): { path: string; content: string } | null {
   for (const filename of CONTEXT_NAMES) {
@@ -40,7 +48,10 @@ function loadContextFileFromDir(dir: string): { path: string; content: string } 
 }
 
 /** 与 pi loadProjectContextFiles 一致：全局 agentDir + cwd 祖先链 */
-export function listAgentsContextFiles(cwd: string): PromptCatalogItem[] {
+export function listAgentsContextFiles(
+  cwd: string,
+  projectTrusted = true,
+): PromptCatalogItem[] {
   const resolvedCwd = resolve(cwd)
   const items: PromptCatalogItem[] = []
   const seen = new Set<string>()
@@ -60,6 +71,8 @@ export function listAgentsContextFiles(cwd: string): PromptCatalogItem[] {
       inSystemContext: true,
     })
   }
+
+  if (!projectTrusted) return items
 
   const ancestor: { path: string; content: string }[] = []
   let currentDir = resolvedCwd
@@ -206,7 +219,9 @@ export function listPluginInjectedPromptFiles(cwd: string): PromptCatalogItem[] 
     if (seen.has(key)) return
     seen.add(key)
     const base = basename(full)
-    if (['AGENTS.md', 'CLAUDE.md', 'SYSTEM.md', 'APPEND_SYSTEM.md'].includes(base)) return
+    if (
+      ['AGENTS.override.md', 'AGENTS.md', 'CLAUDE.md', 'SYSTEM.md', 'APPEND_SYSTEM.md'].includes(base)
+    ) return
     items.push({
       id: `plugin:${full}`,
       category: 'plugin_inject',

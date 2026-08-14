@@ -26,17 +26,42 @@ async function close(server: http.Server): Promise<void> {
   })
 }
 
-function tunnelingProxy(onConnect: () => void): http.Server {
-  const proxy = http.createServer((_request, response) => {
-    response.writeHead(502)
-    response.end()
+function tunnelingProxy(onProxyRequest: () => void): http.Server {
+  const proxy = http.createServer((request, response) => {
+    let target: URL
+    try {
+      target = new URL(String(request.url))
+    } catch {
+      response.writeHead(400)
+      response.end()
+      return
+    }
+    onProxyRequest()
+    const upstream = http.request(
+      {
+        hostname: target.hostname,
+        port: target.port,
+        method: request.method,
+        path: `${target.pathname}${target.search}`,
+        headers: request.headers,
+      },
+      (upstreamResponse) => {
+        response.writeHead(upstreamResponse.statusCode ?? 502, upstreamResponse.headers)
+        upstreamResponse.pipe(response)
+      },
+    )
+    upstream.on('error', () => {
+      if (!response.headersSent) response.writeHead(502)
+      response.end()
+    })
+    request.pipe(upstream)
   })
   proxy.on('connect', (request, clientSocket, head) => {
     const [host, portText] = String(request.url).split(':')
     const upstream = net.createConnection(
       { host, port: Number(portText) },
       () => {
-        onConnect()
+        onProxyRequest()
         clientSocket.write('HTTP/1.1 200 Connection Established\r\n\r\n')
         if (head.length > 0) upstream.write(head)
         upstream.pipe(clientSocket)

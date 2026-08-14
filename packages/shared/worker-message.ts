@@ -21,6 +21,7 @@ export type PiSessionMessage = {
   stopReason?: string
   timestamp?: string | number
   toolName?: string
+  isError?: boolean
 }
 
 export type PiCompactionEndResult = {

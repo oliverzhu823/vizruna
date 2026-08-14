@@ -1,14 +1,388 @@
 {
   "title": "Agent 配置库",
   "eyebrow": "Agent Studio",
-  "description": "为不同场景保存固定的 System Prompt，并用该配置创建新的 Pi 对话。",
+  "description": "组合 System Prompt、模型、工具和 Pi 原生资源，并用可检查的固定配置创建新对话。",
   "loading": "正在加载 Agent 配置…",
   "loadingBinding": "正在读取 Agent…",
   "count": "{{count}} 个 Agent",
+  "assets": {
+    "building": "开发中",
+    "buildingHint": "最新不可变版本仍需完成评测或版本验证。",
+    "validated": "成熟 Agent",
+    "validatedHint": "至少有一个版本已经冻结完整的人工复核评测证据。",
+    "delivered": "交付版本",
+    "deliveredHint": "至少有一个版本已通过 Pi Package Studio 成功导出。",
+    "delivery": "本地交付 Package",
+    "version": "已有 v{{number}}",
+    "none": "暂时没有",
+    "showing": "显示 {{visible}} / {{total}} 个 Agent",
+    "showAll": "显示全部 Agent",
+    "emptyView": "当前资产视图中没有 Agent",
+    "emptyViewHint": "继续完成 Agent 评测，或返回查看完整配置库。",
+    "packageStatus": {
+      "not-exported": "尚未导出",
+      "unknown": "v{{number}} 曾导出；打开可信项目后核验",
+      "available": "v{{number}} Package 可用",
+      "missing": "v{{number}} 曾导出；文件已缺失",
+      "invalid": "v{{number}} Package 需要重新生成"
+    }
+  },
+  "workspace": {
+    "eyebrow": "Agent 工作台",
+    "back": "返回配置库",
+    "run": "运行最新版本",
+    "lifecycle": "Agent 生命周期",
+    "lifecycleHint": "状态来自不可变版本、真实评测和本地 Package 证据。",
+    "evidence": "真实证据摘要",
+    "evidenceHint": "只统计绑定该 Agent 的本地案例，以及最新版本对应评测集的最新一次运行。",
+    "evidenceLoading": "正在读取证据",
+    "evidenceFailed": "暂时无法读取 Agent 证据；配置和运行功能不受影响。",
+    "validationBlockers": "当前版本的验证阻断",
+    "available": "可用",
+    "unavailable": "尚未建立",
+    "saved": "配置已保存",
+    "pending": "尚未完成",
+    "effectiveConfig": "Pi 有效配置摘要",
+    "effectiveConfigHint": "这里显示 Agent 明确声明的配置；继承项仍由运行时决定。",
+    "preflight": "本机运行预检",
+    "preflightHint": "每次打开工作台都根据当前 Pi Runtime、授权模型和资源重新计算。",
+    "preflightLoading": "检查中",
+    "preflightFailed": "检查失败",
+    "preflightRetry": "重新检查",
+    "preflightRepair": "修复",
+    "runs": {
+      "title": "最近运行",
+      "hint": "这些是真正使用该 Agent 快照创建的本地会话，可继续查看或沉淀为资产。",
+      "loading": "正在读取运行记录…",
+      "empty": "还没有使用这个 Agent 运行过。首次运行后，证据会出现在这里。",
+      "refresh": "刷新运行记录",
+      "list": "运行记录",
+      "unversioned": "未绑定版本",
+      "messages": "{{count}} 条消息",
+      "status": { "running": "运行中", "completed": "已完成", "failed": "运行失败" },
+      "open": "打开",
+      "saveCase": "存为案例",
+      "savedCase": "已存案例",
+      "saveScenario": "加入评测",
+      "caseSummary": "由 {{agent}} 的真实运行沉淀。",
+      "caseCreated": "运行已沉淀为 Agent 案例",
+      "caseCreateFailed": "无法创建案例",
+      "scenarioCreated": "运行已加入当前版本评测集",
+      "scenarioCreateFailed": "无法加入评测"
+      ,"artifacts": "运行产物"
+      ,"noArtifacts": "这次运行没有记录到文件或案例产物。"
+      ,"failure": "最后失败原因"
+      ,"metric": { "messages": "消息", "files": "文件", "case": "案例" }
+      ,"observability": {
+        "title": "Pi 运行健康度", "hint": "依据当前 Pi 分支时间线与运行边界证据汇总，不使用模型推测。",
+        "context": "结束时上下文占用", "contextDelta": "本轮上下文变化", "tokens": "输入 / 输出 Token", "tools": "工具调用 / 失败",
+        "invoked": "实际调用：{{names}}", "loadedNotInvoked": "已加载但本次未调用：{{names}}", "sampled": "会话较长，仅分析最近 {{count}} 条时间线记录。",
+        "health": { "healthy": "运行平稳", "warning": "需要留意", "critical": "高风险", "no-evidence": "暂无证据" },
+        "signal": { "context-high": "上下文超过 75%", "context-critical": "上下文超过 90%", "context-grew": "上下文继续增长", "compacted": "发生上下文压缩", "tool-failures": "存在工具失败" }
+      }
+      ,"turns": {
+        "title": "逐轮 Pi 证据", "hint": "每次 Agent 运行独立保存，后续轮次不会覆盖前面的事实。", "count": "最近 {{count}} 轮", "turn": "第 {{number}} 轮",
+        "toolCalls": "次工具", "duration": "持续时间", "contextDelta": "Context 变化", "cache": "缓存读 / 写", "cost": "费用",
+        "tools": "实际工具：{{names}}", "compactions": "压缩 {{count}} 次 · 处理 {{tokens}} Token", "files": "变更文件：{{names}}",
+        "legacy": "这个会话还没有逐轮证据。新运行会从下一轮开始记录。"
+      }
+      ,"comparison": {
+        "title": "Pi 运行差异", "hint": "只陈列两次运行中可验证的变化，不把相关性表述成因果。", "baseline": "基准 {{value}}",
+        "status": { "stable": "证据基本一致", "changed": "存在可见变化", "attention": "需要关注", "unknown": "证据不足" },
+        "metric": { "messages": "消息", "files": "文件", "inputTokens": "输入 Token", "outputTokens": "输出 Token", "cost": "费用", "toolCalls": "工具调用", "toolFailures": "工具失败", "contextPercent": "Context 占用", "contextDelta": "Context 增量", "compactions": "压缩次数" },
+        "configuration": "配置变化", "config": { "versionChanged": "版本", "modelChanged": "模型", "thinkingChanged": "思考度" },
+        "same": "相同", "changed": "已改变", "unknown": "未知", "capabilities": "实际能力变化", "added": "新增：{{names}}", "removed": "移除：{{names}}", "notComparable": "其中一次运行缺少 Runtime 能力证据，无法比较。",
+        "signal": { "version-changed": "Agent 版本改变", "model-changed": "模型改变", "thinking-changed": "思考度改变", "capabilities-changed": "实际能力改变", "context-pressure-up": "Context 压力上升", "tool-failures-up": "工具失败增加", "cost-up": "费用上升 ≥20%", "tokens-up": "Token 上升 ≥20%", "incomplete-evidence": "证据不完整" }
+      }
+      ,"diagnosis": {
+        "title": "Pi 证据诊断", "hint": "根据明确规则解释观测事实并定位处理入口；不会自动修改 Agent。",
+        "status": { "healthy": "未发现异常", "attention": "需要关注", "blocked": "存在阻断", "unknown": "证据不足" },
+        "healthy": "当前保存的 Pi 证据中没有发现需要处理的异常。",
+        "issue": {
+          "run-failed": { "title": "运行已经失败", "body": "Pi 记录的最后失败信息：{{reason}}" },
+          "capability-missing": { "title": "固定能力没有实际加载", "body": "缺少 {{count}} 项：{{names}}" },
+          "capability-unexpected": { "title": "加载了配置之外的能力", "body": "额外 {{count}} 项：{{names}}" },
+          "context-critical": { "title": "Context 接近上限", "body": "结束时占用 {{percent}}%，应检查上下文构成和压缩。" },
+          "context-high": { "title": "Context 占用较高", "body": "结束时占用 {{percent}}%，继续运行前建议检查。" },
+          "tool-failures": { "title": "存在工具失败", "body": "当前分支记录到 {{count}} 次失败调用，应打开原运行查看参数和返回。" },
+          "compacted": { "title": "发生过 Context 压缩", "body": "当前分支记录到 {{count}} 次压缩；结果变化可能与被摘要的历史有关。" },
+          "sampled-evidence": { "title": "这里只是长会话抽样", "body": "当前汇总只覆盖最近 {{count}} 条记录，应打开原运行检查完整时间线。" },
+          "legacy-evidence": { "title": "旧运行缺少 Runtime 证据", "body": "无法从当前环境反推当时的真实能力；重新运行后才能建立证据。" }
+        },
+        "action": { "open-run": "打开原运行检查", "rerun": "重新运行建立证据", "manage-resources": "打开 Pi 资源中心", "edit-agent": "检查 Agent 配置" }
+      }
+      ,"compare": "与另一次运行比较"
+      ,"compareChoose": "选择基准运行"
+      ,"compareMessages": "消息差值 {{delta}}"
+      ,"compareFiles": "文件差值 {{delta}}"
+      ,"compareStatus": "状态：{{current}} / 基准 {{baseline}}"
+      ,"runtimeEvidence": {
+        "title": "本次运行实际加载",
+        "hint": "来自 Pi AgentSession 在运行开始时捕获的真实资源，不是配置推测。",
+        "status": { "exact": "与配置一致", "drift": "发现能力漂移", "partial": "部分由环境继承", "no-evidence": "暂无运行证据" },
+        "group": { "tools": "工具", "extensions": "Extensions", "skills": "Skills", "prompts": "Prompts", "context": "Context 文件" },
+        "tracked": "固定配置",
+        "inherited": "环境继承",
+        "actual": "实际：{{names}}",
+        "none": "无",
+        "matched": "匹配 {{count}} 项",
+        "missing": "缺少：{{names}}",
+        "unexpected": "额外加载：{{names}}",
+        "notCompared": "该类别由运行环境决定，只记录实际值。",
+        "legacy": "这是旧运行，尚未保存 Runtime 能力证据；不能据此判断是否发生漂移。"
+      }
+    },
+    "capabilities": {
+      "title": "Pi 能力与依赖",
+      "hint": "根据当前 Pi Runtime 解析 Agent 真正可用的工具、Package、Skill、Extension、Prompt 与项目上下文。",
+      "loading": "正在解析 Pi 能力…",
+      "ready": "依赖已就绪",
+      "blocked": "{{count}} 项依赖阻断",
+      "manage": "管理 Pi 资源",
+      "inherit": "继承当前 Pi 环境",
+      "none": "明确不加载",
+      "empty": "未配置此类能力",
+      "group": { "tools": "基础工具", "packages": "Pi Packages", "extensions": "Extensions", "skills": "Skills", "prompts": "Prompt Templates", "context": "项目 Context" },
+      "status": { "ready": "已就绪", "inherited": "环境继承", "blocked": "缺失或禁用" },
+      "scope": { "user": "用户级", "project": "项目级", "temporary": "临时" }
+    },
+    "preflightBlockedHint": "先解决本机运行预检中的阻断项",
+    "preflightStatus": { "ready": "可以运行", "needs-setup": "可以运行，但依赖继承项", "blocked": "暂时不能运行" },
+    "preflightCheck": { "runtime": "Pi Runtime", "model": "模型授权", "provider": "Provider 能力", "resources": "Pi 资源", "context": "项目上下文", "tools": "工具策略" },
+    "preflightCheckStatus": { "ready": "已就绪", "action": "依赖当前环境", "blocked": "阻断" },
+    "actions": "下一步操作",
+    "actionsHint": "围绕同一个 Agent 继续运行、验证或交付。",
+    "evaluate": "建立版本评测",
+    "stage": { "configured": "已配置", "versioned": "不可变版本", "validated": "评测验证", "delivered": "Package 交付" },
+    "next": {
+      "edit-agent": "下一步：完成 Agent 配置",
+      "create-evaluation": "下一步：建立评测集",
+      "add-scenarios": "下一步：添加固定任务",
+      "run-evaluation": "下一步：补齐任务运行",
+      "review-runs": "下一步：人工复核结果",
+      "fix-validation": "下一步：修复验证阻断",
+      "validate-version": "下一步：验证此版本",
+      "package": "下一步：生成 Package",
+      "run": "可继续运行与复验"
+      ,"repair-run": "下一步：修复本机运行条件"
+    },
+    "nextHint": {
+      "edit-agent": "补充有效配置后，Vizruna 会生成首个不可变版本。",
+      "create-evaluation": "为当前不可变版本建立独立评测集。",
+      "add-scenarios": "评测集已存在，需要加入可重复执行的固定任务。",
+      "run-evaluation": "部分固定任务还没有当前版本的真实运行证据。",
+      "review-runs": "运行已经齐全，需要按验收标准完成人工判断。",
+      "fix-validation": "打开版本证据查看并处理具体阻断原因。",
+      "validate-version": "当前证据已经满足门禁，可在版本历史中确认验证。",
+      "package": "版本已经成熟，可以检查目标环境并生成 Pi Package。",
+      "run": "当前资产已交付，继续运行、收集案例或定期复验。"
+      ,"repair-run": "当前模型授权、Provider 能力或显式 Pi 资源存在阻断，修复后才能启动。"
+    },
+    "nextAction": {
+      "edit-agent": "编辑配置",
+      "create-evaluation": "建立评测",
+      "add-scenarios": "添加任务",
+      "run-evaluation": "继续评测",
+      "review-runs": "复核结果",
+      "fix-validation": "查看阻断",
+      "validate-version": "验证版本",
+      "package": "打开 Package",
+      "run": "运行 Agent"
+      ,"repair-run": "立即修复"
+    },
+    "metric": {
+      "cases": "Agent 案例",
+      "reproducible": "其中 {{count}} 个最近复验可重现",
+      "suites": "历史评测集",
+      "currentSuite": "当前版本评测：{{value}}",
+      "scenarios": "当前固定任务",
+      "completed": "已运行 {{completed}} / {{total}}",
+      "results": "人工通过任务",
+      "verdicts": "失败 {{failed}} · 待复核 {{pending}}"
+    },
+    "actionHint": { "versions": "比较配置并查看验证门禁", "evaluate": "用固定任务验证当前版本", "package": "检查交付条件并导出 Pi Package" }
+  },
   "new": "新建 Agent",
   "edit": "编辑",
   "duplicate": "复制",
   "archive": "归档",
+  "packageImport": {
+    "remediation": {
+      "validation": "建立评测",
+      "runtime": "检查运行时",
+      "model": "配置模型",
+      "provider-auth": "登录授权",
+      "pi-packages": "安装依赖",
+      "pi-resources": "配置资源",
+      "project-context": "编辑 Agent",
+      "tool-policy": "编辑 Agent"
+    },
+    "open": "导入 Package",
+    "title": "导入并复现 Agent",
+    "subtitle": "修改当前项目之前，先检查 Vizruna Pi Package",
+    "path": "Package 文件夹",
+    "pathHint": "必须位于当前可信项目内；下载的 Package 请先解压到项目中。",
+    "inspect": "开始检查",
+    "identity": {
+      "new": "该不可变身份在这台电脑上尚未导入。",
+      "already-imported": "本地配置库已经存在完全相同的 Agent 版本。",
+      "conflict": "另一个本地 Agent 占用了该不可变身份，已阻止导入。"
+    },
+    "readiness": "本机复现就绪度",
+    "readinessHint": "根据本机 Pi Runtime 和资源重新计算，不照搬来源电脑结果。",
+    "actions": "确认执行的操作",
+    "importConfiguration": "加入 Agent 配置库",
+    "importConfigurationHint": "作为本地候选版本导入，必须重新完成评测。",
+    "installAgentPackage": "安装 Agent Pi Package",
+    "installAgentPackageHint": "把这个本地 Package 写入可信项目的 Pi 设置。",
+    "installDependencies": "安装缺失的 Pi Package 依赖",
+    "installDependenciesHint": "当前缺少 {{count}} 个声明的 Package 依赖。",
+    "evidenceBoundary": "来源验证仅作为交付物溯源保留，不会把本地版本直接标记为成熟；需要重新通过本机评测门禁。",
+    "credentialBoundary": "不会导入任何凭据；Provider 登录必须在本机单独完成。",
+    "apply": "执行复现计划",
+    "done": "完成",
+    "postflight": "操作已完成，Vizruna 重新执行了本机运行前检查。当前状态：{{status}}。上方剩余配置项仍需处理。",
+    "completed": "Agent Package 已导入",
+    "failed": "Agent Package 导入失败",
+    "sourceBadge": "由交付版本 v{{number}} 导入"
+  },
+  "packageStudio": {
+    "open": "打包",
+    "title": "Pi Package Studio",
+    "subtitle": "校验、导出并安装为 Pi 原生 Package",
+    "validating": "正在解析 Agent 与 Pi 资源依赖…",
+    "packageIdentity": "Pi Package 标识",
+    "piCompatible": "Pi 原生兼容",
+    "portable": "可独立迁移",
+    "externalDeps": "包含外部依赖",
+    "validationPassed": "校验通过，可以导出并安装。",
+    "generatedFiles": "生成文件",
+    "dependencies": "外部 Package 依赖",
+    "noPackageDependencies": "没有外部 Package 依赖",
+    "exportOnly": "仅导出",
+    "exportInstall": "导出并按项目安装",
+    "exported": "Pi Package 已导出",
+    "installed": "Pi Package 已导出并安装",
+    "failed": "Pi Package 操作失败",
+    "delivery": {
+      "title": "目标环境就绪度",
+      "description": "Package 能否导出与目标电脑是否准备完成，分别检查。",
+      "status": {
+        "ready": "可以复现",
+        "needs-setup": "需要准备环境",
+        "blocked": "存在阻断"
+      },
+      "checkStatus": {
+        "ready": "已就绪",
+        "action": "需处理",
+        "blocked": "阻断"
+      },
+      "readyValue": "可用",
+      "credentialBoundary": "交付物不包含 API Key、OAuth Token 或代理密码；必须在目标电脑单独完成 Provider 授权。",
+      "check": {
+        "validation": "版本验证证据",
+        "runtime": "Pi Runtime",
+        "model": "固定模型",
+        "provider-auth": "Provider 授权",
+        "pi-packages": "外部 Pi Package",
+        "pi-resources": "Pi 资源",
+        "project-context": "项目上下文",
+        "tool-policy": "工具策略"
+      },
+      "action": {
+        "validation": "交付前需完成固定评测集和版本验证门禁。",
+        "runtime": "在目标电脑安装兼容的 Pi Runtime。",
+        "model": "在目标 Pi 环境配置所需模型 {{value}}。",
+        "provider-auth": "在目标电脑本地登录 {{value}}；凭据不会被复制。",
+        "pi-packages": "在目标电脑安装清单声明的 {{count}} 个外部 Pi Package。",
+        "pi-resources": "提供清单声明的顶层资源，并修复缺失或被禁用的选择项。",
+        "project-context": "在目标项目提供自己的 AGENTS.md 或其他继承的上下文文件。",
+        "tool-policy": "如果必须精确复现工具面，请固定基础工具策略。"
+      }
+    },
+    "issue": {
+      "project-untrusted": "当前项目尚未被 Pi 信任，不能安装项目级 Package。",
+      "inherit-resources": "Agent 继承运行时全部 Pi 资源；换一台电脑后可用资源可能不同。",
+      "inherit-model": "模型仍然继承当前会话，Package 不会固定模型。",
+      "inherit-thinking": "思考强度仍然继承当前会话。",
+      "inherit-tools": "工具策略仍然继承当前 Pi 设置。",
+      "project-context-external": "AGENTS.md 等项目上下文不会复制进 Package，运行时继续从目标项目读取。",
+      "external-package-dependencies": "依赖 {{count}} 个外部 Pi Package；本次不会静默复制，需要在目标环境单独安装。",
+      "external-resource-dependencies": "依赖 {{count}} 个顶层 Pi 资源；本次不会静默复制，需要在目标环境提供。",
+      "package-missing": "{{count}} 个依赖 Package 未安装，需先修复后再导出。",
+      "resource-missing": "{{count}} 个已选资源不存在或已移动，需先修复 Agent 配置。",
+      "resource-disabled": "{{count}} 个已选资源被 Pi 禁用，需先在资源中心启用。",
+      "replace-system-prompt": "此 Agent 会替换 Pi 默认 System Prompt；只建议在明确需要完全接管提示词时使用。",
+      "version-unvalidated": "此 Agent 版本尚未通过完整评测，不能进入交付打包。"
+    }
+  },
+  "versions": {
+    "open": "版本",
+    "title": "Agent 版本历史",
+    "subtitle": "比较不可变配置、评测并选择要运行的版本",
+    "timeline": "版本时间线",
+    "immutableVersion": "不可变 Agent 版本",
+    "status": {
+      "candidate": "候选",
+      "validated": "已验证",
+      "released": "已发布"
+    },
+    "useVersion": "使用 v{{number}}",
+    "validate": "标记为已验证",
+    "validated": "Agent 版本已通过验证",
+    "validationFailed": "版本验证未通过",
+    "needsSuite": "需要先为此版本创建评测集，并让每个固定任务都使用原始输入通过人工验收。",
+    "notReady": "解决所有验证阻断项后，才能标记为已验证。",
+    "readinessTitle": "版本验证就绪度",
+    "readinessChecking": "正在检查",
+    "readinessReady": "可以验证",
+    "readinessBlocked": "暂不可验证",
+    "readinessFailed": "版本就绪度检查失败",
+    "readinessReadyHint": "所有固定任务均使用原始输入通过，且相对最近的已验证基线没有退步。",
+    "validationEvidence": "已冻结的验证证据",
+    "validatedAt": "验证时间：{{date}}",
+    "validatedRuns": "{{count}} 个已复核固定任务",
+    "validatedBaseline": "验证基线：v{{number}}",
+    "baselineOutcome": "相对已验证基线的结果：{{outcome}}",
+    "outcomes": {
+      "improved": "进步",
+      "equivalent": "持平",
+      "regressed": "退步",
+      "mixed": "结果混合",
+      "insufficient": "证据不足"
+    },
+    "blockers": {
+      "no-scenarios": "评测集中还没有固定任务。",
+      "run-missing": "至少一个固定任务没有来自当前 Agent 精确版本的运行证据。",
+      "review-pending": "至少一个运行结果仍待人工复核。",
+      "task-failed": "至少一个固定任务未通过人工验收。",
+      "prompt-drifted": "至少一个运行没有使用原始固定输入。",
+      "baseline-required": "需要从最近的已验证版本复制固定任务，建立回归基线。",
+      "baseline-suite-missing": "关联的基线评测集已不存在。",
+      "baseline-version-mismatch": "关联评测集不是最近的已验证 Agent 版本。",
+      "comparison-insufficient": "基线比较尚缺完整且完成人工复核的证据。",
+      "comparison-regressed": "候选版本相对最近的已验证版本出现退步。",
+      "comparison-mixed": "候选版本有任务进步、也有任务退步；需先解决全部退步项。"
+    },
+    "diffFrom": "相对 v{{number}} 的配置变化",
+    "firstVersion": "初始版本",
+    "noDiff": "没有可显示的配置变化",
+    "loadFailed": "Agent 版本加载失败",
+    "packageVersion": "交付版本",
+    "packageVersionHint": "只有已验证或已发布版本可以导出。",
+    "fields": {
+      "name": "名称",
+      "description": "用途说明",
+      "systemPrompt": "System Prompt",
+      "promptMode": "Prompt 模式",
+      "modelId": "模型",
+      "thinkingLevel": "思考度",
+      "tools": "基础工具",
+      "extensionTools": "扩展工具",
+      "resourceSelection": "Pi 资源",
+      "providerRequirements": "模型能力要求"
+    }
+  },
   "use": "使用此 Agent",
   "updatedAt": "更新于 {{time}}",
   "inherits": "跟随当前设置",
@@ -51,9 +425,76 @@
     "toolsMode": "工具配置",
     "toolsInherit": "跟随 Pi 当前设置",
     "toolsCustom": "指定工具",
+    "builtinTools": "Pi 基础工具",
+    "extensionTools": "Extension 工具权限",
+    "extensionToolsHint": "只控制已选 Extension 注册的工具；Slash Command 不属于模型工具权限。",
+    "extensionToolsAll": "允许全部",
+    "extensionToolsCustom": "逐项选择",
+    "extensionToolsEmpty": "当前所选 Extension 没有发现已注册工具。",
     "cancel": "取消",
     "save": "保存",
     "saving": "正在保存…"
+  },
+  "composer": {
+    "piResources": "Pi 原生资源",
+    "piResourcesHint": "选择此 Agent 可以使用的 Packages、Skills、Extensions 和 Prompt Templates。全局 Pi 禁用规则仍然优先。",
+    "mode": {
+      "inherit": "继承全部 Pi 资源",
+      "inheritHint": "会话启动时使用 Pi 当前启用的全部资源。",
+      "selected": "只使用选中资源",
+      "selectedHint": "只加载下面选中的 Package 或单项资源。"
+    },
+    "projectContext": "项目上下文",
+    "projectContextHint": "控制是否读取项目中的 AGENTS.md、AGENTS.override.md 等上下文文件。",
+    "providerRequirements": "模型能力要求",
+    "providerRequirementsHint": "声明这个 Agent 运行所必需的模型能力。启用后必须选择满足要求的已授权模型。",
+    "extensionTools": "Extension 工具",
+    "allSelectedExtensionTools": "所选扩展的全部工具",
+    "requirement": {
+      "reasoning": "需要推理能力",
+      "reasoningHint": "只允许 Pi 标记为支持 reasoning 的模型。",
+      "imageInput": "需要图片输入",
+      "imageInputHint": "只允许能够接收图片的多模态模型。",
+      "minContextWindow": "最低上下文窗口",
+      "minContextWindowHint": "以 token 为单位；留空表示不限制。"
+    },
+    "providerIssue": {
+      "model-required": "启用了模型能力要求，请先选择一个固定模型。",
+      "model-unavailable": "所选模型当前未授权、已移除或不在 Pi 可用模型目录中。",
+      "reasoning-required": "所选模型不支持这个 Agent 所需的推理能力。",
+      "image-required": "所选模型不支持这个 Agent 所需的图片输入。",
+      "context-window-required": "所选模型的上下文窗口小于 Agent 的最低要求。"
+    },
+    "context": {
+      "inherit": "继承 Pi 设置",
+      "none": "不加载项目上下文",
+      "inheritPreview": "使用 Pi 当前可信项目的上下文分层。",
+      "nonePreview": "此 Agent 不读取项目上下文文件。"
+    },
+    "loadingResources": "正在解析 Pi 资源…",
+    "packages": "Pi Packages",
+    "noPackages": "当前 Pi 配置中没有 Package。可以先到 Pi 资源中心安装。",
+    "packageResources": "包含 {{count}} 项 Agent 资源",
+    "kind": {
+      "skills": "Skills",
+      "extensions": "Extensions",
+      "prompts": "Prompt Templates"
+    },
+    "noResources": "当前没有此类资源",
+    "disabledByPi": "已被 Pi 全局或项目过滤规则禁用",
+    "includedByPackage": "已随选中的 Package 加入",
+    "registeredTools": "注册了 {{count}} 个工具",
+    "previewTitle": "最终有效配置预览",
+    "previewHint": "这里展示新会话创建时将冻结的配置，不会随以后修改 Agent 而变化。",
+    "previewFailed": "无法读取 Pi 资源，请检查当前项目和 Runtime。",
+    "ready": "当前配置可以创建会话",
+    "warning": {
+      "project-untrusted": "当前项目尚未受信任，项目级上下文和可执行资源不会加载。",
+      "empty-selection": "已选择“只使用选中资源”，但尚未选择任何资源。Agent 将只保留基础工具。",
+      "package-missing": "{{count}} 个所选 Package 未安装或已不可用。",
+      "resource-missing": "{{count}} 个所选资源已移动或不存在。",
+      "resource-disabled": "{{count}} 个所选资源已被 Pi 设置禁用，不会加载。"
+    }
   },
   "messages": {
     "created": "Agent 已创建",

@@ -4,7 +4,7 @@ import type { ExtensionUIResponse } from '../desktop-ui-bridge.js'
 import type { WorkerReply } from '../worker-handler-types.js'
 import { st, initSession, baseEvent, emit, currentSessionModelKey } from '../worker-runtime.js'
 import type { ProviderRoutingRuntime } from '@shared/provider-routing'
-import { hasRequiredPiSdkCapabilities } from '@shared/pi-sdk-compat'
+import { inspectPiSdkCompatibility } from '@shared/pi-sdk-compat'
 
 export async function handleInit(msg: WorkerIncomingMessage, reply: WorkerReply): Promise<void> {
         try {
@@ -19,14 +19,16 @@ export async function handleInit(msg: WorkerIncomingMessage, reply: WorkerReply)
               const { pathToFileURL } = await import('node:url')
               if (isAbsolute(st.activeSdkPath)) {
                 const candidate = await import(pathToFileURL(st.activeSdkPath).href)
-                if (!hasRequiredPiSdkCapabilities(candidate)) {
-                  throw new Error('External Pi SDK is missing required ModelRuntime capabilities')
+                const compatibility = inspectPiSdkCompatibility(candidate)
+                if (!compatibility.compatible) {
+                  throw new Error(`External Pi SDK is missing required capabilities: ${compatibility.missingCapabilities.join(', ')}`)
                 }
                 st.sdk = candidate as typeof import('@earendil-works/pi-coding-agent')
               } else {
                 const candidate = await import(st.activeSdkPath)
-                if (!hasRequiredPiSdkCapabilities(candidate)) {
-                  throw new Error('External Pi SDK is missing required ModelRuntime capabilities')
+                const compatibility = inspectPiSdkCompatibility(candidate)
+                if (!compatibility.compatible) {
+                  throw new Error(`External Pi SDK is missing required capabilities: ${compatibility.missingCapabilities.join(', ')}`)
                 }
                 st.sdk = candidate as typeof import('@earendil-works/pi-coding-agent')
               }

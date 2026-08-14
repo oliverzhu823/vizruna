@@ -1,4 +1,5 @@
 import type { AgentSession, AgentSessionEvent } from '@earendil-works/pi-coding-agent'
+import { randomUUID } from 'node:crypto'
 import type { AppEvent } from '@shared/app-events'
 import { assistantStreamDeltaFromMessageUpdate } from '@shared/pi-message-update'
 import {
@@ -11,6 +12,7 @@ import { resolveInteractByTool } from '../extension-compat/adapter-loader.js'
 import { extractJsonPath } from '../extension-compat/json-path.js'
 import type { DesktopUIBridge } from './desktop-ui-bridge.js'
 import { emitAgentErrorFromAssistant, lastAssistantFromMessages } from './session-event-helpers.js'
+import { captureRunContextSnapshot, captureRunResourceEvidence } from './pi-run-evidence.js'
 
 export type SessionEventDeps = {
   baseEvent: () => Record<string, unknown>
@@ -33,9 +35,16 @@ export function handleSessionEvent(event: AgentSessionEvent, deps: SessionEventD
   switch (event.type) {
     case 'agent_start': {
       deps.setAgentTurnActive(true)
-      deps.setCurrentRunId(`run-${deps.nextSeq()}`)
-      deps.setCurrentTurnId(`turn-${deps.nextSeq()}`)
-      deps.emit({ ...base, type: 'run', phase: 'running' } as AppEvent)
+      deps.setCurrentRunId(`run-${randomUUID()}`)
+      deps.setCurrentTurnId(`turn-${randomUUID()}`)
+      const startedAt = Date.now()
+      deps.emit({
+        ...deps.baseEvent(),
+        type: 'run',
+        phase: 'started',
+        contextSnapshot: captureRunContextSnapshot(session, startedAt),
+        resourceEvidence: captureRunResourceEvidence(session, startedAt),
+      } as AppEvent)
       break
     }
     case 'agent_end': {
@@ -58,11 +67,16 @@ export function handleSessionEvent(event: AgentSessionEvent, deps: SessionEventD
       if (process.env.PI_AUDIO_TRACE === '1' || process.env.PI_AUDIO_TRACE === 'true') {
         console.log('[audio-trace] worker.emit_run_idle')
       }
-      deps.emit({ ...base, type: 'run', phase: 'idle' } as AppEvent)
+      deps.emit({
+        ...base,
+        type: 'run',
+        phase: 'idle',
+        contextSnapshot: captureRunContextSnapshot(session),
+      } as AppEvent)
       break
     }
     case 'turn_start': {
-      deps.setCurrentTurnId(`turn-${deps.nextSeq()}`)
+      deps.setCurrentTurnId(`turn-${randomUUID()}`)
       break
     }
     case 'turn_end': {

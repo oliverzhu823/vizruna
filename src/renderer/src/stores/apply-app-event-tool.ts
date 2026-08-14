@@ -77,6 +77,7 @@ export function handleTool(event: ToolEvent, api: StoreApi): void {
         toolDetails: event.details,
         toolDetail,
         toolStatusLine: undefined,
+        toolEndedAt: event.timestamp,
         extensionUiSuspended: false,
         extensionUiRequestId: undefined,
         isError: event.isError,

@@ -59,6 +59,9 @@ import {
   isInvalidAuthenticationRuntimeError,
 } from '@shared/worker-auth-reload'
 import { emitRuntimeEvent } from './runtime-event-bus'
+import { sqliteIndex } from './sqlite-index'
+import { mergeAgentRunRuntimeEvidence } from './agent-run-runtime-evidence'
+import { mergeAgentRunTurnEvidence } from '@shared/agent-run-turn-evidence'
 
 interface InitResult extends WorkerInitResult {}
 
@@ -448,6 +451,17 @@ export class WorkerManager {
       agentTurnActive,
     })
     emitRuntimeEvent('ipc:events', enriched)
+    if (sessionFile && enriched.type === 'run' && (enriched.phase === 'started' || enriched.phase === 'idle')) {
+      const previous = sqliteIndex.getAgentRunRuntimeEvidence(sessionFile)
+      const runtimeEvidence = mergeAgentRunRuntimeEvidence(previous, enriched)
+      if (runtimeEvidence) sqliteIndex.saveAgentRunRuntimeEvidence(sessionFile, runtimeEvidence)
+    }
+    const evidenceRunId = 'runId' in enriched ? enriched.runId : undefined
+    if (sessionFile && evidenceRunId && ['run', 'tool', 'compaction', 'file', 'agent_error'].includes(enriched.type)) {
+      const previous = sqliteIndex.getAgentRunTurnEvidence(sessionFile, evidenceRunId)
+      const turnEvidence = mergeAgentRunTurnEvidence(previous, enriched)
+      if (turnEvidence) sqliteIndex.saveAgentRunTurnEvidence(sessionFile, turnEvidence)
+    }
     if (
       sessionFile &&
       event.type === 'run' &&
@@ -899,6 +913,62 @@ export class WorkerManager {
     return run
   }
 
+  /**
+   * Create an isolated background session using the exact immutable Agent snapshot.
+   * The bootstrap session created with the worker is replaced before any prompt is sent.
+   */
+  async createConfiguredBackgroundSession(
+    cwd: string,
+    conversationConfigSnapshot: ConversationRuntimeSnapshot,
+  ): Promise<{
+    sessionId: string
+    sessionFile: string
+    workerKey: string
+    model?: string
+    thinkingLevel?: string
+  } | null> {
+    const run = this.lifecycleChain.then(async () => {
+      const initial = await this.spawnBackgroundWorkerUnlocked(cwd)
+      if (!initial) return null
+      const initialKey = normalizeSessionKey(initial.sessionFile)
+      const slot = this.pool.get(initialKey)
+      if (!slot || slot.stopping) throw new Error('Background worker was not retained')
+      try {
+        const response = await this.requestOnSlot(slot, 'newSession', {
+          conversationConfigSnapshot,
+        })
+        const sessionId = String(response.sessionId || '')
+        const sessionFile = normalizeSessionKey(String(response.sessionFile || ''))
+        if (!sessionId || !sessionFile) {
+          throw new Error('Configured background session was not created')
+        }
+        await this.acquireSessionLeaseOrThrow(sessionFile)
+        if (this.pool.get(initialKey) === slot) this.pool.delete(initialKey)
+        slot.poolKey = sessionFile
+        slot.sessionFile = sessionFile
+        this.pool.set(sessionFile, slot)
+        this.bindSlotLease(slot, sessionFile)
+        if (initialKey && initialKey !== sessionFile) await this.leaseService.release(initialKey)
+        const state = (await this.requestOnSlot(slot, 'getState')).state as WorkerState
+        return this.backgroundDescriptor(slot, { ...state, sessionId, sessionFile })
+      } catch (error) {
+        const currentSessionFile = slot.sessionFile
+        if (this.pool.get(slot.poolKey) === slot) this.pool.delete(slot.poolKey)
+        await disposeWorkerSlot(slot).catch(() => {})
+        if (initialKey) await this.leaseService.release(initialKey)
+        if (currentSessionFile && currentSessionFile !== initialKey) {
+          await this.leaseService.release(currentSessionFile)
+        }
+        throw error
+      }
+    })
+    this.lifecycleChain = run.then(
+      () => undefined,
+      () => undefined,
+    )
+    return run
+  }
+
   async ensureBackgroundSession(
     sessionFile: string,
     cwd: string,
@@ -1335,24 +1405,36 @@ export class WorkerManager {
     }
     return ((await this.request('getState', {})).state as WorkerState) || {}
   }
-  async getCommands(): Promise<{ commands: WorkerCommandInfo[]; hasSession: boolean }> {
-    const r = await this.request('getCommands')
+  async getCommands(sessionFile?: string): Promise<{ commands: WorkerCommandInfo[]; hasSession: boolean }> {
+    const r = await this.readOnlySessionRequest('getCommands', sessionFile)
+    if (!r) return { commands: [], hasSession: false }
     return { commands: (r.commands as WorkerCommandInfo[]) || [], hasSession: !!r.hasSession }
   }
   async getSessionContextPreview(): Promise<WorkerContextPreview> {
     const r = await this.request('getSessionContextPreview')
     return (r.preview as WorkerContextPreview) || null
   }
-  async getSkillsList(): Promise<WorkerSkillInfo[]> {
-    const r = await this.request('getSkillsList')
+  private async readOnlySessionRequest(
+    type: string,
+    sessionFile?: string,
+  ): Promise<WorkerResponsePayload | null> {
+    if (!sessionFile) return this.request(type)
+    const slot = this.pool.get(normalizeSessionKey(sessionFile))
+    if (!slot || slot.stopping) return null
+    return this.requestOnSlot(slot, type)
+  }
+  async getSkillsList(sessionFile?: string): Promise<WorkerSkillInfo[]> {
+    const r = await this.readOnlySessionRequest('getSkillsList', sessionFile)
+    if (!r) return []
     return (r.skills as WorkerSkillInfo[]) || []
   }
-  async getPromptTemplatesList(): Promise<WorkerPromptTemplate[]> {
-    const r = await this.request('getPromptTemplatesList')
+  async getPromptTemplatesList(sessionFile?: string): Promise<WorkerPromptTemplate[]> {
+    const r = await this.readOnlySessionRequest('getPromptTemplatesList', sessionFile)
+    if (!r) return []
     return (r.prompts as WorkerPromptTemplate[]) || []
   }
-  async getContextPrompts(): Promise<WorkerResponsePayload> {
-    return this.request('getContextPrompts')
+  async getContextPrompts(sessionFile?: string): Promise<WorkerResponsePayload> {
+    return (await this.readOnlySessionRequest('getContextPrompts', sessionFile)) || {}
   }
   async reloadResources(): Promise<void> {
     await this.request('reloadResources')

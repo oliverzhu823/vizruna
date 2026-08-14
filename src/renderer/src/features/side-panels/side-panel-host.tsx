@@ -7,6 +7,9 @@ import { WorkspaceTasksSidePanel } from './workspace-tasks-side-panel'
 const ReviewPanel = lazy(() => import('@renderer/features/review/review-panel').then((m) => ({ default: m.ReviewPanel })))
 const RunPanel = lazy(() => import('@renderer/features/run/run-panel').then((m) => ({ default: m.RunPanel })))
 const ContextPanel = lazy(() => import('@renderer/features/context/context-panel').then((m) => ({ default: m.ContextPanel })))
+const PiInspectorPanel = lazy(() =>
+  import('@renderer/features/pi-inspector/pi-inspector-panel').then((m) => ({ default: m.PiInspectorPanel })),
+)
 const TreePanel = lazy(() => import('@renderer/features/rewind/tree-panel').then((m) => ({ default: m.TreePanel })))
 const WorkspaceFilesPanel = lazy(() =>
   import('@renderer/features/workspace-files/workspace-files-panel').then((m) => ({ default: m.WorkspaceFilesPanel })),
@@ -46,6 +49,7 @@ export function SidePanelHost({ item }: { item: RightPanelCatalogItem | undefine
 
   if (item.id === 'review') return wrap(<ReviewPanel />)
   if (item.id === 'run') return wrap(<RunPanel />)
+  if (item.id === 'pi') return wrap(<PiInspectorPanel />)
   if (item.id === 'context') return wrap(<ContextPanel />)
   if (item.id === 'tree') return wrap(<TreePanel />)
   if (item.id === 'files') return wrap(<WorkspaceFilesPanel />)

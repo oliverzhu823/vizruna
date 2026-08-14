@@ -285,7 +285,10 @@ export function registerSessionHandlers(): void {
       (req.agentProfileId
         ? { kind: 'agent' as const, profileId: req.agentProfileId }
         : undefined)
-    const conversationConfigSnapshot = resolveConversationConfigSnapshot(selection)
+    const conversationConfigSnapshot = await resolveConversationConfigSnapshot(
+      selection,
+      workspaceId,
+    )
     const result = await workerManager.newSession(conversationConfigSnapshot)
     let state = await workerManager.getState().catch(() => ({}))
     const sessionFile =

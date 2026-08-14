@@ -31,6 +31,7 @@ export type ToolTimelineItem = {
   toolDetail?: ToolCallDetail
   toolArgs?: unknown
   toolStatusLine?: string
+  toolEndedAt?: number
   extensionUiSuspended?: boolean
   runId?: string
   isError?: boolean
@@ -50,6 +51,7 @@ export interface TimelineItem {
   toolDetail?: ToolCallDetail
   toolArgs?: unknown
   toolStatusLine?: string
+  toolEndedAt?: number
   extensionUiSuspended?: boolean
   extensionUiRequestId?: string
   runId?: string
@@ -119,6 +121,9 @@ export interface RunState {
   errorCount: number
   activeTool?: string
   activeToolStatus?: string
+  contextBefore?: import('@shared/app-events').RunContextSnapshot
+  contextAfter?: import('@shared/app-events').RunContextSnapshot
+  resourceEvidence?: import('@shared/app-events').RunResourceEvidence
 }
 
 /** Slice of UIState used by AppEvent application */

@@ -9,7 +9,7 @@ import type {
 import { conversationBindingFromAgent } from '@shared/system-prompt-preset'
 import {
   getSessionAgentBinding,
-  requireActiveAgentProfileSnapshot,
+  resolveActiveAgentProfileSnapshot,
   saveSessionAgentBinding,
 } from './agent-profile-service'
 import { sqliteIndex } from './sqlite-index'
@@ -36,12 +36,13 @@ export function requireActiveSystemPromptSnapshot(presetId: string): SystemPromp
   return snapshotSystemPromptPreset(preset)
 }
 
-export function resolveConversationConfigSnapshot(
+export async function resolveConversationConfigSnapshot(
   selection?: ConversationConfigSelection,
-): ConversationRuntimeSnapshot | undefined {
+  workspaceId?: string,
+): Promise<ConversationRuntimeSnapshot | undefined> {
   if (!selection) return undefined
   if (selection.kind === 'agent') {
-    return requireActiveAgentProfileSnapshot(selection.profileId)
+    return resolveActiveAgentProfileSnapshot(selection.profileId, workspaceId, selection.versionId)
   }
   if (selection.kind === 'prompt') {
     return requireActiveSystemPromptSnapshot(selection.presetId)

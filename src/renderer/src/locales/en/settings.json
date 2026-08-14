@@ -6,8 +6,9 @@
     "rightPanels": "Right Panels",
     "pi": "Pi",
     "models": "Models",
+    "resources": "Pi Resource Center",
     "skills": "Skills",
-    "prompts": "Prompts",
+    "prompts": "System Prompt Library",
     "extensions": "Extensions",
     "adapters": "Adapters",
     "voice": "Voice",
@@ -278,7 +279,7 @@
     "fallbackUser": "Standalone env unavailable, fell back to built-in",
     "fallbackGlobal": "Global version unavailable, fell back to built-in",
     "fallbackWorker": "Target SDK failed to load, fell back to built-in",
-    "fallbackIncompatible": "Pi SDK {{version}} is below the minimum compatible version {{minimum}}. The app safely fell back to the embedded SDK.",
+    "fallbackIncompatible": "Pi SDK {{version}} is outside the tested {{line}} compatibility line. The app safely fell back to the embedded SDK.",
     "switchEnv": "Switch active env",
     "switchEnvBuiltin": "Built-in",
     "switchEnvGlobal": "Global",
@@ -587,7 +588,7 @@
   },
   "prompts": {
     "title": "Prompts & Context",
-    "description": "Grouped by how they enter the conversation context: project context (AGENTS.md / CLAUDE.md), global, and per-turn system. When no global SYSTEM.md exists, opening the \"Global\" item prefills the built-in text; saving makes it effective. Items marked \"per-turn system\" are injected into each session.",
+    "description": "Grouped by how they enter the conversation context: project context (AGENTS.override.md / AGENTS.md / CLAUDE.md), global, and per-turn system. AGENTS.override.md takes precedence over regular context files in the same directory. When no global SYSTEM.md exists, opening the \"Global\" item prefills the built-in text; saving makes it effective. Items marked \"per-turn system\" are injected into each session.",
     "groupAgentsContext": "Project context (AGENTS.md etc.)",
     "loading": "Loading…",
     "empty": "No entries found (open a workspace and refresh)",
@@ -644,6 +645,7 @@
     }
   },
   "skills": {
+    "filteredDisabled": "This Skill is disabled by a Pi Package or project filter. Change the Package configuration to enable it.",
     "description": "Writes to desktopSkillOverrides. Use \"Save\" at the bottom (writes to disk immediately, no Worker reload).",
     "hint": "All enabled by default. Toggles are written to ~/.pi/agent/settings.json",
     "empty": "No skills found (open a workspace first)"

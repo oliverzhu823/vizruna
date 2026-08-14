@@ -1,14 +1,388 @@
 {
   "title": "Agent Configurations",
   "eyebrow": "Agent Studio",
-  "description": "Save a fixed System Prompt for each scenario and start a new Pi conversation with it.",
+  "description": "Compose System Prompts, models, tools, and Pi-native resources into inspectable configurations for new conversations.",
   "loading": "Loading Agent configurations…",
   "loadingBinding": "Loading Agent…",
   "count": "{{count}} Agents",
+  "assets": {
+    "building": "In development",
+    "buildingHint": "The latest immutable version still needs evaluation or validation.",
+    "validated": "Validated assets",
+    "validatedHint": "At least one version has frozen human-reviewed evaluation evidence.",
+    "delivered": "Delivery versions",
+    "deliveredHint": "At least one version has been exported through Pi Package Studio.",
+    "delivery": "Local delivery Package",
+    "version": "v{{number}} available",
+    "none": "None yet",
+    "showing": "Showing {{visible}} of {{total}} Agents",
+    "showAll": "Show all Agents",
+    "emptyView": "No Agents in this asset view",
+    "emptyViewHint": "Continue evaluating an Agent or switch back to the complete configuration library.",
+    "packageStatus": {
+      "not-exported": "Not exported",
+      "unknown": "v{{number}} exported; open a trusted project to verify",
+      "available": "v{{number}} Package available",
+      "missing": "v{{number}} was exported; files are missing",
+      "invalid": "v{{number}} Package needs regeneration"
+    }
+  },
+  "workspace": {
+    "eyebrow": "Agent Workspace",
+    "back": "Back to library",
+    "run": "Run latest version",
+    "lifecycle": "Agent lifecycle",
+    "lifecycleHint": "Status is derived from immutable versions, real evaluations, and local Package evidence.",
+    "evidence": "Real evidence summary",
+    "evidenceHint": "Counts only local cases bound to this Agent and the latest run for each task in the current version suite.",
+    "evidenceLoading": "Loading evidence",
+    "evidenceFailed": "Agent evidence is temporarily unavailable; configuration and running are unaffected.",
+    "validationBlockers": "Current validation blockers",
+    "available": "Available",
+    "unavailable": "Not created",
+    "saved": "Configuration saved",
+    "pending": "Not completed",
+    "effectiveConfig": "Pi configuration summary",
+    "effectiveConfigHint": "Explicit Agent configuration is shown here; inherited values remain runtime-defined.",
+    "preflight": "Local run preflight",
+    "preflightHint": "Recomputed from the current Pi Runtime, authorized models, and resources whenever this workspace opens.",
+    "preflightLoading": "Checking",
+    "preflightFailed": "Check failed",
+    "preflightRetry": "Recheck",
+    "preflightRepair": "Repair",
+    "runs": {
+      "title": "Recent runs",
+      "hint": "Local sessions created with this exact Agent snapshot. Open them or promote real work into reusable evidence.",
+      "loading": "Loading run history…",
+      "empty": "This Agent has not been run yet. Evidence will appear here after its first run.",
+      "refresh": "Refresh run history",
+      "list": "Run history",
+      "unversioned": "Unversioned",
+      "messages": "{{count}} messages",
+      "status": { "running": "Running", "completed": "Completed", "failed": "Failed" },
+      "open": "Open",
+      "saveCase": "Save case",
+      "savedCase": "Case saved",
+      "saveScenario": "Add to evaluation",
+      "caseSummary": "Captured from a real {{agent}} run.",
+      "caseCreated": "Run saved as an Agent case",
+      "caseCreateFailed": "Could not create case",
+      "scenarioCreated": "Run added to the current version evaluation suite",
+      "scenarioCreateFailed": "Could not add to evaluation"
+      ,"artifacts": "Run artifacts"
+      ,"noArtifacts": "No file or case artifacts were recorded for this run."
+      ,"failure": "Last failure"
+      ,"metric": { "messages": "Messages", "files": "Files", "case": "Case" }
+      ,"observability": {
+        "title": "Pi run health", "hint": "Aggregated from the active Pi branch timeline and run-boundary evidence, without model inference.",
+        "context": "Ending context usage", "contextDelta": "Turn context delta", "tokens": "Input / output tokens", "tools": "Tool calls / failures",
+        "invoked": "Actually invoked: {{names}}", "loadedNotInvoked": "Loaded but not invoked in this run: {{names}}", "sampled": "Long session: only the latest {{count}} timeline records were analyzed.",
+        "health": { "healthy": "Healthy", "warning": "Needs attention", "critical": "High risk", "no-evidence": "No evidence" },
+        "signal": { "context-high": "Context above 75%", "context-critical": "Context above 90%", "context-grew": "Context still growing", "compacted": "Context compacted", "tool-failures": "Tool failures detected" }
+      }
+      ,"turns": {
+        "title": "Per-turn Pi evidence", "hint": "Every Agent run is stored independently, so later turns never overwrite earlier facts.", "count": "Latest {{count}} turns", "turn": "Turn {{number}}",
+        "toolCalls": "tool calls", "duration": "Duration", "contextDelta": "Context delta", "cache": "Cache read / write", "cost": "Cost",
+        "tools": "Actual tools: {{names}}", "compactions": "{{count}} compactions · {{tokens}} tokens processed", "files": "Changed files: {{names}}",
+        "legacy": "This session has no per-turn evidence yet. New runs will be recorded from the next turn."
+      }
+      ,"comparison": {
+        "title": "Pi run differences", "hint": "Shows only verifiable changes between runs and never presents correlation as causation.", "baseline": "Baseline {{value}}",
+        "status": { "stable": "Evidence is stable", "changed": "Visible changes", "attention": "Needs attention", "unknown": "Insufficient evidence" },
+        "metric": { "messages": "Messages", "files": "Files", "inputTokens": "Input tokens", "outputTokens": "Output tokens", "cost": "Cost", "toolCalls": "Tool calls", "toolFailures": "Tool failures", "contextPercent": "Context usage", "contextDelta": "Context delta", "compactions": "Compactions" },
+        "configuration": "Configuration changes", "config": { "versionChanged": "Version", "modelChanged": "Model", "thinkingChanged": "Thinking" },
+        "same": "Same", "changed": "Changed", "unknown": "Unknown", "capabilities": "Actual capability changes", "added": "Added: {{names}}", "removed": "Removed: {{names}}", "notComparable": "One run lacks Runtime capability evidence, so capabilities cannot be compared.",
+        "signal": { "version-changed": "Agent version changed", "model-changed": "Model changed", "thinking-changed": "Thinking changed", "capabilities-changed": "Actual capabilities changed", "context-pressure-up": "Context pressure increased", "tool-failures-up": "Tool failures increased", "cost-up": "Cost increased ≥20%", "tokens-up": "Tokens increased ≥20%", "incomplete-evidence": "Incomplete evidence" }
+      }
+      ,"diagnosis": {
+        "title": "Pi evidence diagnosis", "hint": "Explains observed facts with explicit rules and routes to the repair surface; it never edits the Agent automatically.",
+        "status": { "healthy": "No issue detected", "attention": "Needs attention", "blocked": "Blocked", "unknown": "Insufficient evidence" },
+        "healthy": "No actionable issue was found in the currently stored Pi evidence.",
+        "issue": {
+          "run-failed": { "title": "The run failed", "body": "Pi's latest failure evidence: {{reason}}" },
+          "capability-missing": { "title": "Fixed capabilities were not loaded", "body": "{{count}} missing: {{names}}" },
+          "capability-unexpected": { "title": "Capabilities outside the configuration were loaded", "body": "{{count}} additional: {{names}}" },
+          "context-critical": { "title": "Context is near its limit", "body": "Ending usage was {{percent}}%; inspect context composition and compaction." },
+          "context-high": { "title": "Context usage is high", "body": "Ending usage was {{percent}}%; inspect it before continuing." },
+          "tool-failures": { "title": "Tool calls failed", "body": "The active branch contains {{count}} failed calls; open the source run to inspect inputs and results." },
+          "compacted": { "title": "Context was compacted", "body": "The active branch contains {{count}} compactions; output changes may coincide with summarized history." },
+          "sampled-evidence": { "title": "This is a long-session sample", "body": "The summary covers only the latest {{count}} records; open the source run for the full timeline." },
+          "legacy-evidence": { "title": "Legacy run lacks Runtime evidence", "body": "The original capabilities cannot be inferred from today's environment; rerun to establish evidence." }
+        },
+        "action": { "open-run": "Open source run", "rerun": "Rerun to establish evidence", "manage-resources": "Open Pi Resource Center", "edit-agent": "Inspect Agent configuration" }
+      }
+      ,"compare": "Compare with another run"
+      ,"compareChoose": "Choose a baseline run"
+      ,"compareMessages": "Message delta {{delta}}"
+      ,"compareFiles": "File delta {{delta}}"
+      ,"compareStatus": "Status: {{current}} / baseline {{baseline}}"
+      ,"runtimeEvidence": {
+        "title": "Actually loaded for this run",
+        "hint": "Real resources captured from Pi AgentSession at run start, not inferred from configuration.",
+        "status": { "exact": "Matches configuration", "drift": "Capability drift found", "partial": "Partly environment inherited", "no-evidence": "No runtime evidence" },
+        "group": { "tools": "Tools", "extensions": "Extensions", "skills": "Skills", "prompts": "Prompts", "context": "Context files" },
+        "tracked": "Fixed configuration",
+        "inherited": "Environment inherited",
+        "actual": "Actual: {{names}}",
+        "none": "None",
+        "matched": "{{count}} matched",
+        "missing": "Missing: {{names}}",
+        "unexpected": "Additionally loaded: {{names}}",
+        "notCompared": "This category is environment-defined; only its actual value is recorded.",
+        "legacy": "This older run has no Runtime capability evidence, so drift cannot be inferred."
+      }
+    },
+    "capabilities": {
+      "title": "Pi capabilities and dependencies",
+      "hint": "Resolve the tools, Packages, Skills, Extensions, Prompts, and project context this Agent can actually use in the current Pi Runtime.",
+      "loading": "Resolving Pi capabilities…",
+      "ready": "Dependencies ready",
+      "blocked": "{{count}} blocked dependencies",
+      "manage": "Manage Pi resources",
+      "inherit": "Inherit current Pi environment",
+      "none": "Explicitly disabled",
+      "empty": "No capability configured",
+      "group": { "tools": "Built-in tools", "packages": "Pi Packages", "extensions": "Extensions", "skills": "Skills", "prompts": "Prompt Templates", "context": "Project context" },
+      "status": { "ready": "Ready", "inherited": "Environment inherited", "blocked": "Missing or disabled" },
+      "scope": { "user": "User", "project": "Project", "temporary": "Temporary" }
+    },
+    "preflightBlockedHint": "Resolve the blocked local run conditions first",
+    "preflightStatus": { "ready": "Ready to run", "needs-setup": "Runnable with inherited environment", "blocked": "Cannot run yet" },
+    "preflightCheck": { "runtime": "Pi Runtime", "model": "Model authorization", "provider": "Provider capabilities", "resources": "Pi resources", "context": "Project context", "tools": "Tool policy" },
+    "preflightCheckStatus": { "ready": "Ready", "action": "Environment-dependent", "blocked": "Blocked" },
+    "actions": "Next actions",
+    "actionsHint": "Continue running, validating, or delivering the same Agent.",
+    "evaluate": "Create version evaluation",
+    "stage": { "configured": "Configured", "versioned": "Immutable version", "validated": "Evaluation gate", "delivered": "Package delivery" },
+    "next": {
+      "edit-agent": "Next: complete Agent configuration",
+      "create-evaluation": "Next: create evaluation suite",
+      "add-scenarios": "Next: add fixed tasks",
+      "run-evaluation": "Next: complete task runs",
+      "review-runs": "Next: review results",
+      "fix-validation": "Next: resolve validation blockers",
+      "validate-version": "Next: validate this version",
+      "package": "Next: generate Package",
+      "run": "Ready to run and revalidate"
+      ,"repair-run": "Next: repair local run conditions"
+    },
+    "nextHint": {
+      "edit-agent": "Complete the effective configuration so Vizruna can create the first immutable version.",
+      "create-evaluation": "Create an evaluation suite for the current immutable version.",
+      "add-scenarios": "The suite exists and needs repeatable fixed tasks.",
+      "run-evaluation": "Some fixed tasks still lack real evidence from this version.",
+      "review-runs": "Runs are complete and need human decisions against the acceptance criteria.",
+      "fix-validation": "Open version evidence and resolve the specific blockers.",
+      "validate-version": "Evidence satisfies the gate; confirm validation in version history.",
+      "package": "The version is mature; inspect target readiness and generate a Pi Package.",
+      "run": "This asset is delivered; continue running, collecting cases, or revalidating it."
+      ,"repair-run": "The current model authorization, Provider capabilities, or explicit Pi resources are blocked and must be repaired before launch."
+    },
+    "nextAction": {
+      "edit-agent": "Edit configuration",
+      "create-evaluation": "Create evaluation",
+      "add-scenarios": "Add tasks",
+      "run-evaluation": "Continue evaluation",
+      "review-runs": "Review results",
+      "fix-validation": "Inspect blockers",
+      "validate-version": "Validate version",
+      "package": "Open Package",
+      "run": "Run Agent"
+      ,"repair-run": "Repair now"
+    },
+    "metric": {
+      "cases": "Agent cases",
+      "reproducible": "{{count}} recently verified as reproducible",
+      "suites": "Evaluation suites",
+      "currentSuite": "Current version suite: {{value}}",
+      "scenarios": "Current fixed tasks",
+      "completed": "Ran {{completed}} of {{total}}",
+      "results": "Human-passed tasks",
+      "verdicts": "Failed {{failed}} · Pending {{pending}}"
+    },
+    "actionHint": { "versions": "Compare configuration and inspect validation gates", "evaluate": "Validate this version with fixed tasks", "package": "Check delivery readiness and export a Pi Package" }
+  },
   "new": "New Agent",
   "edit": "Edit",
   "duplicate": "Duplicate",
   "archive": "Archive",
+  "packageImport": {
+    "remediation": {
+      "validation": "Create evaluation",
+      "runtime": "Check runtime",
+      "model": "Configure model",
+      "provider-auth": "Sign in",
+      "pi-packages": "Install dependencies",
+      "pi-resources": "Configure resources",
+      "project-context": "Edit Agent",
+      "tool-policy": "Edit Agent"
+    },
+    "open": "Import Package",
+    "title": "Import and reproduce Agent",
+    "subtitle": "Inspect a Vizruna Pi Package before changing this workspace",
+    "path": "Package directory",
+    "pathHint": "Use a directory inside the active trusted project. Extract downloaded packages into the project first.",
+    "inspect": "Inspect",
+    "identity": {
+      "new": "The immutable identity is new on this machine.",
+      "already-imported": "This exact Agent version is already in the local configuration library.",
+      "conflict": "A different local Agent already uses this immutable identity. Import is blocked."
+    },
+    "readiness": "This machine's readiness",
+    "readinessHint": "Calculated from the current Pi Runtime and resources, not copied from the source machine.",
+    "actions": "Confirmed actions",
+    "importConfiguration": "Add to Agent Configurations",
+    "importConfigurationHint": "Imported as a local candidate that must be evaluated again.",
+    "installAgentPackage": "Install the Agent Pi Package",
+    "installAgentPackageHint": "Adds this local package to the trusted project's Pi settings.",
+    "installDependencies": "Install missing Pi Package dependencies",
+    "installDependenciesHint": "{{count}} declared Package dependencies are currently missing.",
+    "evidenceBoundary": "Source validation is retained as artifact provenance only. It never marks the imported local version as validated; run the local evaluation gate again.",
+    "credentialBoundary": "No credentials are imported. Complete Provider login separately on this machine.",
+    "apply": "Apply reproduction plan",
+    "done": "Done",
+    "postflight": "The actions completed and Vizruna re-ran the local preflight. Current status: {{status}}. Remaining setup items above still require attention.",
+    "completed": "Agent Package imported",
+    "failed": "Agent Package import failed",
+    "sourceBadge": "Imported from delivery v{{number}}"
+  },
+  "packageStudio": {
+    "open": "Package",
+    "title": "Pi Package Studio",
+    "subtitle": "Validate, export, and install as a native Pi Package",
+    "validating": "Resolving Agent and Pi resource dependencies…",
+    "packageIdentity": "Pi Package identity",
+    "piCompatible": "Pi-native compatible",
+    "portable": "Portable",
+    "externalDeps": "External dependencies",
+    "validationPassed": "Validation passed. This package can be exported and installed.",
+    "generatedFiles": "Generated files",
+    "dependencies": "External Package dependencies",
+    "noPackageDependencies": "No external Package dependencies",
+    "exportOnly": "Export only",
+    "exportInstall": "Export and install for project",
+    "exported": "Pi Package exported",
+    "installed": "Pi Package exported and installed",
+    "failed": "Pi Package operation failed",
+    "delivery": {
+      "title": "Target environment readiness",
+      "description": "Export validity and target-machine setup are checked separately.",
+      "status": {
+        "ready": "Ready to reproduce",
+        "needs-setup": "Setup required",
+        "blocked": "Blocked"
+      },
+      "checkStatus": {
+        "ready": "Ready",
+        "action": "Action",
+        "blocked": "Blocked"
+      },
+      "readyValue": "Available",
+      "credentialBoundary": "No API keys, OAuth tokens, or proxy passwords are included. Provider authorization must be completed separately on the target machine.",
+      "check": {
+        "validation": "Version evidence",
+        "runtime": "Pi Runtime",
+        "model": "Fixed model",
+        "provider-auth": "Provider authorization",
+        "pi-packages": "External Pi Packages",
+        "pi-resources": "Pi resources",
+        "project-context": "Project context",
+        "tool-policy": "Tool policy"
+      },
+      "action": {
+        "validation": "Complete the fixed evaluation suite and validation gate before delivery.",
+        "runtime": "Install a compatible Pi Runtime on the target machine.",
+        "model": "Configure the required model {{value}} in the target Pi environment.",
+        "provider-auth": "Sign in to {{value}} locally on the target machine; credentials are never copied.",
+        "pi-packages": "Install the {{count}} declared external Pi Packages on the target machine.",
+        "pi-resources": "Provide the declared top-level resources and repair any missing or disabled selections.",
+        "project-context": "Provide the target project's own AGENTS.md or other inherited context files.",
+        "tool-policy": "Pin the base tool policy if the target must reproduce the exact tool surface."
+      }
+    },
+    "issue": {
+      "project-untrusted": "The current project is not trusted by Pi, so a project Package cannot be installed.",
+      "inherit-resources": "This Agent inherits every runtime Pi resource; available resources may differ on another machine.",
+      "inherit-model": "The model still inherits the current conversation, so the Package does not pin a model.",
+      "inherit-thinking": "Thinking level still inherits the current conversation.",
+      "inherit-tools": "Tool policy still inherits the current Pi settings.",
+      "project-context-external": "Project context such as AGENTS.md is not copied into the Package and remains supplied by the target project.",
+      "external-package-dependencies": "Depends on {{count}} external Pi Packages. They are not copied silently and must be installed separately in the target environment.",
+      "external-resource-dependencies": "Depends on {{count}} top-level Pi resources. They are not copied silently and must exist in the target environment.",
+      "package-missing": "{{count}} dependent Packages are missing. Repair them before exporting.",
+      "resource-missing": "{{count}} selected resources are missing or moved. Repair the Agent configuration first.",
+      "resource-disabled": "{{count}} selected resources are disabled by Pi. Enable them in Resource Center first.",
+      "replace-system-prompt": "This Agent replaces Pi's default System Prompt. Use this only when full prompt ownership is intentional.",
+      "version-unvalidated": "This Agent version has not passed its full evaluation suite and cannot be packaged for delivery."
+    }
+  },
+  "versions": {
+    "open": "Versions",
+    "title": "Agent version history",
+    "subtitle": "Compare immutable configurations, validate them, and choose what to run",
+    "timeline": "Version timeline",
+    "immutableVersion": "Immutable Agent version",
+    "status": {
+      "candidate": "Candidate",
+      "validated": "Validated",
+      "released": "Released"
+    },
+    "useVersion": "Use v{{number}}",
+    "validate": "Mark validated",
+    "validated": "Agent version validated",
+    "validationFailed": "Version validation failed",
+    "needsSuite": "Create an evaluation suite for this version and pass every fixed task with the original input before validating it.",
+    "notReady": "Resolve every validation blocker before marking this version as validated.",
+    "readinessTitle": "Validation readiness",
+    "readinessChecking": "Checking",
+    "readinessReady": "Ready",
+    "readinessBlocked": "Blocked",
+    "readinessFailed": "Failed to check validation readiness",
+    "readinessReadyHint": "All fixed tasks passed with unchanged inputs and the version does not regress against the latest validated baseline.",
+    "validationEvidence": "Frozen validation evidence",
+    "validatedAt": "Validated {{date}}",
+    "validatedRuns": "{{count}} reviewed fixed tasks",
+    "validatedBaseline": "Validated against baseline v{{number}}",
+    "baselineOutcome": "Result against the validated baseline: {{outcome}}",
+    "outcomes": {
+      "improved": "improved",
+      "equivalent": "equivalent",
+      "regressed": "regressed",
+      "mixed": "mixed",
+      "insufficient": "insufficient evidence"
+    },
+    "blockers": {
+      "no-scenarios": "The evaluation suite has no fixed tasks.",
+      "run-missing": "At least one fixed task has no run from this exact Agent version.",
+      "review-pending": "At least one run still needs human review.",
+      "task-failed": "At least one fixed task failed human acceptance.",
+      "prompt-drifted": "At least one run did not use the original fixed input.",
+      "baseline-required": "Clone the fixed tasks from the latest validated version to establish a regression baseline.",
+      "baseline-suite-missing": "The linked baseline evaluation suite no longer exists.",
+      "baseline-version-mismatch": "The linked suite does not target the latest validated Agent version.",
+      "comparison-insufficient": "The baseline comparison does not yet have complete, reviewed evidence.",
+      "comparison-regressed": "The candidate regresses against the latest validated version.",
+      "comparison-mixed": "The candidate improves some tasks but regresses others. Resolve every regression first."
+    },
+    "diffFrom": "Configuration changes from v{{number}}",
+    "firstVersion": "Initial version",
+    "noDiff": "No configuration changes to display",
+    "loadFailed": "Failed to load Agent versions",
+    "packageVersion": "Delivery version",
+    "packageVersionHint": "Only validated or released versions can be exported.",
+    "fields": {
+      "name": "Name",
+      "description": "Purpose",
+      "systemPrompt": "System Prompt",
+      "promptMode": "Prompt mode",
+      "modelId": "Model",
+      "thinkingLevel": "Thinking",
+      "tools": "Base tools",
+      "extensionTools": "Extension tools",
+      "resourceSelection": "Pi resources",
+      "providerRequirements": "Model requirements"
+    }
+  },
   "use": "Use this Agent",
   "updatedAt": "Updated {{time}}",
   "inherits": "Inherit current setting",
@@ -51,9 +425,76 @@
     "toolsMode": "Tool configuration",
     "toolsInherit": "Inherit Pi's current settings",
     "toolsCustom": "Choose tools",
+    "builtinTools": "Pi base tools",
+    "extensionTools": "Extension tool permissions",
+    "extensionToolsHint": "Controls tools registered by selected Extensions. Slash commands are not model tool permissions.",
+    "extensionToolsAll": "Allow all",
+    "extensionToolsCustom": "Choose tools",
+    "extensionToolsEmpty": "No registered tools were discovered for the selected Extensions.",
     "cancel": "Cancel",
     "save": "Save",
     "saving": "Saving…"
+  },
+  "composer": {
+    "piResources": "Pi-native resources",
+    "piResourcesHint": "Choose the Packages, Skills, Extensions, and Prompt Templates available to this Agent. Pi's global disable rules still take precedence.",
+    "mode": {
+      "inherit": "Inherit all Pi resources",
+      "inheritHint": "Use every Pi resource enabled when the conversation starts.",
+      "selected": "Use selected resources only",
+      "selectedHint": "Load only the Packages or individual resources selected below."
+    },
+    "projectContext": "Project context",
+    "projectContextHint": "Controls whether AGENTS.md, AGENTS.override.md, and other project context files are loaded.",
+    "providerRequirements": "Model capability requirements",
+    "providerRequirementsHint": "Declare the model capabilities this Agent requires. When enabled, a compatible authorized model must be selected.",
+    "extensionTools": "Extension tools",
+    "allSelectedExtensionTools": "All tools from selected Extensions",
+    "requirement": {
+      "reasoning": "Requires reasoning",
+      "reasoningHint": "Only models Pi marks as reasoning-capable can be used.",
+      "imageInput": "Requires image input",
+      "imageInputHint": "Only multimodal models that accept images can be used.",
+      "minContextWindow": "Minimum context window",
+      "minContextWindowHint": "Measured in tokens; leave blank for no requirement."
+    },
+    "providerIssue": {
+      "model-required": "Select a fixed model before enabling capability requirements.",
+      "model-unavailable": "The selected model is not authorized, was removed, or is unavailable in Pi.",
+      "reasoning-required": "The selected model does not provide the reasoning capability this Agent requires.",
+      "image-required": "The selected model does not accept the image input this Agent requires.",
+      "context-window-required": "The selected model's context window is smaller than this Agent requires."
+    },
+    "context": {
+      "inherit": "Inherit Pi setting",
+      "none": "Do not load project context",
+      "inheritPreview": "Uses the context hierarchy from the current trusted Pi project.",
+      "nonePreview": "This Agent does not read project context files."
+    },
+    "loadingResources": "Resolving Pi resources…",
+    "packages": "Pi Packages",
+    "noPackages": "No Packages are configured in Pi. Install one from Pi Resource Center first.",
+    "packageResources": "Contains {{count}} Agent resources",
+    "kind": {
+      "skills": "Skills",
+      "extensions": "Extensions",
+      "prompts": "Prompt Templates"
+    },
+    "noResources": "No resources of this type",
+    "disabledByPi": "Disabled by a Pi global or project filter",
+    "includedByPackage": "Included by the selected Package",
+    "registeredTools": "{{count}} registered tools",
+    "previewTitle": "Effective configuration preview",
+    "previewHint": "This is the configuration frozen when the new conversation is created. Later Agent edits will not change it.",
+    "previewFailed": "Pi resources could not be read. Check the current project and Runtime.",
+    "ready": "This configuration is ready to start a conversation",
+    "warning": {
+      "project-untrusted": "The current project is not trusted, so project context and executable resources will not load.",
+      "empty-selection": "Selected-resource mode is active but no resources are selected. The Agent will keep only its base tools.",
+      "package-missing": "{{count}} selected Packages are not installed or are unavailable.",
+      "resource-missing": "{{count}} selected resources moved or no longer exist.",
+      "resource-disabled": "{{count}} selected resources are disabled by Pi settings and will not load."
+    }
   },
   "messages": {
     "created": "Agent created",

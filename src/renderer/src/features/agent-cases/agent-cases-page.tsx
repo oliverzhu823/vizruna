@@ -2,15 +2,18 @@ import { useCallback, useEffect, useId, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import {
+  AlertTriangle,
   Archive,
   BriefcaseBusiness,
   CheckCircle2,
   CircleDashed,
   ExternalLink,
   Folder,
+  Fingerprint,
   Loader2,
   Plus,
   RotateCcw,
+  ShieldCheck,
   Tags,
 } from 'lucide-react'
 import type { AgentCase, AgentCaseCreateRequest } from '@shared/agent-case'
@@ -173,12 +176,14 @@ function AgentCaseCard({
   onOpen,
   onSetStatus,
   onArchive,
+  onVerify,
 }: {
   agentCase: AgentCase
   busy: boolean
   onOpen: () => void
   onSetStatus: (status: 'draft' | 'validated') => void
   onArchive: () => void
+  onVerify: () => void
 }) {
   const { t, i18n } = useTranslation('cases')
   const archived = agentCase.status === 'archived'
@@ -238,6 +243,41 @@ function AgentCaseCard({
         <span>{formattedDate}</span>
       </div>
 
+      {agentCase.provenance ? (
+        <div className="mt-3 rounded-lg border border-border/50 bg-muted/20 px-3 py-2.5">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[10px] text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5">
+              <Fingerprint className="h-3.5 w-3.5 text-primary" />
+              {agentCase.provenance.agent?.name || t('provenance.generalPi')}
+            </span>
+            <span className="font-mono">Pi {agentCase.provenance.piRuntimeVersion}</span>
+            <span>{t('provenance.packages', { count: agentCase.provenance.packages.length })}</span>
+          </div>
+          {agentCase.lastVerification ? (
+            <div className={cn(
+              'mt-2 flex items-center gap-1.5 text-[10px]',
+              agentCase.lastVerification.reproducible
+                ? 'text-emerald-700 dark:text-emerald-300'
+                : 'text-destructive',
+            )}>
+              {agentCase.lastVerification.reproducible
+                ? <CheckCircle2 className="h-3.5 w-3.5" />
+                : <AlertTriangle className="h-3.5 w-3.5" />}
+              {t(agentCase.lastVerification.reproducible
+                ? 'provenance.reproducible'
+                : 'provenance.drifted')}
+              <span className="text-muted-foreground">
+                · {new Intl.DateTimeFormat(i18n.language, { dateStyle: 'short', timeStyle: 'short' }).format(agentCase.lastVerification.checkedAt)}
+              </span>
+            </div>
+          ) : null}
+        </div>
+      ) : (
+        <div className="mt-3 rounded-lg border border-dashed border-border/60 px-3 py-2 text-[10px] text-muted-foreground">
+          {t('provenance.legacy')}
+        </div>
+      )}
+
       {agentCase.tags.length > 0 && (
         <div className="mt-3 flex flex-wrap items-center gap-1.5">
           <Tags className="mr-0.5 h-3.5 w-3.5 text-muted-foreground" />
@@ -250,6 +290,15 @@ function AgentCaseCard({
       )}
 
       <div className="mt-4 flex items-center gap-2 border-t border-border/50 pt-3">
+        <button
+          type="button"
+          disabled={busy}
+          onClick={onVerify}
+          className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] text-primary hover:bg-primary/10 disabled:opacity-50"
+        >
+          <ShieldCheck className="h-3.5 w-3.5" />
+          {t('actions.verify')}
+        </button>
         {archived ? (
           <button
             type="button"
@@ -384,6 +433,23 @@ export function AgentCasesPage({
     }
   }
 
+  const verifyCase = async (agentCase: AgentCase) => {
+    setBusyId(agentCase.id)
+    try {
+      const response = await ipcClient.invoke('agentCase.verify', { id: agentCase.id })
+      setCases((previous) => previous.map((item) =>
+        item.id === agentCase.id ? response.agentCase : item,
+      ))
+      toast.success(t(response.verification.reproducible
+        ? 'messages.verificationPassed'
+        : 'messages.verificationDrifted'))
+    } catch (error) {
+      toast.error(t('messages.verifyFailed'), { description: String(error) })
+    } finally {
+      setBusyId(null)
+    }
+  }
+
   const openSource = async (agentCase: AgentCase) => {
     setBusyId(agentCase.id)
     try {
@@ -461,6 +527,7 @@ export function AgentCasesPage({
                 busy={busyId === agentCase.id}
                 onOpen={() => void openSource(agentCase)}
                 onSetStatus={(status) => void updateStatus(agentCase, status)}
+                onVerify={() => void verifyCase(agentCase)}
                 onArchive={() => void archiveCase(agentCase)}
               />
             ))}

@@ -15,6 +15,7 @@ import {
   ListTree,
   MessageCircleQuestion,
   Network,
+  Orbit,
   PanelRight,
   Play,
   Scissors,
@@ -34,6 +35,7 @@ const SUPPORTED_PANEL_ICONS: Record<string, LucideIcon> = {
   // Core panel ids and Lucide component names used in CORE_RIGHT_PANEL_CATALOG
   review: GitBranch,
   run: Activity,
+  pi: Orbit,
   context: FileSearch,
   tree: ListTree,
   files: FolderTree,
@@ -42,6 +44,7 @@ const SUPPORTED_PANEL_ICONS: Record<string, LucideIcon> = {
   agents: Network,
   GitBranch,
   Activity,
+  Orbit,
   FileSearch,
   FolderTree,
   GitFork,

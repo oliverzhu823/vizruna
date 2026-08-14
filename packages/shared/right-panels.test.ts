@@ -7,10 +7,11 @@ import {
 } from './right-panels'
 
 describe('defaultCoreRightPanelPrefs', () => {
-  it('enables files, run, terminal, managed worktrees, and agents by default', () => {
+  it('enables Pi, files, run, terminal, managed worktrees, and agents by default', () => {
     const prefs = defaultCoreRightPanelPrefs()
     expect(prefs.files).toBe(true)
     expect(prefs.run).toBe(true)
+    expect(prefs.pi).toBe(true)
     expect(prefs.terminal).toBe(true)
     expect(prefs.review).toBe(false)
     expect(prefs.context).toBe(false)
@@ -32,7 +33,7 @@ describe('CORE_RIGHT_PANEL_CATALOG tree icon', () => {
 describe('normalizeRightPanelPrefs', () => {
   it('falls back to files+run when all panels disabled', () => {
     const prefs = normalizeRightPanelPrefs(
-      { review: false, run: false, context: false, tree: false, files: false, terminal: false, worktrees: false, agents: false },
+      { review: false, run: false, pi: false, context: false, tree: false, files: false, terminal: false, worktrees: false, agents: false },
       CORE_RIGHT_PANEL_CATALOG,
     )
     expect(prefs.files).toBe(true)

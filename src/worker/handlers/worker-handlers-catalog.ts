@@ -37,13 +37,15 @@ export async function handleGetmodels(msg: WorkerIncomingMessage, reply: WorkerR
             : []
           reply({
             type: 'getModels-done',
-            models: models.map((m: { id: string; name?: string; provider: string; contextWindow?: number; maxOutput?: number }) => ({
+            models: models.map((m: { id: string; name?: string; provider: string; contextWindow?: number; maxOutput?: number; maxTokens?: number; reasoning?: boolean; input?: Array<'text' | 'image'> }) => ({
               id: m.id,
               name: m.name || m.id,
               provider: m.provider,
               contextWindow: m.contextWindow || 0,
-              maxOutput: m.maxOutput || 0,
+              maxOutput: m.maxOutput || m.maxTokens || 0,
               available: true,
+              reasoning: m.reasoning === true,
+              input: m.input?.length ? [...m.input] : ['text'],
             })),
           })
         } catch (e: unknown) {

@@ -2,6 +2,7 @@ import type { AppEvent } from '@shared/app-events'
 import type { AppUpdateAvailableInfo, AppUpdateDownloadProgress } from '@shared/app-update'
 import type { ProviderAuthFlowEvent } from '@shared/provider-auth'
 import type { TerminalDataEvent, TerminalExitEvent } from '@shared/terminal'
+import type { PiPackageMutationProgress } from '@shared/pi-resource-center'
 import { installWebRuntimeBridge } from './web-runtime-client'
 
 declare global {
@@ -21,6 +22,7 @@ declare global {
       onProviderAuthFlow: (callback: (event: ProviderAuthFlowEvent) => void) => () => void
       onTerminalData: (callback: (event: TerminalDataEvent) => void) => () => void
       onTerminalExit: (callback: (event: TerminalExitEvent) => void) => () => void
+      onPiResourceOperationProgress?: (callback: (event: PiPackageMutationProgress) => void) => () => void
       ping: () => string
     }
   }
@@ -141,4 +143,12 @@ export function onTerminalExit(callback: (event: TerminalExitEvent) => void): ()
   const bridge = runtimeBridge()
   if (!bridge) return () => {}
   return bridge.onTerminalExit(callback)
+}
+
+export function onPiResourceOperationProgress(
+  callback: (event: PiPackageMutationProgress) => void,
+): () => void {
+  const bridge = runtimeBridge()
+  if (!bridge?.onPiResourceOperationProgress) return () => {}
+  return bridge.onPiResourceOperationProgress(callback)
 }

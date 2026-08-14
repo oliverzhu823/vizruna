@@ -11,6 +11,9 @@ import {
 import { cn } from '@renderer/lib/utils'
 import { useComposerMetrics } from '@renderer/features/composer/use-composer-metrics'
 import { formatTokens } from '@renderer/lib/format-tokens'
+import { useAgentProfileStore } from '@renderer/stores/agent-profile-store'
+import { buildPiRunDebuggerSnapshot } from './pi-run-debugger'
+import { PiRunDebuggerPanel } from './pi-run-debugger-panel'
 import {
   ContextDonutChart,
   ContextRoleLegend,
@@ -56,6 +59,8 @@ function resolveVisualStatus(params: {
 export function RunPanel() {
   const { t } = useTranslation()
   const runState = useUIStore((s) => s.runState)
+  const timelineItems = useUIStore((s) => s.timelineItems)
+  const activeBinding = useAgentProfileStore((s) => s.activeBinding)
   const model = runState.model
   const thinkingLevel = runState.thinkingLevel
   const [tick, setTick] = useState(0)
@@ -100,6 +105,11 @@ export function RunPanel() {
     metrics.contextWindow != null && metrics.estContextTokens != null
       ? Math.max(0, metrics.contextWindow - metrics.estContextTokens)
       : null
+
+  const debuggerSnapshot = useMemo(
+    () => buildPiRunDebuggerSnapshot({ timelineItems, runState, binding: activeBinding }),
+    [activeBinding, runState, timelineItems],
+  )
 
   const roleLabels: Record<string, string> = {
     system: t('run:role.system'),
@@ -248,6 +258,14 @@ export function RunPanel() {
       </div>
 
       <div className="space-y-3 p-3">
+        <PiRunDebuggerPanel
+          snapshot={debuggerSnapshot}
+          running={isRunning}
+          model={model}
+          contextTokens={metrics.estContextTokens}
+          contextWindow={metrics.contextWindow}
+        />
+
         {/* Context donut */}
         <section>
           <div className="mb-1.5 text-[11px] font-medium text-foreground-secondary/70">

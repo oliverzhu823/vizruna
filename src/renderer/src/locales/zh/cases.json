@@ -6,7 +6,7 @@
   "create": {
     "button": "沉淀当前对话",
     "title": "沉淀为 Agent 案例",
-    "description": "这里保存案例索引，不复制对话正文，也不会保存 API Key 或 OAuth 凭据。",
+    "description": "这里保存案例索引和可复验版本证据，不复制对话正文，也不会保存 API Key 或 OAuth 凭据。",
     "name": "案例名称",
     "namePlaceholder": "例如：竞品调研报告生成器",
     "defaultName": "未命名 Agent 案例",
@@ -31,7 +31,15 @@
     "markDraft": "标记为待验证",
     "markValidated": "标记为已验证",
     "archive": "归档",
-    "restore": "恢复为待验证"
+    "restore": "恢复为待验证",
+    "verify": "复验环境"
+  },
+  "provenance": {
+    "generalPi": "未绑定 Agent 配置",
+    "packages": "{{count}} 个 Package 版本",
+    "reproducible": "当前环境与归档版本一致",
+    "drifted": "当前环境与归档版本存在偏差",
+    "legacy": "旧案例没有版本证据；点击“复验环境”会提示需要重新归档。"
   },
   "empty": {
     "title": "还没有 Agent 案例",
@@ -45,6 +53,9 @@
     "loadFailed": "加载 Agent 案例失败",
     "createFailed": "保存 Agent 案例失败",
     "updateFailed": "更新 Agent 案例失败",
-    "openFailed": "打开原对话失败"
+    "openFailed": "打开原对话失败",
+    "verificationPassed": "复验通过，当前环境可重现此案例",
+    "verificationDrifted": "复验完成，但发现版本或资源偏差",
+    "verifyFailed": "案例复验失败"
   }
 }

@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer, webUtils } from 'electron'
 import type { AppEvent } from '@shared/app-events'
 import type { ProviderAuthFlowEvent } from '@shared/provider-auth'
 import type { TerminalDataEvent, TerminalExitEvent } from '@shared/terminal'
+import type { PiPackageMutationProgress } from '@shared/pi-resource-center'
 import { isAllowedIpcChannel } from '@shared/ipc-channels'
 
 const EVENTS_CHANNEL = 'ipc:events'
@@ -10,6 +11,7 @@ const EXT_UI_CHANNEL = 'ipc:extension-ui-request'
 const EXT_UI_DISMISS_CHANNEL = 'ipc:extension-ui-dismiss'
 const APP_UPDATE_CHANNEL = 'ipc:app-update-available'
 const APP_UPDATE_DOWNLOAD_PROGRESS_CHANNEL = 'ipc:app-update-download-progress'
+const PI_RESOURCE_OPERATION_PROGRESS_CHANNEL = 'ipc:pi-resource-operation-progress'
 
 const api = {
   invoke(channel: string, request?: unknown): Promise<unknown> {
@@ -96,6 +98,12 @@ const api = {
     const handler = (_event: unknown, data: TerminalExitEvent): void => callback(data)
     ipcRenderer.on('ipc:terminal-exit', handler)
     return () => ipcRenderer.off('ipc:terminal-exit', handler)
+  },
+
+  onPiResourceOperationProgress(callback: (event: PiPackageMutationProgress) => void): () => void {
+    const handler = (_event: unknown, data: PiPackageMutationProgress): void => callback(data)
+    ipcRenderer.on(PI_RESOURCE_OPERATION_PROGRESS_CHANNEL, handler)
+    return () => ipcRenderer.off(PI_RESOURCE_OPERATION_PROGRESS_CHANNEL, handler)
   },
 
   ping: (): string => 'pong',

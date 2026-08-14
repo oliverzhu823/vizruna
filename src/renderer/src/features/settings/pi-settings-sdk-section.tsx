@@ -79,7 +79,7 @@ export function PiSettingsSdkSection({
                 version: sdkStatus.active.fallbackReason.startsWith('user')
                   ? sdkStatus.userVersion
                   : sdkStatus.globalVersion,
-                minimum: sdkStatus.minimumSupportedVersion,
+                line: sdkStatus.supportedVersionLine || sdkStatus.minimumSupportedVersion,
               })
             : sdkStatus.active.fallbackReason.startsWith('user')
               ? t('settings:pi.fallbackUser')

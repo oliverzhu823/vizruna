@@ -101,6 +101,8 @@ export type ModelsJsonCatalogEntry = {
   contextWindow: number
   maxOutput: number
   available: boolean
+  reasoning: boolean
+  input: Array<'text' | 'image'>
 }
 
 /** 从当前运行时 Pi agent 目录的 models.json 展开全部 provider/model。 */
@@ -116,6 +118,8 @@ export function modelsCatalogFromConfig(config: PiModelsConfig): ModelsJsonCatal
         contextWindow: model.contextWindow ?? 0,
         maxOutput: model.maxTokens ?? 0,
         available: true,
+        reasoning: model.reasoning === true,
+        input: model.input?.length ? [...model.input] : ['text'],
       })
     }
   }

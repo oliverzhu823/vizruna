@@ -162,6 +162,9 @@ export function ProviderAuthFlowHost({
           setActivePrompt(null)
           setDevice(null)
           toast.success(t('settings:providerAuth.loginSuccess'))
+          window.dispatchEvent(new CustomEvent('vizruna:provider-auth-completed', {
+            detail: { providerId: event.providerId },
+          }))
           return
         }
         if (event.phase === 'failed') {

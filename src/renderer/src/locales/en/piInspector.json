@@ -1,0 +1,118 @@
+{
+  "title": "Effective Pi",
+  "subtitle": "Runtime and resources actually loaded by this session",
+  "refresh": "Refresh effective configuration",
+  "manage": "Manage resources",
+  "loading": "Reading effective Pi configuration…",
+  "loadFailed": "Failed to load",
+  "model": "Model",
+  "thinking": "Thinking",
+  "sdk": "Pi Runtime",
+  "route": "Network route",
+  "authentication": "Authentication",
+  "projectTrust": "Project resources",
+  "trusted": "Trusted",
+  "untrusted": "Untrusted",
+  "notSelected": "Not selected",
+  "notAvailable": "Unavailable",
+  "notConfigured": "Not configured",
+  "noWarnings": "No obvious configuration problems detected",
+  "toolCount": "{{count}} tools",
+  "commandCount": "{{count}} commands",
+  "loadedSummary": "Loaded {{loaded}} / {{count}}",
+  "status": {
+    "running": "Running",
+    "ready": "Ready",
+    "offline": "Not loaded"
+  },
+  "configurationKind": {
+    "general": "General Pi",
+    "agent": "Agent snapshot",
+    "prompt": "Session prompt snapshot"
+  },
+  "thinkingLevel": {
+    "off": "Off",
+    "minimal": "Minimal",
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "xhigh": "Extra high"
+  },
+  "routeMode": {
+    "direct": "Direct",
+    "system": "Inherit local proxy"
+  },
+  "authType": {
+    "configured": "Configured",
+    "api_key": "API key configured",
+    "oauth": "OAuth signed in",
+    "subscription": "Subscription signed in"
+  },
+  "promptMode": {
+    "append": "Append",
+    "replace": "Replace"
+  },
+  "resourceMode": {
+    "runtime": "Runtime resources",
+    "inherit": "All Pi resources",
+    "selected": "Selected resources only"
+  },
+  "projectContextMode": {
+    "runtime": "Runtime project context",
+    "inherit": "Inherit project context",
+    "none": "No project context"
+  },
+  "providerRequirements": {
+    "reasoning": "Reasoning required",
+    "imageInput": "Image input required"
+  },
+  "extensionToolsMode": {
+    "runtime": "Runtime Extension tools",
+    "all-selected": "All tools from selected Extensions",
+    "custom": "{{count}} allowed Extension tools"
+  },
+  "warning": {
+    "runtime-offline": "Pi Runtime has not started",
+    "session-not-loaded": "This session is not loaded",
+    "model-unselected": "No effective model selected",
+    "auth-missing": "Model authentication is missing",
+    "project-untrusted": "Project resources are not trusted",
+    "extension-load-error": "Extension failed to load",
+    "package-not-loaded": "Resource is not loaded by the runtime"
+  },
+  "context": {
+    "title": "Prompts and project context",
+    "sourceCount": "{{count}} sources",
+    "empty": "No additional prompt or project context was detected.",
+    "preview": "View final System Prompt preview ({{count}} chars)",
+    "kind": {
+      "agents": "Project context",
+      "system": "Base System Prompt",
+      "append": "Appended System Prompt",
+      "agent-profile": "Agent configuration",
+      "prompt-preset": "Session prompt"
+    }
+  },
+  "resources": {
+    "title": "Pi runtime resources",
+    "description": "Distinguishes configured resources from resources loaded by the current Worker",
+    "tools": "Tools",
+    "skills": "Skills",
+    "extensions": "Extensions",
+    "prompts": "Prompts",
+    "packages": "Packages",
+    "empty": "No resources of this type"
+  },
+  "resourceState": {
+    "loaded": "Loaded",
+    "configured": "Configured",
+    "disabled": "Disabled"
+  },
+  "scope": {
+    "global": "Global",
+    "project": "Project",
+    "package": "Package",
+    "runtime": "Runtime",
+    "unknown": "Unknown source"
+  }
+}

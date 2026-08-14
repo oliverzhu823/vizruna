@@ -6,6 +6,7 @@ import {
   BriefcaseBusiness,
   FileSearch,
   FolderTree,
+  FlaskConical,
   GitBranch,
   Keyboard,
   ListTree,
@@ -49,6 +50,7 @@ export function CommandPalette({
   onOpenSettings,
   onOpenAgentProfiles,
   onOpenAgentCases,
+  onOpenAgentEvaluations,
   onOpenSessionTree,
   onOpenShortcuts,
 }: {
@@ -57,6 +59,7 @@ export function CommandPalette({
   onOpenSettings: () => void
   onOpenAgentProfiles?: () => void
   onOpenAgentCases?: () => void
+  onOpenAgentEvaluations?: () => void
   onOpenSessionTree?: () => void
   onOpenShortcuts?: () => void
 }) {
@@ -89,6 +92,19 @@ export function CommandPalette({
             keywords: 'agent cases studio 案例 资产',
             run: () => {
               onOpenAgentCases()
+              onClose()
+            },
+          }]
+        : []),
+      ...(onOpenAgentEvaluations
+        ? [{
+            id: 'agent-evaluations',
+            label: t('evaluations:title'),
+            hint: t('evaluations:eyebrow'),
+            icon: FlaskConical,
+            keywords: 'agent evaluation eval regression 评测 回归 版本',
+            run: () => {
+              onOpenAgentEvaluations()
               onClose()
             },
           }]
@@ -196,6 +212,7 @@ export function CommandPalette({
     t,
     onOpenAgentProfiles,
     onOpenAgentCases,
+    onOpenAgentEvaluations,
     onOpenSettings,
     onOpenSessionTree,
     onOpenShortcuts,

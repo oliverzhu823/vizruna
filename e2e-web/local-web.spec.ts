@@ -1,4 +1,6 @@
 import { expect, test } from '@playwright/test'
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
+import { join, relative } from 'node:path'
 
 test('rejects unauthenticated and cross-origin API requests', async ({ request }) => {
   const health = await request.get('/api/health')
@@ -101,11 +103,200 @@ test('authenticates, renders Vizruna-web, and uses the shared RPC contract', asy
     expect(exported.body.result.download.base64.length).toBeGreaterThan(20)
   }
 
+  const createdProfile = await invoke('ipc:agentProfile.create', {
+    name: 'Web E2E version comparison Agent',
+    systemPrompt: 'Return evidence before conclusions.',
+    promptMode: 'append',
+  })
+  expect(createdProfile.status, JSON.stringify(createdProfile.body)).toBe(200)
+  const profileId = createdProfile.body.result.profile.id as string
+  const firstVersions = await invoke('ipc:agentVersion.list', { profileId })
+  const version1 = firstVersions.body.result.versions[0]
+  const updatedProfile = await invoke('ipc:agentProfile.update', {
+    id: profileId,
+    systemPrompt: 'Return verified evidence, risks, and then conclusions.',
+  })
+  expect(updatedProfile.status, JSON.stringify(updatedProfile.body)).toBe(200)
+  const nextVersions = await invoke('ipc:agentVersion.list', { profileId })
+  const version2 = nextVersions.body.result.versions[0]
+  expect(version2.number).toBe(2)
+
+  const incomingPath = join(workspacePath, '.vizruna', `e2e-import-${Date.now()}`)
+  mkdirSync(join(incomingPath, 'extensions'), { recursive: true })
+  const sourceProfile = {
+    id: profileId,
+    ...version2.config,
+    status: 'active',
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  }
+  writeFileSync(join(incomingPath, 'package.json'), JSON.stringify({
+    name: '@vizruna/web-e2e-import', version: '0.2.0',
+    pi: { extensions: ['./extensions/agent-profile.ts'] },
+    vizruna: { profileId, versionId: version2.id },
+  }))
+  writeFileSync(join(incomingPath, 'README.md'), 'E2E package')
+  writeFileSync(join(incomingPath, 'DELIVERY_CHECKLIST.md'), 'E2E checklist')
+  writeFileSync(join(incomingPath, 'extensions', 'agent-profile.ts'), 'export default function () {}')
+  writeFileSync(join(incomingPath, 'vizruna-agent.json'), JSON.stringify({
+    schemaVersion: 1, sdkVersion: '0.84.1', profile: sourceProfile, version: version2,
+    dependencies: { packages: [], resources: [] },
+  }))
+  const incomingRelativePath = relative(workspacePath, incomingPath)
+  const importPreview = await invoke('ipc:pi.packageStudio.import.preview', {
+    workspaceId: workspacePath,
+    packagePath: incomingRelativePath,
+  })
+  expect(importPreview.status, JSON.stringify(importPreview.body)).toBe(200)
+  expect(importPreview.body.result.plan).toMatchObject({
+    artifactValid: true,
+    identityStatus: 'new',
+    localVersionStatus: 'candidate',
+    credentialsIncluded: false,
+  })
+  const importApply = await invoke('ipc:pi.packageStudio.import.apply', {
+    workspaceId: workspacePath,
+    packagePath: incomingRelativePath,
+    installAgentPackage: false,
+    installDependencies: false,
+    importConfiguration: true,
+    confirmed: true,
+  })
+  expect(importApply.status, JSON.stringify(importApply.body)).toBe(200)
+  expect(importApply.body.result).toMatchObject({
+    ok: true,
+    profile: { importProvenance: { sourceProfileId: profileId, sourceVersionId: version2.id } },
+    version: { status: 'candidate', number: 1 },
+  })
+  expect(importApply.body.result.profile.id).not.toBe(profileId)
+
+  const assetCatalogResponse = await invoke('ipc:agentAsset.list', { workspacePath })
+  expect(assetCatalogResponse.status, JSON.stringify(assetCatalogResponse.body)).toBe(200)
+  expect(assetCatalogResponse.body.result.catalog.assets).toEqual(expect.arrayContaining([
+    expect.objectContaining({
+      profileId,
+      building: true,
+      validated: false,
+      delivered: false,
+      package: { status: 'not-exported' },
+    }),
+  ]))
+
+  const deliveryPreview = await invoke('ipc:pi.packageStudio.preview', {
+    profileId,
+    versionId: version2.id,
+    workspaceId: workspacePath,
+  })
+  expect(deliveryPreview.status, JSON.stringify(deliveryPreview.body)).toBe(200)
+  expect(deliveryPreview.body.result.plan).toMatchObject({
+    installable: false,
+    delivery: { status: 'blocked', credentialsIncluded: false },
+  })
+  expect(deliveryPreview.body.result.plan.files).toContain('DELIVERY_CHECKLIST.md')
+
+  const baselineSuiteResponse = await invoke('ipc:agentEvaluation.suite.create', {
+    name: 'Web E2E baseline',
+    workspacePath,
+    profileId,
+    versionId: version1.id,
+  })
+  expect(baselineSuiteResponse.status, JSON.stringify(baselineSuiteResponse.body)).toBe(200)
+  const baselineSuite = baselineSuiteResponse.body.result.suite
+  const scenarioResponse = await invoke('ipc:agentEvaluation.scenario.create', {
+    suiteId: baselineSuite.id,
+    name: 'Evidence report',
+    prompt: 'Prepare the evidence report.',
+    expectedOutcome: 'Cites evidence and records risks.',
+    tags: ['e2e'],
+  })
+  expect(scenarioResponse.status, JSON.stringify(scenarioResponse.body)).toBe(200)
+  const clonedSuiteResponse = await invoke('ipc:agentEvaluation.suite.cloneVersion', {
+    sourceSuiteId: baselineSuite.id,
+    targetVersionId: version2.id,
+    name: 'Web E2E candidate',
+  })
+  expect(clonedSuiteResponse.status, JSON.stringify(clonedSuiteResponse.body)).toBe(200)
+  const clonedBundle = clonedSuiteResponse.body.result.bundle
+  expect(clonedBundle.suite).toMatchObject({
+    name: 'Web E2E candidate',
+    versionId: version2.id,
+    baselineSuiteId: baselineSuite.id,
+  })
+  expect(clonedBundle.scenarios).toHaveLength(1)
+  expect(clonedBundle.scenarios[0]).toMatchObject({
+    name: 'Evidence report',
+    prompt: 'Prepare the evidence report.',
+  })
+  const comparisonResponse = await invoke('ipc:agentEvaluation.compare', {
+    baselineSuiteId: baselineSuite.id,
+    candidateSuiteId: clonedBundle.suite.id,
+  })
+  expect(comparisonResponse.status, JSON.stringify(comparisonResponse.body)).toBe(200)
+  expect(comparisonResponse.body.result.comparison).toMatchObject({
+    outcome: 'insufficient',
+    baselineVersionId: version1.id,
+    candidateVersionId: version2.id,
+    counts: { insufficient: 1 },
+  })
+
+  const readinessResponse = await invoke('ipc:agentVersion.readiness', {
+    versionId: version2.id,
+    suiteId: clonedBundle.suite.id,
+  })
+  expect(readinessResponse.status, JSON.stringify(readinessResponse.body)).toBe(200)
+  expect(readinessResponse.body.result.gate).toMatchObject({
+    eligible: false,
+    versionId: version2.id,
+    suiteId: clonedBundle.suite.id,
+    blockers: ['run-missing'],
+    baselineRequired: false,
+  })
+
+  const reportResponse = await invoke('ipc:agentEvaluation.report.export', {
+    baselineSuiteId: baselineSuite.id,
+    candidateSuiteId: clonedBundle.suite.id,
+    locale: 'en',
+    includeContent: false,
+  })
+  expect(reportResponse.status, JSON.stringify(reportResponse.body)).toBe(200)
+  expect(reportResponse.body.result).toMatchObject({ outcome: 'insufficient' })
+  expect(reportResponse.body.result.download.filename).toMatch(/\.md$/)
+  const reportMarkdown = Buffer.from(
+    reportResponse.body.result.download.base64,
+    'base64',
+  ).toString('utf8')
+  expect(reportMarkdown).toContain('Insufficient evidence')
+  expect(reportMarkdown).not.toContain('Prepare the evidence report.')
+  expect(reportMarkdown).not.toContain('Return evidence before conclusions.')
+
+  await page.getByRole('button', { name: /Agent 配置库|Agent Configurations/ }).click()
+  await expect(page.getByRole('heading', { name: /Agent 配置库|Agent Configurations/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /开发中|In development/ })).toBeVisible()
+  await expect(page.getByText('Web E2E version comparison Agent').first()).toBeVisible()
+  const importedBadge = page.getByText(/由交付版本 v2 导入|Imported from delivery v2/)
+  await expect(importedBadge).toBeVisible()
+  await expect(page.getByText(/尚未导出|Not exported/).first()).toBeVisible()
+  await page.getByRole('button', { name: /导入 Package|Import Package/ }).click()
+  const importDialog = page.getByRole('dialog', { name: /导入并复现 Agent|Import and reproduce Agent/ })
+  await importDialog.getByRole('textbox').fill(incomingRelativePath)
+  await importDialog.getByRole('button', { name: /开始检查|Inspect/ }).click()
+  await expect(importDialog.getByText(/来源验证仅作为交付物溯源|Source validation is retained/)).toBeVisible()
+  await expect(importDialog.getByText(/不会导入任何凭据|No credentials are imported/)).toBeVisible()
+  await importDialog.getByRole('button', { name: /取消|Cancel/ }).click()
+  const sourceAgentCard = page.locator('article').filter({ hasText: 'Web E2E version comparison Agent', hasNot: importedBadge })
+  await sourceAgentCard.getByRole('button', { name: /^(打包|Package)$/ }).click()
+  await expect(page.getByRole('dialog', { name: /Pi Package Studio/ })).toBeVisible()
+  await expect(page.getByText(/目标环境就绪度|Target environment readiness/)).toBeVisible()
+  await expect(page.getByText('DELIVERY_CHECKLIST.md')).toBeVisible()
+  await page.getByRole('dialog', { name: /Pi Package Studio/ }).getByRole('button', { name: /取消|Cancel/ }).click()
+  await page.getByRole('button', { name: /返回|Back/ }).click()
+
   await page.getByRole('button', { name: /^(设置|Settings)$/ }).click()
   await expect(
     page.getByText(/Vizruna-web 通过启动包更新|Vizruna-web updates through its launcher package/),
   ).toBeVisible()
   await expect(page.getByRole('button', { name: /检查更新|Check for updates/ })).toHaveCount(0)
+  rmSync(incomingPath, { recursive: true, force: true })
 })
 
 test('allows the startup token to be exchanged only once', async ({ request }) => {

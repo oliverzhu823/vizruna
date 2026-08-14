@@ -3,6 +3,10 @@ import { resolve } from 'node:path'
 import type { AgentCase } from '@shared/agent-case'
 import { auditRepository } from '../../audit/audit-repository'
 import { sqliteIndex } from '../../sqlite-index'
+import {
+  captureAgentCaseProvenance,
+  verifyAgentCaseProvenance,
+} from '../../agent-case-provenance'
 import { getTrustedWorkspaceRoot } from '../../trusted-workspace'
 import { registerHandlerWithSchema } from '../registry'
 import {
@@ -10,6 +14,7 @@ import {
   agentCaseCreateSchema,
   agentCaseListSchema,
   agentCaseUpdateSchema,
+  agentCaseVerifySchema,
 } from '../schemas'
 
 function requireAgentCase(id: string): AgentCase {
@@ -36,6 +41,11 @@ export function registerAgentCaseHandlers(): void {
       throw new Error('Agent cases can only be created from the active trusted workspace')
     }
     const now = Date.now()
+    const provenance = await captureAgentCaseProvenance({
+      workspacePath: request.workspacePath,
+      sourceSessionFile: request.sourceSessionFile,
+      capturedAt: now,
+    })
     const agentCase = save({
       id: randomUUID(),
       name: request.name,
@@ -47,6 +57,7 @@ export function registerAgentCaseHandlers(): void {
       sourceSessionFile: request.sourceSessionFile,
       modelId: request.modelId || undefined,
       thinkingLevel: request.thinkingLevel || undefined,
+      provenance,
       createdAt: now,
       updatedAt: now,
     })
@@ -94,5 +105,28 @@ export function registerAgentCaseHandlers(): void {
       details: { agentCaseId: agentCase.id },
     })
     return { agentCase }
+  })
+
+  registerHandlerWithSchema('ipc:agentCase.verify', agentCaseVerifySchema, async (request) => {
+    const previous = requireAgentCase(request.id)
+    const verification = await verifyAgentCaseProvenance(previous)
+    const agentCase = save({
+      ...previous,
+      lastVerification: verification,
+      updatedAt: Date.now(),
+    })
+    auditRepository.write({
+      category: 'operation',
+      action: 'agent-case.verify',
+      outcome: verification.reproducible ? 'success' : 'blocked',
+      workspaceId: agentCase.workspacePath,
+      sessionFile: agentCase.sourceSessionFile,
+      details: {
+        agentCaseId: agentCase.id,
+        reproducible: verification.reproducible,
+        failedChecks: verification.checks.filter((item) => item.status === 'failed').map((item) => item.code),
+      },
+    })
+    return { agentCase, verification }
   })
 }

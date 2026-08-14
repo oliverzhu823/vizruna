@@ -34,6 +34,32 @@ export interface ToolEvent extends AppEventBase {
   isError?: boolean
 }
 
+export interface RunContextSnapshot {
+  /** Pi AgentSession.getContextUsage() estimate at this exact run boundary. */
+  tokens: number | null
+  contextWindow: number
+  percent: number | null
+  messageCount: number
+  capturedAt: number
+}
+
+export interface RunResourceItem {
+  name: string
+  source?: string
+  path?: string
+}
+
+/** Resources exposed by the live Pi AgentSession for this run, not catalog discovery. */
+export interface RunResourceEvidence {
+  capturedAt: number
+  activeTools: RunResourceItem[]
+  skills: RunResourceItem[]
+  promptTemplates: RunResourceItem[]
+  extensions: RunResourceItem[]
+  contextFiles: RunResourceItem[]
+  systemPromptSources: RunResourceItem[]
+}
+
 export interface FileEvent extends AppEventBase {
   type: 'file'
   source: 'edit' | 'write' | 'bash-diff' | 'git'
@@ -63,6 +89,8 @@ export interface RunEvent extends AppEventBase {
     running: number
     failed: number
   }
+  contextSnapshot?: RunContextSnapshot
+  resourceEvidence?: RunResourceEvidence
 }
 
 export interface CompactionEvent extends AppEventBase {

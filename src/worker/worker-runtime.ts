@@ -11,6 +11,7 @@ import { formatSessionModelKey, type SessionModelRef } from '@shared/worker-mode
 import { createDesktopUIBridge, type DesktopUIBridge } from './desktop-ui-bridge.js'
 import {
   buildAgentPromptLoaderOverrides,
+  buildAgentResourceLoaderOverrides,
   buildAgentToolsOverride,
 } from './agent-profile-runtime.js'
 import { handleSessionEvent as dispatchSessionEvent } from './worker-session-events.js'
@@ -168,15 +169,19 @@ function buildRuntimeFactory(): CreateAgentSessionRuntimeFactory {
       agentDir,
       resourceLoaderOptions: {
         eventBus: st.sharedEventBus!,
+        ...buildAgentResourceLoaderOverrides(conversationConfig),
         ...buildAgentPromptLoaderOverrides(conversationConfig),
       },
     })
     installProviderRouting(services.modelRuntime, () => st.providerRouting)
+    const selectedExtensionTools = services.resourceLoader
+      .getExtensions()
+      .extensions.flatMap((extension) => [...extension.tools.keys()])
     const created = await sdk.createAgentSessionFromServices({
       services,
       sessionManager,
       sessionStartEvent,
-      ...buildAgentToolsOverride(conversationConfig),
+      ...buildAgentToolsOverride(conversationConfig, selectedExtensionTools),
       customTools: createOrchestrationTools(),
     })
     return {

@@ -82,6 +82,7 @@
     "review": "Review",
     "trellis": "Trellis",
     "run": "Run",
+    "pi": "Pi",
     "context": "Context",
     "tree": "Tree",
     "files": "Files",
@@ -90,6 +91,7 @@
     "agents": "Agents",
     "reviewDesc": "Git changes & diff (read-only)",
     "runDesc": "Current turn status & usage",
+    "piDesc": "Pi runtime and resources actually loaded by this session",
     "contextDesc": "Session context preview",
     "treeDesc": "Session tree / rewind (like /tree)",
     "filesDesc": "Workspace file preview & explorer",
@@ -97,6 +99,13 @@
     "worktreesDesc": "Create and manage isolated Git worktrees",
     "agentsDesc": "Parent/child orchestration, status, and evidence",
     "unregistered": "Unregistered panel: {{id}}"
+  },
+  "panelNav": {
+    "current": "Current panel",
+    "allPanels": "Switch right panel",
+    "sessionTools": "Session & runtime",
+    "workspaceTools": "Project workspace",
+    "extensions": "Extensions"
   },
   "settings": {
     "title": "Settings",

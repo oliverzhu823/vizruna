@@ -25,7 +25,7 @@ async function persistDefaultModelSelection(
 export function registerModelRuntimeHandlers(): void {
   registerHandler('ipc:model.list', async (req) => {
     const scope = req?.scope === 'available' ? 'available' : 'catalog'
-    const mapRegistry = (models: readonly { id: string; name?: string; provider?: string; contextWindow?: number; maxOutput?: number; maxTokens?: number }[]) =>
+    const mapRegistry = (models: readonly { id: string; name?: string; provider?: string; contextWindow?: number; maxOutput?: number; maxTokens?: number; reasoning?: boolean; input?: Array<'text' | 'image'> }[]) =>
       models.map((m) => ({
         id: m.id,
         name: m.name || m.id,
@@ -33,6 +33,8 @@ export function registerModelRuntimeHandlers(): void {
         contextWindow: m.contextWindow || 0,
         maxOutput: m.maxOutput || m.maxTokens || 0,
         available: true,
+        reasoning: m.reasoning === true,
+        input: m.input?.length ? [...m.input] : ['text' as const],
       }))
 
     const catalogFromDisk = () => {

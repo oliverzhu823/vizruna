@@ -29,6 +29,7 @@ import { listRevisions, pushRevision, restoreRevision, readRevision } from '../.
 import type { ResourceSource } from '../../pi-resources-editor'
 import { errorMessage } from '@shared/error-message'
 import { PRODUCT_VIRTUAL_PROTOCOL } from '@shared/product-identity'
+import { collectPiResourceCenterSnapshot } from '../../pi-resource-center-service'
 
 export function registerSkillsResourceHandlers(): void {
   const systemPreviewVirtualPath = `${PRODUCT_VIRTUAL_PROTOCOL}system-prompt-preview`
@@ -41,6 +42,12 @@ export function registerSkillsResourceHandlers(): void {
     const cwd = workerManager.cwd || configStore.get('currentProject') || process.cwd()
     const overrides = getDesktopSkillOverrides()
     const disk = listSkillsOnDisk(cwd)
+    const resolvedSkills = await collectPiResourceCenterSnapshot({ workspaceId: cwd })
+      .then((snapshot) => snapshot.resources.skills)
+      .catch((error) => {
+        console.error('[IPC] skills.list Pi PackageManager failed:', error)
+        return []
+      })
     let worker: { name: string; path?: string; description?: string; source?: string }[] = []
     if (workerManager.isRunning) {
       try {
@@ -56,6 +63,24 @@ export function registerSkillsResourceHandlers(): void {
         ...s,
         key,
         enabled: isSkillEnabled(s.name, s.path, overrides),
+        piEnabled: true,
+        canToggle: true,
+        command: `/skill:${s.name}`,
+      })
+    }
+    for (const s of resolvedSkills) {
+      const key = skillStorageKey(s.name, s.path)
+      const existing = byPath.get(s.path)
+      byPath.set(s.path, {
+        ...existing,
+        name: s.name,
+        description: (existing?.description as string) || '',
+        path: s.path,
+        source: s.origin === 'package' ? 'package' : s.scope === 'project' ? 'project' : 'global',
+        key,
+        piEnabled: s.enabled,
+        canToggle: s.enabled,
+        enabled: s.enabled && isSkillEnabled(s.name, s.path, overrides),
         command: `/skill:${s.name}`,
       })
     }
@@ -69,7 +94,11 @@ export function registerSkillsResourceHandlers(): void {
         path: path || (existing?.path as string),
         source: s.source || (existing?.source as string) || 'unknown',
         key,
-        enabled: isSkillEnabled(s.name, path || (existing?.path as string), overrides),
+        piEnabled: existing?.piEnabled !== false,
+        canToggle: existing?.canToggle !== false,
+        enabled:
+          existing?.piEnabled !== false &&
+          isSkillEnabled(s.name, path || (existing?.path as string), overrides),
         command: `/skill:${s.name}`,
         fromWorker: true,
       }
@@ -125,7 +154,7 @@ export function registerSkillsResourceHandlers(): void {
       if (!byPath.has(k)) byPath.set(k, item)
     }
 
-    for (const a of listAgentsContextFiles(cwd)) push(a)
+    for (const a of listAgentsContextFiles(cwd, projectTrusted)) push(a)
     for (const b of listPiBuiltinPromptFiles(cwd, projectTrusted)) {
       if (b.id === 'builtin:system:default' && defaultSystemPreview) {
         push({ ...b, description: '当前会话实际组装的 system 提示词（只读预览）' })

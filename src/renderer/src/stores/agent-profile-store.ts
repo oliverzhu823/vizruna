@@ -22,13 +22,14 @@ type AgentProfileState = {
   promptPresetsLoading: boolean
   promptPresetsLoaded: boolean
   selectedProfileId: string | null
+  selectedVersionId: string | null
   selectedPromptPresetId: string | null
   temporaryPrompt: TemporarySystemPrompt | null
   activeBinding: ConversationConfigBinding | null
   bindingLoading: boolean
   loadProfiles: (force?: boolean) => Promise<void>
   loadPromptPresets: (force?: boolean) => Promise<void>
-  selectProfile: (profileId: string | null) => void
+  selectProfile: (profileId: string | null, versionId?: string | null) => void
   selectPromptPreset: (presetId: string | null) => void
   selectTemporaryPrompt: (prompt: TemporarySystemPrompt | null) => void
   selectGeneral: () => void
@@ -52,6 +53,7 @@ export const useAgentProfileStore = create<AgentProfileState>()(
       promptPresetsLoading: false,
       promptPresetsLoaded: false,
       selectedProfileId: null,
+      selectedVersionId: null,
       selectedPromptPresetId: null,
       temporaryPrompt: null,
       activeBinding: null,
@@ -72,6 +74,10 @@ export const useAgentProfileStore = create<AgentProfileState>()(
               selectedProfileId:
                 selectedProfileId && profiles.some((profile) => profile.id === selectedProfileId)
                   ? selectedProfileId
+                  : null,
+              selectedVersionId:
+                selectedProfileId && profiles.some((profile) => profile.id === selectedProfileId)
+                  ? get().selectedVersionId
                   : null,
             })
           } finally {
@@ -114,9 +120,10 @@ export const useAgentProfileStore = create<AgentProfileState>()(
         }
       },
 
-      selectProfile: (selectedProfileId) =>
+      selectProfile: (selectedProfileId, selectedVersionId = null) =>
         set({
           selectedProfileId,
+          selectedVersionId: selectedProfileId ? selectedVersionId : null,
           selectedPromptPresetId: null,
           temporaryPrompt: null,
         }),
@@ -124,17 +131,20 @@ export const useAgentProfileStore = create<AgentProfileState>()(
         set({
           selectedPromptPresetId,
           selectedProfileId: null,
+          selectedVersionId: null,
           temporaryPrompt: null,
         }),
       selectTemporaryPrompt: (temporaryPrompt) =>
         set({
           temporaryPrompt,
           selectedProfileId: null,
+          selectedVersionId: null,
           selectedPromptPresetId: null,
         }),
       selectGeneral: () =>
         set({
           selectedProfileId: null,
+          selectedVersionId: null,
           selectedPromptPresetId: null,
           temporaryPrompt: null,
         }),
@@ -147,7 +157,11 @@ export const useAgentProfileStore = create<AgentProfileState>()(
           return { kind: 'prompt', presetId: state.selectedPromptPresetId }
         }
         if (state.selectedProfileId) {
-          return { kind: 'agent', profileId: state.selectedProfileId }
+          return {
+            kind: 'agent',
+            profileId: state.selectedProfileId,
+            ...(state.selectedVersionId ? { versionId: state.selectedVersionId } : {}),
+          }
         }
         return undefined
       },
@@ -160,6 +174,7 @@ export const useAgentProfileStore = create<AgentProfileState>()(
       name: 'vizruna-agent-profile-selection',
       partialize: (state) => ({
         selectedProfileId: state.selectedProfileId,
+        selectedVersionId: state.selectedVersionId,
         selectedPromptPresetId: state.selectedPromptPresetId,
       }),
     },

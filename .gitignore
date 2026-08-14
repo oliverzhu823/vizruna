@@ -60,6 +60,7 @@ AGENTS.md
 # Never git add -f .trellis — tracked files ignore this rule
 .pi/
 .trellis/
+.vizruna/
 
 # Generated / scratch / test artifacts
 .image-gen/

@@ -47,6 +47,54 @@
   "noModel": "未选模型",
   "contextBreakdown": "上下文",
   "contextEmpty": "发送消息后显示占比",
+  "debugger": {
+    "title": "Pi Run Debugger",
+    "hint": "解释本轮真正生效的配置、工具顺序、上下文状态和失败层级。",
+    "live": "实时",
+    "lastRun": "最近一轮",
+    "fixedConfig": "固定配置",
+    "generalPi": "通用 Pi",
+    "contextNow": "当前上下文",
+    "runContext": "本轮上下文",
+    "contextDelta": "本轮增量",
+    "loadedResources": "本轮实际加载的 Pi 资源",
+    "noLoadedResources": "本轮没有暴露额外的 Pi 资源。",
+    "resources": {
+      "activeTools": "有效工具",
+      "skills": "Skills",
+      "promptTemplates": "提示词模板",
+      "extensions": "Extensions",
+      "contextFiles": "项目上下文文件",
+      "systemPromptSources": "系统提示词来源"
+    },
+    "effectiveModel": "有效模型",
+    "tools": "工具",
+    "failures": "失败",
+    "compactions": "压缩",
+    "compaction": "上下文压缩",
+    "empty": "本轮尚无工具、压缩或错误事件。开始运行后会按真实顺序显示。",
+    "failureAt": "初步定位：{{layer}} 层",
+    "failureLayerLabel": "失败层",
+    "noDetail": "Pi 未提供额外详情。",
+    "origin": {
+      "pi-base": "Pi 基础",
+      "extension": "Extension"
+    },
+    "entryStatus": {
+      "running": "运行中",
+      "success": "成功",
+      "failed": "失败",
+      "info": "信息"
+    },
+    "failureLayer": {
+      "authentication": "认证",
+      "provider": "Provider / 模型",
+      "context": "上下文",
+      "extension": "Extension",
+      "tool": "Pi 工具",
+      "runtime": "Pi Runtime"
+    }
+  },
   "role": {
     "system": "System",
     "user": "用户",

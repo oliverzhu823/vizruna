@@ -82,6 +82,7 @@
     "review": "Review",
     "trellis": "Trellis",
     "run": "Run",
+    "pi": "Pi",
     "context": "Context",
     "tree": "Tree",
     "files": "文件",
@@ -90,6 +91,7 @@
     "agents": "Agents",
     "reviewDesc": "Git 变更与 diff（只读）",
     "runDesc": "当前轮次状态与用量",
+    "piDesc": "当前会话实际加载的 Pi 运行时与资源",
     "contextDesc": "会话上下文预览",
     "treeDesc": "会话树 / 回退（同 /tree）",
     "filesDesc": "工作区文件预览与浏览",
@@ -97,6 +99,13 @@
     "worktreesDesc": "创建和管理隔离的 Git 工作树",
     "agentsDesc": "父子 Agent 编排、状态与验证证据",
     "unregistered": "未注册面板: {{id}}"
+  },
+  "panelNav": {
+    "current": "当前面板",
+    "allPanels": "切换右侧面板",
+    "sessionTools": "会话与运行",
+    "workspaceTools": "项目工作区",
+    "extensions": "扩展工具"
   },
   "settings": {
     "title": "设置",

@@ -6,7 +6,7 @@
   "create": {
     "button": "Save current conversation",
     "title": "Save as an Agent Case",
-    "description": "This saves an asset index without copying conversation content, API keys, or OAuth credentials.",
+    "description": "This saves an asset index and reproducibility evidence without copying conversation content, API keys, or OAuth credentials.",
     "name": "Case name",
     "namePlaceholder": "For example: Competitor research report generator",
     "defaultName": "Untitled Agent Case",
@@ -31,7 +31,15 @@
     "markDraft": "Mark as needs validation",
     "markValidated": "Mark as validated",
     "archive": "Archive",
-    "restore": "Restore as draft"
+    "restore": "Restore as draft",
+    "verify": "Verify environment"
+  },
+  "provenance": {
+    "generalPi": "No Agent configuration bound",
+    "packages": "{{count}} Package versions",
+    "reproducible": "Current environment matches the archived versions",
+    "drifted": "Current environment differs from the archived versions",
+    "legacy": "This legacy case has no version evidence. Re-archive the source conversation to create reproducible evidence."
   },
   "empty": {
     "title": "No Agent Cases yet",
@@ -45,6 +53,9 @@
     "loadFailed": "Failed to load Agent Cases",
     "createFailed": "Failed to save Agent Case",
     "updateFailed": "Failed to update Agent Case",
-    "openFailed": "Failed to open source conversation"
+    "openFailed": "Failed to open source conversation",
+    "verificationPassed": "Verification passed; the current environment can reproduce this case",
+    "verificationDrifted": "Verification finished with version or resource drift",
+    "verifyFailed": "Failed to verify Agent Case"
   }
 }

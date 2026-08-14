@@ -1,0 +1,110 @@
+{
+  "title": "Pi 资源中心",
+  "description": "统一查看和管理当前项目实际可用的 Pi Packages、Skills、Extensions、Prompt Templates 与 Themes。配置继续写入 Pi 原生目录和 settings.json。",
+  "refresh": "刷新资源",
+  "loading": "正在读取 Pi 原生资源…",
+  "loadFailed": "资源读取失败",
+  "trusted": "项目资源已信任",
+  "untrusted": "项目资源未信任",
+  "section": {
+    "overview": "总览",
+    "packages": "Packages",
+    "skills": "Skills",
+    "extensions": "Extensions",
+    "prompts": "Prompt Templates",
+    "themes": "Themes"
+  },
+  "tab": {
+    "overview": "总览",
+    "packages": "Packages",
+    "skills": "Skills",
+    "extensions": "Extensions",
+    "prompts": "提示词与上下文",
+    "themes": "Themes"
+  },
+  "metrics": {
+    "packages": "已配置 Packages",
+    "installed": "本机已安装 {{count}} 个",
+    "resources": "启用资源",
+    "enabled": "由 Pi 当前配置解析",
+    "project": "项目资源",
+    "user": "用户资源",
+    "userDetail": "来自用户级 Pi 配置"
+  },
+  "composition": {
+    "title": "当前资源构成",
+    "description": "统计来自 Pi SettingsManager 和 PackageManager 的有效解析结果，不把仅存在于磁盘但未进入配置的内容误报为可用资源。"
+  },
+  "runtime": {
+    "title": "解析环境",
+    "sdk": "Pi Runtime",
+    "worker": "当前项目 Worker",
+    "loaded": "已加载",
+    "notLoaded": "未加载",
+    "scope": "项目目录",
+    "inspectorHint": "资源中心负责配置与组织；某个会话真正加载了什么，请在主工作台右侧的 Pi 有效配置中检查。"
+  },
+  "packages": {
+    "security": "Pi Package 可能包含可在本机执行的 Extension，也可能通过 Skill 指导 Agent 执行命令。安装第三方 Package 前应检查来源和代码。",
+    "empty": "当前用户和项目 settings.json 中都没有配置 Pi Package。",
+    "pinned": "已锁定版本",
+    "filtered": "已配置资源过滤",
+    "installed": "已安装",
+    "missing": "本机缺失",
+    "installTitle": "安装 Pi Package",
+    "installDescription": "支持 npm:、Git URL/简写和本地路径。Package 由 Pi 安装，配置直接写入原生 settings.json。",
+    "sourceLabel": "Package 来源",
+    "sourcePlaceholder": "npm:@scope/package 或 git:github.com/user/repo",
+    "scopeLabel": "安装范围",
+    "install": "安装",
+    "repair": "补装",
+    "update": "更新 / 同步",
+    "remove": "移除",
+    "checkUpdates": "检查更新",
+    "updateUnchecked": "尚未检查可用更新",
+    "updatesFound": "发现 {{count}} 个可更新 Package",
+    "noUpdates": "当前已是最新状态",
+    "updateAvailable": "可更新",
+    "operationFailed": "Package 操作失败",
+    "reloadDeferred": "Pi 原生配置已经保存。由于当前项目仍有 Agent 正在运行，本次资源热重载已延后；新的会话会使用新配置，当前运行不会被打断。",
+    "confirmInstallTitle": "确认安装 Pi Package",
+    "confirmInstall": "将在{{scope}}安装并启用 {{source}}。该 Package 可能执行本机代码，请确认你已检查并信任它的来源。",
+    "confirmUpdateTitle": "确认更新 Pi Package",
+    "confirmUpdate": "将由 Pi 更新或重新同步 {{source}}。运行中的当前会话会在完成后重新加载资源。",
+    "confirmRemoveTitle": "确认移除 Pi Package",
+    "confirmRemove": "将从 Pi 设置和本机安装目录移除 {{source}}。该 Package 提供的资源将不再可用。",
+    "noResolvedResources": "Pi 当前没有从这个 Package 解析出可配置资源。",
+    "resourceToggle": "切换资源：{{name}}",
+    "action": {
+      "install": "安装",
+      "update": "更新",
+      "remove": "移除"
+    },
+    "progress": {
+      "queued": "{{action}}操作已进入队列",
+      "started": "正在{{action}} Package",
+      "progress": "正在{{action}} Package",
+      "completed": "Package {{action}}完成",
+      "failed": "Package {{action}}失败"
+    }
+  },
+  "scope": {
+    "user": "用户级",
+    "project": "项目级",
+    "temporary": "临时"
+  },
+  "packageType": {
+    "npm": "npm",
+    "git": "Git",
+    "local": "本地路径"
+  },
+  "themes": {
+    "empty": "当前 Pi 配置没有解析出 Theme 资源。Vizruna 的界面主题与 Pi 终端 Theme 相互独立。"
+  },
+  "warning": {
+    "project-untrusted": "项目未获 Pi 信任，项目级设置、Packages 和可执行资源不会加载",
+    "package-missing": "Package 已配置，但本机尚未安装",
+    "package-read-error": "Package 元数据读取失败",
+    "resolve-error": "Pi PackageManager 未能完成资源解析"
+  }
+}

@@ -1,0 +1,118 @@
+{
+  "title": "Pi 有效配置",
+  "subtitle": "当前会话实际加载的运行时与资源",
+  "refresh": "刷新有效配置",
+  "manage": "管理资源",
+  "loading": "正在读取 Pi 有效配置…",
+  "loadFailed": "读取失败",
+  "model": "模型",
+  "thinking": "思考强度",
+  "sdk": "Pi Runtime",
+  "route": "网络路线",
+  "authentication": "登录状态",
+  "projectTrust": "项目资源",
+  "trusted": "已信任",
+  "untrusted": "未信任",
+  "notSelected": "未选择",
+  "notAvailable": "暂无",
+  "notConfigured": "未配置",
+  "noWarnings": "当前没有发现明显的配置问题",
+  "toolCount": "{{count}} 个工具",
+  "commandCount": "{{count}} 个命令",
+  "loadedSummary": "已加载 {{loaded}} / {{count}}",
+  "status": {
+    "running": "运行中",
+    "ready": "已就绪",
+    "offline": "未加载"
+  },
+  "configurationKind": {
+    "general": "通用 Pi",
+    "agent": "Agent 配置快照",
+    "prompt": "会话提示词快照"
+  },
+  "thinkingLevel": {
+    "off": "关闭",
+    "minimal": "极简",
+    "low": "低",
+    "medium": "中",
+    "high": "高",
+    "xhigh": "极高"
+  },
+  "routeMode": {
+    "direct": "直连",
+    "system": "继承本机代理"
+  },
+  "authType": {
+    "configured": "已配置",
+    "api_key": "API Key 已配置",
+    "oauth": "OAuth 已登录",
+    "subscription": "订阅账号已登录"
+  },
+  "promptMode": {
+    "append": "追加",
+    "replace": "替换"
+  },
+  "resourceMode": {
+    "runtime": "跟随运行时资源",
+    "inherit": "继承全部 Pi 资源",
+    "selected": "仅使用选中资源"
+  },
+  "projectContextMode": {
+    "runtime": "项目上下文由运行时决定",
+    "inherit": "继承项目上下文",
+    "none": "不加载项目上下文"
+  },
+  "providerRequirements": {
+    "reasoning": "要求推理模型",
+    "imageInput": "要求图片输入"
+  },
+  "extensionToolsMode": {
+    "runtime": "Extension 工具跟随运行时",
+    "all-selected": "允许所选 Extension 的全部工具",
+    "custom": "允许 {{count}} 个 Extension 工具"
+  },
+  "warning": {
+    "runtime-offline": "Pi Runtime 尚未启动",
+    "session-not-loaded": "当前会话未加载",
+    "model-unselected": "尚未确定有效模型",
+    "auth-missing": "模型认证缺失",
+    "project-untrusted": "项目资源未获信任",
+    "extension-load-error": "扩展加载失败",
+    "package-not-loaded": "资源尚未进入运行时"
+  },
+  "context": {
+    "title": "提示词与项目上下文",
+    "sourceCount": "{{count}} 个来源",
+    "empty": "当前没有检测到额外的提示词或项目上下文。",
+    "preview": "查看最终 System Prompt 预览（{{count}} 字符）",
+    "kind": {
+      "agents": "项目上下文",
+      "system": "基础 System Prompt",
+      "append": "追加 System Prompt",
+      "agent-profile": "Agent 配置",
+      "prompt-preset": "会话提示词"
+    }
+  },
+  "resources": {
+    "title": "Pi 运行资源",
+    "description": "区分已配置和当前 Worker 真正加载的资源",
+    "tools": "工具",
+    "skills": "Skills",
+    "extensions": "扩展",
+    "prompts": "提示词",
+    "packages": "Packages",
+    "empty": "当前类型没有资源"
+  },
+  "resourceState": {
+    "loaded": "已加载",
+    "configured": "已配置",
+    "disabled": "已禁用"
+  },
+  "scope": {
+    "global": "全局",
+    "project": "项目",
+    "package": "Package",
+    "runtime": "运行时",
+    "unknown": "未知来源"
+  }
+}

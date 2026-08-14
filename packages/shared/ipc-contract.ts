@@ -1,6 +1,7 @@
 // IPC Contract - Complete typed method signatures for Renderer/Main/Worker
 
 import type { AppEvent } from './app-events'
+import type { AgentAssetListRequest, AgentAssetListResponse } from './agent-asset'
 import type {
   AgentCaseArchiveRequest,
   AgentCaseCreateRequest,
@@ -8,18 +9,57 @@ import type {
   AgentCaseListResponse,
   AgentCaseMutationResponse,
   AgentCaseUpdateRequest,
+  AgentCaseVerifyRequest,
+  AgentCaseVerifyResponse,
 } from './agent-case'
+import type {
+  AgentEvaluationArchiveRequest,
+  AgentEvaluationArchiveResponse,
+  AgentEvaluationAssessRequest,
+  AgentEvaluationAssessResponse,
+  AgentEvaluationAttachCaseRequest,
+  AgentEvaluationAttachCaseResponse,
+  AgentEvaluationBatchCancelRequest,
+  AgentEvaluationBatchGetRequest,
+  AgentEvaluationBatchLatestRequest,
+  AgentEvaluationBatchLatestResponse,
+  AgentEvaluationBatchResponse,
+  AgentEvaluationBatchStartRequest,
+  AgentEvaluationCompareRequest,
+  AgentEvaluationCompareResponse,
+  AgentEvaluationListRequest,
+  AgentEvaluationListResponse,
+  AgentEvaluationReportExportRequest,
+  AgentEvaluationReportExportResponse,
+  AgentEvaluationScenarioCreateRequest,
+  AgentEvaluationScenarioCreateResponse,
+  AgentEvaluationSuiteCreateRequest,
+  AgentEvaluationSuiteCreateResponse,
+  AgentEvaluationSuiteCloneVersionRequest,
+  AgentEvaluationSuiteCloneVersionResponse,
+} from './agent-evaluation'
 import type {
   AgentProfileArchiveRequest,
   AgentProfileCreateRequest,
   AgentProfileListRequest,
   AgentProfileListResponse,
   AgentProfileMutationResponse,
+  AgentProfilePreviewRequest,
+  AgentProfilePreviewResponse,
   AgentProfileUpdateRequest,
   SessionAgentBinding,
   SessionAgentBindingGetRequest,
   SessionAgentBindingGetResponse,
 } from './agent-profile'
+import type { AgentRunHistoryListRequest, AgentRunHistoryListResponse } from './agent-run-history'
+import type {
+  AgentVersionListRequest,
+  AgentVersionListResponse,
+  AgentVersionReadinessRequest,
+  AgentVersionReadinessResponse,
+  AgentVersionValidateRequest,
+  AgentVersionValidateResponse,
+} from './agent-version'
 import type {
   ConversationConfigBinding,
   ConversationConfigBindingGetRequest,
@@ -67,6 +107,27 @@ import type {
   ProxyProfile,
   ProxyProfileSaveRequest,
 } from './provider-routing'
+import type { PiInspectorRequest, PiInspectorResponse } from './pi-inspector'
+import type {
+  PiPackageImportApplyRequest,
+  PiPackageImportApplyResponse,
+  PiPackageImportPreviewRequest,
+  PiPackageImportPreviewResponse,
+  PiPackageStudioExportRequest,
+  PiPackageStudioExportResponse,
+  PiPackageStudioPreviewRequest,
+  PiPackageStudioPreviewResponse,
+} from './pi-package-studio'
+import type {
+  PiPackageMutationRequest,
+  PiPackageMutationResponse,
+  PiPackageUpdateCheckRequest,
+  PiPackageUpdateCheckResponse,
+  PiResourceCenterRequest,
+  PiResourceCenterResponse,
+  PiResourceFilterSetRequest,
+  PiResourceFilterSetResponse,
+} from './pi-resource-center'
 
 // ── Workspace ──
 export interface WorkspaceOpenRequest { path?: string; awaitWorker?: boolean }
@@ -281,6 +342,8 @@ export interface ModelInfo {
   contextWindow: number
   maxOutput: number
   available: boolean
+  reasoning: boolean
+  input: Array<'text' | 'image'>
 }
 export interface ModelListRequest {
   workspaceId?: string
@@ -481,6 +544,30 @@ export interface EventsSubscribeResponse { subscriptionId: string }
 
 // ── IPC Method Map ──
 export interface IpcMethodMap {
+  'agentAsset.list': {
+    request: AgentAssetListRequest
+    response: AgentAssetListResponse
+  }
+  'pi.inspector.get': {
+    request: PiInspectorRequest
+    response: PiInspectorResponse
+  }
+  'pi.resources.center.get': {
+    request: PiResourceCenterRequest
+    response: PiResourceCenterResponse
+  }
+  'pi.resources.package.mutate': {
+    request: PiPackageMutationRequest
+    response: PiPackageMutationResponse
+  }
+  'pi.resources.package.checkUpdates': {
+    request: PiPackageUpdateCheckRequest
+    response: PiPackageUpdateCheckResponse
+  }
+  'pi.resources.filter.set': {
+    request: PiResourceFilterSetRequest
+    response: PiResourceFilterSetResponse
+  }
   'systemPromptPreset.list': {
     request: SystemPromptPresetListRequest
     response: SystemPromptPresetListResponse
@@ -505,6 +592,10 @@ export interface IpcMethodMap {
     request: AgentProfileListRequest
     response: AgentProfileListResponse
   }
+  'agentProfile.preview': {
+    request: AgentProfilePreviewRequest
+    response: AgentProfilePreviewResponse
+  }
   'agentProfile.create': {
     request: AgentProfileCreateRequest
     response: AgentProfileMutationResponse
@@ -517,9 +608,41 @@ export interface IpcMethodMap {
     request: AgentProfileArchiveRequest
     response: AgentProfileMutationResponse
   }
+  'agentVersion.list': {
+    request: AgentVersionListRequest
+    response: AgentVersionListResponse
+  }
+  'agentVersion.readiness': {
+    request: AgentVersionReadinessRequest
+    response: AgentVersionReadinessResponse
+  }
+  'agentVersion.validate': {
+    request: AgentVersionValidateRequest
+    response: AgentVersionValidateResponse
+  }
+  'pi.packageStudio.preview': {
+    request: PiPackageStudioPreviewRequest
+    response: PiPackageStudioPreviewResponse
+  }
+  'pi.packageStudio.export': {
+    request: PiPackageStudioExportRequest
+    response: PiPackageStudioExportResponse
+  }
+  'pi.packageStudio.import.preview': {
+    request: PiPackageImportPreviewRequest
+    response: PiPackageImportPreviewResponse
+  }
+  'pi.packageStudio.import.apply': {
+    request: PiPackageImportApplyRequest
+    response: PiPackageImportApplyResponse
+  }
   'agentProfile.binding.get': {
     request: SessionAgentBindingGetRequest
     response: SessionAgentBindingGetResponse
+  }
+  'agentRun.list': {
+    request: AgentRunHistoryListRequest
+    response: AgentRunHistoryListResponse
   }
   'agentCase.list': {
     request: AgentCaseListRequest
@@ -536,6 +659,62 @@ export interface IpcMethodMap {
   'agentCase.archive': {
     request: AgentCaseArchiveRequest
     response: AgentCaseMutationResponse
+  }
+  'agentCase.verify': {
+    request: AgentCaseVerifyRequest
+    response: AgentCaseVerifyResponse
+  }
+  'agentEvaluation.list': {
+    request: AgentEvaluationListRequest
+    response: AgentEvaluationListResponse
+  }
+  'agentEvaluation.report.export': {
+    request: AgentEvaluationReportExportRequest
+    response: AgentEvaluationReportExportResponse
+  }
+  'agentEvaluation.suite.create': {
+    request: AgentEvaluationSuiteCreateRequest
+    response: AgentEvaluationSuiteCreateResponse
+  }
+  'agentEvaluation.suite.cloneVersion': {
+    request: AgentEvaluationSuiteCloneVersionRequest
+    response: AgentEvaluationSuiteCloneVersionResponse
+  }
+  'agentEvaluation.scenario.create': {
+    request: AgentEvaluationScenarioCreateRequest
+    response: AgentEvaluationScenarioCreateResponse
+  }
+  'agentEvaluation.attachCase': {
+    request: AgentEvaluationAttachCaseRequest
+    response: AgentEvaluationAttachCaseResponse
+  }
+  'agentEvaluation.batch.start': {
+    request: AgentEvaluationBatchStartRequest
+    response: AgentEvaluationBatchResponse
+  }
+  'agentEvaluation.batch.get': {
+    request: AgentEvaluationBatchGetRequest
+    response: AgentEvaluationBatchResponse
+  }
+  'agentEvaluation.batch.latest': {
+    request: AgentEvaluationBatchLatestRequest
+    response: AgentEvaluationBatchLatestResponse
+  }
+  'agentEvaluation.batch.cancel': {
+    request: AgentEvaluationBatchCancelRequest
+    response: AgentEvaluationBatchResponse
+  }
+  'agentEvaluation.compare': {
+    request: AgentEvaluationCompareRequest
+    response: AgentEvaluationCompareResponse
+  }
+  'agentEvaluation.assess': {
+    request: AgentEvaluationAssessRequest
+    response: AgentEvaluationAssessResponse
+  }
+  'agentEvaluation.archive': {
+    request: AgentEvaluationArchiveRequest
+    response: AgentEvaluationArchiveResponse
   }
   'workspace.open': { request: WorkspaceOpenRequest; response: WorkspaceOpenResponse }
   'workspace.ensureWorker': { request: WorkspaceEnsureWorkerRequest; response: WorkspaceEnsureWorkerResponse }
