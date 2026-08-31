@@ -6,11 +6,17 @@ import { fileURLToPath } from 'node:url'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '../..')
 const workflow = readFileSync(join(root, '.github/workflows/prerelease.yml'), 'utf8')
+const manifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
 
 describe('Vizruna-web tag distribution', () => {
   it('runs browser E2E before publishing', () => {
     assert.match(workflow, /npm run test:e2e:install/)
     assert.match(workflow, /npm run test:e2e:web/)
+    assert.equal(manifest.scripts['rebuild:native:node'], 'npm rebuild better-sqlite3 node-pty')
+    assert.match(
+      manifest.scripts['test:e2e:web'],
+      /^npm run rebuild:native:node && npm run build:web && playwright test/
+    )
   })
 
   it('creates a versioned source archive containing the double-click launcher', () => {

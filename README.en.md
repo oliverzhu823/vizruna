@@ -26,11 +26,12 @@ paused. Avoid mission-critical work while the product is still in Alpha.
 
 ![Vizruna-web workspace](docs/images/vizruna-web.png)
 
-## Highlights in v0.1.0-alpha.7
+## Highlights in v0.1.0-alpha.8
 
 - Fixed the npm-installed Pi Worker exiting on first send because `undici` and `proxy-chain` were missing.
 - `vizruna doctor` now checks critical Pi Worker runtime dependencies.
 - The clean npm install gate must now initialize a real Pi Worker instead of checking only the page and health endpoint.
+- Local Web browser E2E now rebuilds native modules for the active Node.js ABI, preventing Electron/Node ABI mismatches.
 
 - Agent Profiles are now a complete Pi-native Agent workspace that composes models,
   thinking levels, System Prompts, tools, Skills, Extensions, Prompt Templates,

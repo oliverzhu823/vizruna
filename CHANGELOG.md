@@ -56,6 +56,15 @@
 
 面向仓库的完整版本记录。发版时由 `scripts/generate-release-notes.mjs` 从对应章节生成 **GitHub Release 正文**（用户可读更新说明，应用内「发现新版本」弹窗展示）。发布与应用内更新流程见 [doc/RELEASE.md](doc/RELEASE.md)。
 
+## [0.1.0-alpha.8] — 2026-08-31
+
+### Local Web release hardening
+
+- Preserved the npm Pi Worker dependency fix from alpha.7 and added a Node-native rebuild before
+  browser E2E, preventing Electron-built `better-sqlite3` binaries from being loaded by Local Web.
+- Completed the npm clean-install, real Worker initialization, and GitHub Local Web release gates
+  against the same versioned source.
+
 ## [0.1.0-alpha.7] — 2026-08-31
 
 ### npm Local Web hotfix
