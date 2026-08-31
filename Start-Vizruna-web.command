@@ -71,4 +71,4 @@ echo ""
 echo "即将在默认浏览器中打开 Vizruna-web。"
 echo "保持此窗口开启；要停止服务，请按 Control+C。"
 echo ""
-npm run start:web
+node scripts/vizruna.mjs web

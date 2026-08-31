@@ -26,8 +26,14 @@ process.on('unhandledRejection', (reason) => {
   console.error('[Worker] unhandledRejection:', reason)
 })
 
-// In utilityProcess, parentPort messages come as MessageEvent with data property
-process.parentPort?.on('message', async (event: { data?: WorkerIncomingMessage } | WorkerIncomingMessage) => {
+type ParentMessage = { data?: WorkerIncomingMessage } | WorkerIncomingMessage
+
+const postToParent = (payload: Record<string, unknown>): void => {
+  if (process.parentPort) process.parentPort.postMessage(payload)
+  else if (process.send) process.send(payload)
+}
+
+const handleParentMessage = async (event: ParentMessage) => {
   const msg = (typeof event === 'object' && event !== null && 'data' in event
     ? (event as { data?: WorkerIncomingMessage }).data
     : event) as WorkerIncomingMessage
@@ -37,7 +43,7 @@ process.parentPort?.on('message', async (event: { data?: WorkerIncomingMessage }
   }
   if (acceptOrchestrationResponse(msg)) return
   const reply = (payload: Record<string, unknown>) => {
-    process.parentPort?.postMessage({ requestId: msg?.requestId, ...payload })
+    postToParent({ requestId: msg?.requestId, ...payload })
   }
 
   // Extension UI responses may resolve a prompt awaited by a queued extension
@@ -56,7 +62,11 @@ process.parentPort?.on('message', async (event: { data?: WorkerIncomingMessage }
     () => undefined,
   )
   await run
-})
+}
+
+// Electron utilityProcess exposes parentPort; pure Node Web uses child_process IPC.
+if (process.parentPort) process.parentPort.on('message', handleParentMessage)
+else process.on('message', (message) => void handleParentMessage(message as ParentMessage))
 
 process.on('exit', () => {
   rejectPendingOrchestrationRequests()

@@ -1,5 +1,4 @@
 import { createRequire } from 'module'
-import { app } from 'electron'
 import {
   copyFileSync,
   existsSync,
@@ -42,6 +41,7 @@ import type {
   DatabaseIntegrity,
   MetadataBackup,
 } from '@shared/reliability'
+import { getRuntimeUserDataPath } from '../runtime/runtime-paths'
 
 let nativeRequire: ReturnType<typeof createRequire> | null = null
 function requireNative<T = unknown>(id: string): T {
@@ -69,11 +69,11 @@ const SCHEMA_VERSION = 16
 const MAX_BACKUPS = 20
 
 function databasePath(): string {
-  return join(app.getPath('userData'), `${PRODUCT_PACKAGE_NAME}-index.db`)
+  return join(getRuntimeUserDataPath(), `${PRODUCT_PACKAGE_NAME}-index.db`)
 }
 
 function backupDirectory(): string {
-  return join(app.getPath('userData'), 'metadata-backups')
+  return join(getRuntimeUserDataPath(), 'metadata-backups')
 }
 
 function safeBackupReason(value: MetadataBackup['reason']): MetadataBackup['reason'] {

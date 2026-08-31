@@ -10,7 +10,7 @@ import {
   type RightPanelPrefs,
 } from '@shared/right-panels'
 
-export type ThemeChoice = 'light' | 'dark' | 'sage' | 'system'
+export type ThemeChoice = 'light' | 'dark' | 'sage' | 'apricot' | 'system'
 export type LanguageChoice = 'zh' | 'en'
 
 export type SettingsDraft = {
@@ -118,9 +118,10 @@ export async function loadSettingsDraftFromDisk(i18nLanguage: string): Promise<S
 
 export function applyThemeToDocument(theme: ThemeChoice): void {
   const root = document.documentElement
-  root.classList.remove('dark', 'sage')
+  root.classList.remove('dark', 'sage', 'apricot')
   if (theme === 'dark') root.classList.add('dark')
   else if (theme === 'sage') root.classList.add('sage')
+  else if (theme === 'apricot') root.classList.add('apricot')
   else if (theme === 'system') {
     const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
     root.classList.toggle('dark', isDark)
@@ -128,7 +129,7 @@ export function applyThemeToDocument(theme: ThemeChoice): void {
 }
 
 function normalizeThemeChoice(raw: unknown): ThemeChoice {
-  if (raw === 'light' || raw === 'dark' || raw === 'sage' || raw === 'system') return raw
+  if (raw === 'light' || raw === 'dark' || raw === 'sage' || raw === 'apricot' || raw === 'system') return raw
   return 'system'
 }
 

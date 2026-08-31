@@ -54,13 +54,13 @@ clearance or a substitute for required license texts and notices.
 | @aws/lambda-invoke-store | 0.3.0 | Apache-2.0 | pkg:npm/%40aws/lambda-invoke-store@0.3.0 |
 | @babel/runtime | 7.29.2 | MIT | pkg:npm/%40babel/runtime@7.29.2 |
 | @babel/runtime | 7.29.7 | MIT | pkg:npm/%40babel/runtime@7.29.7 |
-| @earendil-works/pi-agent-core | 0.84.1 | MIT | pkg:npm/%40earendil-works/pi-agent-core@0.84.1 |
-| @earendil-works/pi-ai | 0.84.1 | MIT | pkg:npm/%40earendil-works/pi-ai@0.84.1 |
-| @earendil-works/pi-client | 0.84.1 | MIT | pkg:npm/%40earendil-works/pi-client@0.84.1 |
-| @earendil-works/pi-coding-agent | 0.84.1 | MIT | pkg:npm/%40earendil-works/pi-coding-agent@0.84.1 |
-| @earendil-works/pi-protocol | 0.84.1 | MIT | pkg:npm/%40earendil-works/pi-protocol@0.84.1 |
-| @earendil-works/pi-telemetry | 0.84.1 | MIT | pkg:npm/%40earendil-works/pi-telemetry@0.84.1 |
-| @earendil-works/pi-tui | 0.84.1 | MIT | pkg:npm/%40earendil-works/pi-tui@0.84.1 |
+| @earendil-works/pi-agent-core | 0.84.4 | MIT | pkg:npm/%40earendil-works/pi-agent-core@0.84.4 |
+| @earendil-works/pi-ai | 0.84.4 | MIT | pkg:npm/%40earendil-works/pi-ai@0.84.4 |
+| @earendil-works/pi-client | 0.84.4 | MIT | pkg:npm/%40earendil-works/pi-client@0.84.4 |
+| @earendil-works/pi-coding-agent | 0.84.4 | MIT | pkg:npm/%40earendil-works/pi-coding-agent@0.84.4 |
+| @earendil-works/pi-protocol | 0.84.4 | MIT | pkg:npm/%40earendil-works/pi-protocol@0.84.4 |
+| @earendil-works/pi-telemetry | 0.84.4 | MIT | pkg:npm/%40earendil-works/pi-telemetry@0.84.4 |
+| @earendil-works/pi-tui | 0.84.4 | MIT | pkg:npm/%40earendil-works/pi-tui@0.84.4 |
 | @emnapi/runtime | 1.11.1 | MIT | pkg:npm/%40emnapi/runtime@1.11.1 |
 | @google/genai | 1.52.0 | Apache-2.0 | pkg:npm/%40google/genai@1.52.0 |
 | @img/sharp-wasm32 | 0.35.2 | Apache-2.0 AND LGPL-3.0-or-later AND MIT | pkg:npm/%40img/sharp-wasm32@0.35.2 |
@@ -75,11 +75,7 @@ clearance or a substitute for required license texts and notices.
 | @mariozechner/clipboard-win32-arm64-msvc | 0.3.9 | MIT | pkg:npm/%40mariozechner/clipboard-win32-arm64-msvc@0.3.9 |
 | @mariozechner/clipboard-win32-x64-msvc | 0.3.9 | MIT | pkg:npm/%40mariozechner/clipboard-win32-x64-msvc@0.3.9 |
 | @mariozechner/clipboard | 0.3.9 | MIT | pkg:npm/%40mariozechner/clipboard@0.3.9 |
-| @mistralai/mistralai | 2.2.6 | Apache-2.0 | pkg:npm/%40mistralai/mistralai@2.2.6 |
 | @nodable/entities | 2.1.0 | MIT | pkg:npm/%40nodable/entities@2.1.0 |
-| @opentelemetry/api | 1.9.0 | Apache-2.0 | pkg:npm/%40opentelemetry/api@1.9.0 |
-| @opentelemetry/semantic-conventions | 1.41.1 | Apache-2.0 | pkg:npm/%40opentelemetry/semantic-conventions@1.41.1 |
-| @opentelemetry/semantic-conventions | 1.43.0 | Apache-2.0 | pkg:npm/%40opentelemetry/semantic-conventions@1.43.0 |
 | @protobufjs/aspromise | 1.1.2 | BSD-3-Clause | pkg:npm/%40protobufjs/aspromise@1.1.2 |
 | @protobufjs/base64 | 1.1.2 | BSD-3-Clause | pkg:npm/%40protobufjs/base64@1.1.2 |
 | @protobufjs/codegen | 2.0.5 | BSD-3-Clause | pkg:npm/%40protobufjs/codegen@2.0.5 |
@@ -204,7 +200,6 @@ clearance or a substitute for required license texts and notices.
 | get-east-asian-width | 1.6.0 | MIT | pkg:npm/get-east-asian-width@1.6.0 |
 | get-stream | 6.0.1 | MIT | pkg:npm/get-stream@6.0.1 |
 | github-from-package | 0.0.0 | MIT | pkg:npm/github-from-package@0.0.0 |
-| glob | 13.0.6 | BlueOak-1.0.0 | pkg:npm/glob@13.0.6 |
 | google-auth-library | 10.6.2 | Apache-2.0 | pkg:npm/google-auth-library@10.6.2 |
 | google-auth-library | 10.9.1 | Apache-2.0 | pkg:npm/google-auth-library@10.9.1 |
 | google-logging-utils | 1.1.3 | Apache-2.0 | pkg:npm/google-logging-utils@1.1.3 |
@@ -310,7 +305,6 @@ clearance or a substitute for required license texts and notices.
 | mimic-response | 3.1.0 | MIT | pkg:npm/mimic-response@3.1.0 |
 | minimatch | 10.2.5 | BlueOak-1.0.0 | pkg:npm/minimatch@10.2.5 |
 | minimist | 1.2.8 | MIT | pkg:npm/minimist@1.2.8 |
-| minipass | 7.1.3 | BlueOak-1.0.0 | pkg:npm/minipass@7.1.3 |
 | mkdirp-classic | 0.5.3 | MIT | pkg:npm/mkdirp-classic@0.5.3 |
 | ms | 2.1.3 | MIT | pkg:npm/ms@2.1.3 |
 | napi-build-utils | 2.0.0 | MIT | pkg:npm/napi-build-utils@2.0.0 |
@@ -322,14 +316,13 @@ clearance or a substitute for required license texts and notices.
 | npm-run-path | 4.0.1 | MIT | pkg:npm/npm-run-path@4.0.1 |
 | once | 1.4.0 | ISC | pkg:npm/once@1.4.0 |
 | onetime | 5.1.2 | MIT | pkg:npm/onetime@5.1.2 |
-| openai | 6.26.0 | Apache-2.0 | pkg:npm/openai@6.26.0 |
+| openai | 6.40.0 | Apache-2.0 | pkg:npm/openai@6.40.0 |
 | p-retry | 4.6.2 | MIT | pkg:npm/p-retry@4.6.2 |
 | parse-entities | 4.0.2 | MIT | pkg:npm/parse-entities@4.0.2 |
 | parse5 | 7.3.0 | MIT | pkg:npm/parse5@7.3.0 |
 | partial-json | 0.1.7 | MIT | pkg:npm/partial-json@0.1.7 |
 | path-expression-matcher | 1.5.0 | MIT | pkg:npm/path-expression-matcher@1.5.0 |
 | path-key | 3.1.1 | MIT | pkg:npm/path-key@3.1.1 |
-| path-scurry | 2.0.2 | BlueOak-1.0.0 | pkg:npm/path-scurry@2.0.2 |
 | prebuild-install | 7.1.3 | MIT | pkg:npm/prebuild-install@7.1.3 |
 | proper-lockfile | 4.1.2 | MIT | pkg:npm/proper-lockfile@4.1.2 |
 | property-information | 7.2.0 | MIT | pkg:npm/property-information@7.2.0 |
@@ -413,7 +406,6 @@ clearance or a substitute for required license texts and notices.
 | ws | 8.21.0 | MIT | pkg:npm/ws@8.21.0 |
 | xml-naming | 0.1.0 | MIT | pkg:npm/xml-naming@0.1.0 |
 | yaml | 2.9.0 | ISC | pkg:npm/yaml@2.9.0 |
-| zod-to-json-schema | 3.25.2 | ISC | pkg:npm/zod-to-json-schema@3.25.2 |
 | zod | 3.25.76 | MIT | pkg:npm/zod@3.25.76 |
 | zustand | 5.0.14 | MIT | pkg:npm/zustand@5.0.14 |
 | zwitch | 2.0.4 | MIT | pkg:npm/zwitch@2.0.4 |

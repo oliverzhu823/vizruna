@@ -203,18 +203,42 @@ export function ProjectSidebar({
 
   return (
     <div className="flex flex-col pb-1">
-      <div className="border-b border-border/40 px-2 py-2">
+      <div className="apricot-mascot-slot px-2 pt-2" aria-hidden="true">
+        <div className="apricot-mascot-card relative min-h-[104px] overflow-hidden rounded-2xl border px-3 py-3">
+          <div className="relative z-10 max-w-[58%]">
+            <div className="text-[12px] font-semibold leading-5 text-foreground">
+              {t('common:sidebar.mascotTitle')}
+            </div>
+            <div className="mt-0.5 text-[10px] leading-4 text-foreground-secondary">
+              {t('common:sidebar.mascotSubtitle')}
+            </div>
+            <div className="apricot-mascot-badge mt-2 inline-flex rounded-full border px-2 py-0.5 text-[9px] font-medium text-foreground-secondary">
+              {t('common:sidebar.mascotBadge')}
+            </div>
+          </div>
+          <img
+            src="/vizruna-tiger-mascot.png"
+            alt=""
+            width={104}
+            height={104}
+            fetchPriority="high"
+            draggable={false}
+            className="pointer-events-none absolute -bottom-2 -right-2 h-[104px] w-[104px] select-none object-contain"
+          />
+        </div>
+      </div>
+      <div className="apricot-sidebar-open border-b border-border/40 px-2 py-2">
         <button
           type="button"
           onClick={onOpenProject}
-          className="nav-row row-hover flex w-full cursor-pointer items-center gap-2 rounded-lg border border-border/50 px-3 py-2.5 text-[13px] font-medium text-foreground-secondary hover:text-foreground"
+          className="apricot-outline-card nav-row row-hover flex w-full cursor-pointer items-center gap-2 rounded-lg border border-border/50 px-3 py-2.5 text-[13px] font-medium text-foreground-secondary hover:text-foreground"
         >
           <FolderOpen className="h-4 w-4 shrink-0" />
           {openProjectLabel}
         </button>
       </div>
 
-      <div className="px-1.5 pt-2">
+      <div className="apricot-sidebar-section px-1.5 pt-2">
         <div className="flex items-center gap-1 px-1 pb-1.5">
           <button
             type="button"
@@ -280,7 +304,7 @@ export function ProjectSidebar({
         onListChange={refreshSessionsAfterMutation}
       />
 
-      <div className="mt-2 px-1.5">
+      <div className="apricot-sidebar-section mt-2 px-1.5">
         <div className="px-2 pb-1 text-[11px] font-medium tracking-wide text-foreground-secondary/75">
           {t('common:sidebar.projects')}
         </div>

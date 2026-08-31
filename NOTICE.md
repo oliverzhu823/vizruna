@@ -33,7 +33,7 @@ and must be recorded in this file.
 ## Pi coding agent
 
 - Package: `@earendil-works/pi-coding-agent`
-- Pinned version: `0.82.1`
+- Pinned version: `0.84.4`
 - Declared license: MIT.
 
 The generated software bill of materials is maintained separately and does not

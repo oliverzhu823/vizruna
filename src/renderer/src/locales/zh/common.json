@@ -42,6 +42,9 @@
     "failureRecovery": "已创建的 Worktree 不会自动删除；请在 Worktree 面板检查状态。项目文件不会因本错误被自动覆盖。"
   },
   "sidebar": {
+    "mascotTitle": "小虎陪你跑 Agent",
+    "mascotSubtitle": "把复杂任务一步步跑明白",
+    "mascotBadge": "本机运行 · 安心可控",
     "sessions": "会话列表",
     "settings": "设置",
     "openProject": "打开文件夹",

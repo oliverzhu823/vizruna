@@ -37,7 +37,11 @@ export async function handleSetmodel(msg: WorkerIncomingMessage, reply: WorkerRe
       registry: session.modelRuntime as PiModelRegistryLike,
       provider: String(msg.provider ?? ''),
       modelId: String(msg.modelId ?? ''),
-      setModel: (next) => session.setModel(next as Parameters<typeof session.setModel>[0]),
+      // Vizruna owns cross-session inheritance through lastModel/lastThinking.
+      // Keep an in-chat switch scoped to this session; global defaults are
+      // changed only through Settings.
+      setModel: (next) =>
+        session.setModel(next as Parameters<typeof session.setModel>[0], { persist: false }),
       getCurrentModel: () => session.model,
     })
     emit({
@@ -57,7 +61,10 @@ export async function handleSetmodel(msg: WorkerIncomingMessage, reply: WorkerRe
 
 
 export async function handleSetthinkinglevel(msg: WorkerIncomingMessage, reply: WorkerReply): Promise<void> {
-        st.session?.setThinkingLevel(msg.level as Parameters<NonNullable<typeof st.session>['setThinkingLevel']>[0])
+        st.session?.setThinkingLevel(
+          msg.level as Parameters<NonNullable<typeof st.session>['setThinkingLevel']>[0],
+          { persist: false },
+        )
         if (st.session) {
           const modelStr = currentSessionModelKey()
           emit({ ...baseEvent(), type: 'run', phase: 'state', model: modelStr, thinkingLevel: st.session.thinkingLevel })

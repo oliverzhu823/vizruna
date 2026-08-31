@@ -79,7 +79,8 @@ function nextSeq(): number {
 }
 
 export function emit(event: AppEvent): void {
-  process.parentPort?.postMessage({ type: 'app-event', event })
+  if (process.parentPort) process.parentPort.postMessage({ type: 'app-event', event })
+  else process.send?.({ type: 'app-event', event })
 }
 
 function now(): number {
@@ -434,7 +435,8 @@ function postExtensionUiToDesktop(req: import('./desktop-ui-bridge.js').Extensio
     if (!st.agentTurnActive) {
       if (req.notifyType === 'error') {
         traceWorkerUi(req, true)
-        process.parentPort?.postMessage({ type: 'extension-ui-request', request: req })
+        if (process.parentPort) process.parentPort.postMessage({ type: 'extension-ui-request', request: req })
+        else process.send?.({ type: 'extension-ui-request', request: req })
       } else {
         traceWorkerUi(req, false)
       }
@@ -442,11 +444,13 @@ function postExtensionUiToDesktop(req: import('./desktop-ui-bridge.js').Extensio
     }
   }
   traceWorkerUi(req, true)
-  process.parentPort?.postMessage({ type: 'extension-ui-request', request: req })
+  if (process.parentPort) process.parentPort.postMessage({ type: 'extension-ui-request', request: req })
+  else process.send?.({ type: 'extension-ui-request', request: req })
 }
 
 function postExtensionUiDismiss(id: string, reason: 'timeout' | 'abort'): void {
-  process.parentPort?.postMessage({ type: 'extension-ui-dismiss', id, reason })
+  if (process.parentPort) process.parentPort.postMessage({ type: 'extension-ui-dismiss', id, reason })
+  else process.send?.({ type: 'extension-ui-dismiss', id, reason })
 }
 
 export async function bindDesktopExtensions(sess: AgentSession): Promise<void> {

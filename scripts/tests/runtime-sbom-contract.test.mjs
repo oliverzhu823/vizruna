@@ -19,7 +19,7 @@ describe('runtime SBOM reflects the packaged Pi dependency patches', () => {
     assert.match(sbomScript, /npm 11 can omit hoisted packages/)
     assert.match(sbomScript, /'ls', '--omit=dev', '--all', '--json'/)
     assert.match(sbomScript, /productionPackages/)
-    assert.match(sbomScript, /pi-coding-agent', '0\.84\.1'/)
+    assert.match(sbomScript, /pi-coding-agent', '0\.84\.4'/)
     assert.match(sbomScript, /brace-expansion', '5\.0\.9'/)
     assert.match(sbomScript, /dompurify', '3\.4\.13'/)
     assert.match(sbomScript, /fast-uri', '3\.1\.5'/)

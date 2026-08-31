@@ -198,6 +198,91 @@
     --scrollbar-thumb-active: rgba(75, 108, 86, 0.4);
   }
 
+  /*
+   * Apricot Tiger: the reference sidebar uses one warm paper system rather
+   * than colored zones. Orange is reserved for emphasis and semantic colors
+   * keep their normal meaning.
+   */
+  .apricot {
+    color-scheme: light;
+
+    --aou-1: #fff7f1;
+    --aou-2: #ffeadc;
+    --aou-3: #fed7c0;
+    --aou-4: #fbb68f;
+    --aou-5: #f49363;
+    --aou-6: #f1773f;
+    --aou-7: #c95827;
+    --aou-8: #9a401f;
+    --aou-9: #6a2e1a;
+    --aou-10: #421c11;
+    --brand: #f1783f;
+    --brand-light: #fff0e6;
+    --brand-hover: #f9a16f;
+
+    --bg-base: #fffdfa;
+    --bg-1: #fffaf6;
+    --bg-2: #fbf2eb;
+    --bg-3: #f1e4da;
+    --bg-hover: #fff2e8;
+    --bg-active: #fee5d4;
+    --message-user-bg: #f1783f;
+
+    --text-primary: #302a27;
+    --text-secondary: #6e625b;
+    --text-disabled: #b7aaa2;
+
+    --primary-semantic: #e86831;
+    --success-semantic: #2f8a70;
+    --warning-semantic: #c47a28;
+    --danger-semantic: #c95d55;
+    --status-live: #2f8a70;
+    --status-warn: #c47a28;
+    --status-error: #c95d55;
+    --status-idle: #766b64;
+
+    --border-base: #eaded5;
+    --border-light: #f4ebe4;
+    --focus-border: #f18a58;
+    --focus-shadow: 0 0 0 3px rgba(241, 120, 63, 0.14);
+
+    --background: 36 100% 99%;
+    --foreground: 20 11% 17%;
+    --card: 36 100% 99%;
+    --card-foreground: 20 11% 17%;
+    --popover: 36 100% 99%;
+    --popover-foreground: 20 11% 17%;
+    --primary: 20 86% 60%;
+    --primary-foreground: 36 100% 99%;
+    --secondary: 28 56% 95%;
+    --secondary-foreground: 20 11% 21%;
+    --muted: 28 46% 96%;
+    --muted-foreground: 22 9% 40%;
+    --accent: 25 83% 93%;
+    --accent-foreground: 20 11% 21%;
+    --destructive: 3 52% 56%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 27 27% 88%;
+    --input: 27 27% 84%;
+    --ring: 20 86% 60%;
+
+    --surface-0: 36 100% 99%;
+    --surface-1: 30 100% 98%;
+    --surface-2: 28 56% 95%;
+    --surface-3: 27 27% 89%;
+    --surface-sidebar: #fbefe7;
+    --text-secondary-hsl: 22 9% 39%;
+
+    --tool-read: 208 52% 52%;
+    --tool-edit: 31 65% 48%;
+    --tool-write: 151 36% 42%;
+    --tool-bash: 274 31% 55%;
+
+    --scrollbar-thumb: rgba(126, 102, 87, 0.22);
+    --scrollbar-thumb-hover: rgba(126, 92, 72, 0.36);
+    --scrollbar-thumb-active: rgba(126, 92, 72, 0.3);
+  }
+
   .dark {
     /*
      * Dark: VS Code Dark Modern 对照
@@ -418,6 +503,65 @@
   .shell-track-right {
     position: relative;
     border-top: 1px solid var(--border-base);
+  }
+  .apricot .shell-track-left {
+    background: #fbefe7;
+    box-shadow: inset -1px 0 0 #eaded5;
+  }
+  .apricot-mascot-slot {
+    display: none;
+  }
+  .apricot .apricot-mascot-slot {
+    display: block;
+  }
+  .apricot .apricot-mascot-card {
+    border-color: #efd8c7;
+    background: linear-gradient(145deg, #fffaf4 0%, #ffeadb 100%);
+    box-shadow: 0 5px 16px rgba(119, 80, 55, 0.06);
+  }
+  .apricot .apricot-mascot-badge {
+    border-color: rgba(228, 204, 186, 0.88);
+    background: rgba(255, 253, 249, 0.72);
+    box-shadow: 0 1px 4px rgba(119, 80, 55, 0.04);
+  }
+  .apricot .apricot-sidebar-open {
+    border-bottom-color: #eaded5;
+  }
+  .apricot .apricot-outline-card {
+    border-color: #e9dacc;
+    background: rgba(255, 253, 249, 0.74);
+    box-shadow: 0 2px 8px rgba(119, 80, 55, 0.035);
+  }
+  .apricot .apricot-outline-card:hover {
+    border-color: #e8c7ae;
+    background: #fff8f1;
+  }
+  .apricot .apricot-sidebar-section {
+    background: transparent;
+    box-shadow: none;
+  }
+  .apricot .apricot-sidebar-section + .apricot-sidebar-section {
+    border-top: 1px solid rgba(234, 222, 213, 0.78);
+  }
+  .apricot .apricot-sidebar-footer {
+    border-top-color: #eaded5;
+    background: rgba(255, 250, 246, 0.5);
+  }
+  .apricot .apricot-sidebar-footer .nav-row {
+    background: transparent;
+  }
+  .apricot .apricot-sidebar-footer .nav-row:hover {
+    background: rgba(255, 253, 249, 0.86);
+    box-shadow: inset 0 0 0 1px rgba(234, 218, 204, 0.92);
+  }
+  .apricot .nav-row-active {
+    background: #fff6ef !important;
+    box-shadow: inset 0 0 0 1px #edd7c5;
+  }
+  .apricot .timeline-user-bubble {
+    background: var(--message-user-bg);
+    color: #fffdf9;
+    box-shadow: 0 3px 10px rgba(200, 83, 35, 0.12);
   }
   /* 文件预览铺满聊天列时 center 宽为 0，改在右栏左缘画同一条线 */
   .shell-files-chat-preview .shell-track-right:not(.shell-track-collapsed)::before {

@@ -244,10 +244,11 @@
     "theme": "Theme",
     "themeTitle": "Theme",
     "themeLabel": "Interface theme",
-    "themeDesc": "Choose light, dark, eye-care, or follow system",
+    "themeDesc": "Choose light, dark, eye-care, Apricot Tiger, or follow system",
     "themeLight": "Light",
     "themeDark": "Dark",
     "themeSage": "Eye care",
+    "themeApricot": "Apricot Tiger",
     "themeSystem": "System"
   },
   "pi": {

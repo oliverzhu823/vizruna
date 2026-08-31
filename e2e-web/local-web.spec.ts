@@ -97,6 +97,25 @@ test('authenticates, renders Vizruna-web, and uses the shared RPC contract', asy
     expect(capability.status, JSON.stringify(capability.body)).toBe(200)
     expect(capability.body).toMatchObject({ ok: true })
   }
+  const workerStart = await invoke('ipc:workspace.ensureWorker', { path: workspacePath })
+  expect(workerStart.status, JSON.stringify(workerStart.body)).toBe(200)
+  expect(workerStart.body.result).toMatchObject({ ok: true, workspaceId: workspacePath })
+  expect(workerStart.body.result.sessionId).toBeTruthy()
+  const runtimeState = await invoke('ipc:runtime.getState', { workspaceId: workspacePath })
+  expect(runtimeState.status, JSON.stringify(runtimeState.body)).toBe(200)
+  expect(runtimeState.body.result.state).toMatchObject({ sessionId: workerStart.body.result.sessionId })
+
+  const terminalCreate = await invoke('ipc:terminal.create', { cwd: workspacePath, cols: 80, rows: 24 })
+  expect(terminalCreate.status, JSON.stringify(terminalCreate.body)).toBe(200)
+  const terminalId = terminalCreate.body.result.id as string
+  expect(terminalId).toBeTruthy()
+  const terminalWrite = await invoke('ipc:terminal.write', { id: terminalId, data: 'printf vizruna-node-terminal\\n' })
+  expect(terminalWrite.status, JSON.stringify(terminalWrite.body)).toBe(200)
+  await page.waitForTimeout(100)
+  const terminalAttach = await invoke('ipc:terminal.attach', { id: terminalId })
+  expect(terminalAttach.status, JSON.stringify(terminalAttach.body)).toBe(200)
+  expect(terminalAttach.body.result.data).toContain('vizruna-node-terminal')
+  await invoke('ipc:terminal.close', { id: terminalId })
   const webExports = capabilities.slice(6, 8)
   for (const exported of webExports) {
     expect(exported.body.result.download.filename).toBeTruthy()

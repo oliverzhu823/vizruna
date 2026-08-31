@@ -33,7 +33,7 @@ Skills、Extensions、提示词、工具和会话运行过程组织成容易理�
   来源证明、目标环境就绪检查和凭据隔离。
 - 新增 Pi 有效配置、资源中心和 Run Debugger，集中检查 Runtime、授权、资源加载、工具
   调用、Context、Token、费用、压缩、错误和逐轮诊断证据。
-- 内嵌 Pi Runtime 升级到已验证的 `0.84.1`，补齐 Runtime 契约、生产 SBOM 与资源生命周期
+- 内嵌 Pi Runtime 升级到已验证的 `0.84.4`，补齐 Runtime 契约、生产 SBOM 与资源生命周期
   检查；生产依赖审计为零已知漏洞。
 - 重新设计右侧工具导航，按“会话与运行、项目工作区、扩展工具”分组，一行三项，所有入口
   无需横向拖动即可直接切换。
@@ -45,7 +45,7 @@ Skills、Extensions、提示词、工具和会话运行过程组织成容易理�
 ### 对话、模型与运行过程
 
 - **Pi 原生模型工作流**：选择 Provider、模型和思考强度；支持 `/login`、`/logout`、
-  OAuth 和 Provider 提供的 API Key 登录；当前内嵌并验证 Pi Runtime `0.84.1`。
+  OAuth 和 Provider 提供的 API Key 登录；当前内嵌并验证 Pi Runtime `0.84.4`。
 - **新对话继承有效配置**：沿用上一次有效会话的模型和思考强度，并立即显示当前选择。
 - **按 Provider 分流网络**：海外模型可走 V2Ray 等代理，国内模型保持直连，不修改
   macOS 全局代理，也不影响其他软件。
@@ -157,10 +157,26 @@ Skills、Extensions、提示词、工具和会话运行过程组织成容易理�
 ## 安装并使用 Vizruna-web
 
 Vizruna-web 的界面在默认浏览器中打开，Pi Runtime、终端、文件和凭据仍只在你的
-电脑上运行，不会上传到 Vizruna 服务器。当前公开 Alpha 已在 macOS 上完成验收，
-使用源码启动包运行，不需要安装 `.app` 或 DMG。
+电脑上运行，不会上传到 Vizruna 服务器。它使用纯 Node.js 本地后台，不依赖 Electron、
+`.app`、DMG、Apple 开发者证书或绕过 Gatekeeper。
 
-### 方式一：下载 Release 源码包（最适合普通使用者）
+### 方式一：npx 一键运行（当前 Alpha 推荐）
+
+安装 Node.js 22.19.0 或更高版本后，在终端运行：
+
+```bash
+npx --yes vizruna@alpha
+```
+
+首次运行会从 npm 下载约 17 MB 的 Vizruna 程序及运行依赖，随后自动打开默认浏览器；
+以后运行同一命令即可获取并启动最新发布版。保持终端窗口开启，按 `Control+C` 停止。
+版本升级不会删除会话、Agent 配置、模型授权或案例：这些数据保存在源码和 npm 缓存
+之外的 Vizruna/Pi 用户数据目录中。
+
+当前 npm 包已经完成“构建、打包、全新临时项目安装、Runtime 启停、Web 一次性令牌
+登录、健康检查和页面加载”自动验证。维护者可运行 `npm run package:npm:test` 验证候选包。
+
+### 方式二：下载 Release 源码包（可审计回退）
 
 1. 安装 [Node.js](https://nodejs.org/zh-cn/download) 22.19.0 或更高版本，安装包中已包含 npm。
 2. 打开 [Vizruna Releases](https://github.com/oliverzhu823/vizruna/releases)，下载
@@ -189,7 +205,7 @@ chmod +x Start-Vizruna-web.command
 
 不要对其他来源不明的脚本执行上述操作。
 
-### 方式二：使用 Git 克隆（适合持续测试和开发）
+### 方式三：使用 Git 克隆（适合持续测试和开发）
 
 在终端运行：
 
@@ -207,12 +223,31 @@ cd vizruna
 VIZRUNA_WEB_SKIP_UPDATE=1 ./Start-Vizruna-web.command
 ```
 
-每个 Release 只提供一个 Vizruna-web 源码 ZIP，并附带 SHA-256、SBOM 和 GitHub
-构建来源证明，不再提供桌面安装包。
+每个 Release 继续提供 Vizruna-web 源码 ZIP，并附带 SHA-256、SBOM 和 GitHub 构建
+来源证明，作为 npx 之外的可审计回退；不再提供桌面安装包。
 
 安全边界：服务只监听 `127.0.0.1`，不能被局域网其他设备访问；每次启动生成新的
 随机访问令牌，并使用 HttpOnly 会话、同源校验和 CSRF 防护保护本地 API。不要修改
 启动地址为 `0.0.0.0`，也不要把启动链接发给别人。
+
+### 新增：Runtime 与命令行入口（当前开发候选）
+
+本地启动器现在会同时准备独立的 Node Runtime，再打开现有 Vizruna-web。图形界面仍按
+原有方式使用；需要自动化、批量运行或排障时，可以在源码目录执行：
+
+```bash
+node scripts/vizruna.mjs doctor
+node scripts/vizruna.mjs runtime start
+node scripts/vizruna.mjs agent list
+node scripts/vizruna.mjs run <Agent-ID> --workspace /项目路径 --prompt "任务" --wait
+node scripts/vizruna.mjs evidence export <Run-ID> --output run-evidence.json
+node scripts/vizruna.mjs runtime stop
+```
+
+Runtime 只监听 `127.0.0.1`，使用本机随机令牌和版本化 RPC v1。默认“协作模式”允许
+读取和普通文件修改，但命令执行必须由调用者明确批准；还提供只读“观察模式”和有明确
+风险提示的“自动模式”。运行记录、事件、权限决定和脱敏证据独立持久化，Runtime 重启后
+仍可查询。完整命令见 [Runtime、RPC 与 CLI 实施说明](docs/startup/25-Headless-Runtime-RPC-CLI.md)。
 
 ### 启动故障排查
 

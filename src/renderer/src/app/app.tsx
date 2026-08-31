@@ -553,7 +553,7 @@ export default function App() {
                   openProjectLabel={t('sidebar.openProject')}
                 />
               </SidebarContent>
-              <div className="border-t border-border/50 p-1.5">
+              <div className="apricot-sidebar-footer border-t border-border/50 p-1.5">
                 <SidebarItem
                   label={t('agents:title')}
                   icon={<Bot className="h-4 w-4" />}

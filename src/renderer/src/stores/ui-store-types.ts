@@ -210,8 +210,8 @@ export interface UIState {
     loadingTree: boolean
     treeError: string
   }>) => void
-  theme: 'light' | 'dark' | 'sage' | 'system'
-  setTheme: (t: 'light' | 'dark' | 'sage' | 'system') => void
+  theme: 'light' | 'dark' | 'sage' | 'apricot' | 'system'
+  setTheme: (t: 'light' | 'dark' | 'sage' | 'apricot' | 'system') => void
   /** sessionFile → running (sidebar spinner) */
   sessionRuntimeRunning: Record<string, boolean>
   setSessionRuntimeRunning: (sessionFile: string, running: boolean) => void

@@ -105,7 +105,10 @@ export async function handleSetpisettings(msg: WorkerIncomingMessage, reply: Wor
               registry: session.modelRuntime as PiModelRegistryLike,
               provider,
               modelId,
-              setModel: (next) => session.setModel(next as Parameters<typeof session.setModel>[0]),
+              // The SettingsManager mutation above is the single persistence
+              // point; applying it to the live session must not write again.
+              setModel: (next) =>
+                session.setModel(next as Parameters<typeof session.setModel>[0], { persist: false }),
               getCurrentModel: () => session.model,
             })
             emit({

@@ -21,7 +21,7 @@ vi.mock('@renderer/stores/ui-store', () => ({
 
 describe('hydrateThemeFromSettings', () => {
   beforeEach(() => {
-    document.documentElement.classList.remove('dark', 'sage')
+    document.documentElement.classList.remove('dark', 'sage', 'apricot')
     invokeMock.mockReset()
     setThemeMock.mockReset()
   })
@@ -55,5 +55,16 @@ describe('hydrateThemeFromSettings', () => {
     expect(document.documentElement.classList.contains('sage')).toBe(true)
     expect(document.documentElement.classList.contains('dark')).toBe(false)
     expect(setThemeMock).toHaveBeenCalledWith('sage')
+  })
+
+  it('should_apply_apricot_class_and_sync_ui_store_when_tiger_theme_is_saved', async () => {
+    invokeMock.mockResolvedValue({ settings: { theme: 'apricot' } })
+    const { hydrateThemeFromSettings } = await import('../settings-draft')
+
+    await hydrateThemeFromSettings()
+
+    expect(document.documentElement.classList.contains('apricot')).toBe(true)
+    expect(document.documentElement.classList.contains('dark')).toBe(false)
+    expect(setThemeMock).toHaveBeenCalledWith('apricot')
   })
 })

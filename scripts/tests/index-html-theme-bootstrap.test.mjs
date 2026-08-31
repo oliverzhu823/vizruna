@@ -16,4 +16,11 @@ describe('index.html theme bootstrap', () => {
     assert.match(html, /classList\.add\('sage'\)/)
     assert.match(html, /theme !== 'sage'/)
   })
+
+  it('restores the apricot tiger theme before React mounts', () => {
+    const html = readFileSync(join(process.cwd(), 'src/renderer/index.html'), 'utf8')
+    assert.match(html, /theme === 'apricot'/)
+    assert.match(html, /classList\.add\('apricot'\)/)
+    assert.match(html, /theme !== 'apricot'/)
+  })
 })

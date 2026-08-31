@@ -5,12 +5,11 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawn } from 'node:child_process'
-import electron from 'electron'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
-const entry = join(root, 'out', 'main', 'web-server.js')
+const entry = join(root, 'out', 'node-web', 'server.mjs')
 const userData = mkdtempSync(join(tmpdir(), 'vizruna-web-e2e-'))
-const child = spawn(electron, [entry], {
+const child = spawn(process.execPath, [entry], {
   cwd: root,
   env: {
     ...process.env,
@@ -21,7 +20,6 @@ const child = spawn(electron, [entry], {
     VIZRUNA_WEB_NO_OPEN: '1',
     PI_E2E: '1',
     PI_E2E_USER_DATA: userData,
-    ELECTRON_DISABLE_SECURITY_WARNINGS: '1',
   },
   stdio: 'inherit',
 })

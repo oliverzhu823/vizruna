@@ -10,7 +10,7 @@ import { PiSettingsPanel } from '@renderer/features/settings/pi-settings-panel'
 import { SettingsPageHeader } from '@renderer/features/settings/settings-shell'
 import { SettingRow } from '@renderer/features/settings/settings-page-shared'
 import { Switch } from '@renderer/components/ui/switch'
-import { Folder, Sparkles, Moon, Sun, Monitor, Leaf, type LucideIcon } from 'lucide-react'
+import { Folder, Sparkles, Moon, Sun, Monitor, Leaf, PawPrint, type LucideIcon } from 'lucide-react'
 
 export function GeneralSettings() {
   const { t } = useTranslation()
@@ -273,10 +273,11 @@ export function AppearanceSettings() {
   const { t } = useTranslation()
   const { draft, setTheme } = useSettingsDraft()
 
-  const themes: { key: 'light' | 'dark' | 'sage' | 'system'; icon: LucideIcon }[] = [
+  const themes: { key: 'light' | 'dark' | 'sage' | 'apricot' | 'system'; icon: LucideIcon }[] = [
     { key: 'light', icon: Sun },
     { key: 'dark', icon: Moon },
     { key: 'sage', icon: Leaf },
+    { key: 'apricot', icon: PawPrint },
     { key: 'system', icon: Monitor },
   ]
 
@@ -293,7 +294,7 @@ export function AppearanceSettings() {
                 type="button"
                 onClick={() => setTheme(key)}
                 className={cn(
-                  'flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[12px] transition-all duration-motion-fast ease-motion-ease',
+                  'flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[12px] transition-[background-color,border-color,color,box-shadow] duration-motion-fast ease-motion-ease focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
                   draft.theme === key
                     ? 'border-primary bg-primary/5 text-foreground'
                     : 'border-border text-muted-foreground hover:bg-accent/50'

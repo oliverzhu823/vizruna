@@ -244,10 +244,11 @@
     "theme": "主题",
     "themeTitle": "主题",
     "themeLabel": "界面主题",
-    "themeDesc": "选择浅色、深色、护眼或跟随系统",
+    "themeDesc": "选择浅色、深色、护眼、暖杏小虎或跟随系统",
     "themeLight": "浅色",
     "themeDark": "深色",
     "themeSage": "护眼",
+    "themeApricot": "暖杏·小虎",
     "themeSystem": "跟随系统"
   },
   "pi": {

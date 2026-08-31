@@ -330,7 +330,7 @@ alpha.6 至 alpha.20 的既定 Harness 升级已经进入工程：
   以 Pi 对象式 Package Filter 的 `+path` / `-path` 精确规则保存，并在完成后热重载
   当前 Worker；所有修改受活动工作区信任、类型化 IPC、串行操作与审计日志约束；
 - Extension 详情已展示工具、命令、兼容状态与加载错误；内嵌 Runtime 已升级到
-  `0.84.1`，外部 Runtime 通过 `0.84.x` 版本线与真实能力双重门禁，并补齐模型、会话、
+  `0.84.4`，外部 Runtime 通过 `0.84.x` 版本线与真实能力双重门禁，并补齐模型、会话、
   Settings、Package、项目上下文和 Provider 网络的兼容回归测试；
 - Pi Native 工程切片已经通过完整类型、Lint、i18n、306 项契约测试、428 项单元测试、
   生产构建、SBOM、生产依赖零漏洞审计、3 项 Local Web E2E 和真实浏览器验收；

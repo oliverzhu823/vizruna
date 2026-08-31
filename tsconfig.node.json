@@ -12,6 +12,7 @@
     "src/preload/**/*",
     "src/worker/**/*",
     "src/web/**/*",
+    "src/runtime/**/*",
     "src/extension-compat/*.ts",
     "packages/shared/**/*",
     "electron.vite.config.ts",

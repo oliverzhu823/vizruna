@@ -88,7 +88,7 @@ sbom.dependencies = (Array.isArray(sbom.dependencies) ? sbom.dependencies : [])
 
 const components = sbom.components
 const requiredVersions = new Map([
-  ['@earendil-works/pi-coding-agent', '0.84.1'],
+  ['@earendil-works/pi-coding-agent', '0.84.4'],
   ['brace-expansion', '5.0.9'],
   ['dompurify', '3.4.13'],
   ['fast-uri', '3.1.5'],

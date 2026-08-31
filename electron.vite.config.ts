@@ -24,6 +24,8 @@ export default defineConfig({
         input: {
           index: resolve(__dirname, 'src/main/index.ts'),
           'web-server': resolve(__dirname, 'src/web/server.ts'),
+          runtime: resolve(__dirname, 'src/runtime/runtime-entry.ts'),
+          cli: resolve(__dirname, 'src/runtime/cli.ts'),
           worker: resolve(__dirname, 'src/worker/index.ts'),
         },
         output: {

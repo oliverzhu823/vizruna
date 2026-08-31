@@ -57,11 +57,13 @@ export function requestOrchestration(
     })
     signal?.addEventListener('abort', onAbort, { once: true })
     try {
-      process.parentPort?.postMessage({
+      const payload = {
         type: 'orchestration-request',
         rpcId,
         request,
-      })
+      }
+      if (process.parentPort) process.parentPort.postMessage(payload)
+      else process.send?.(payload)
     } catch (error) {
       cleanup()
       reject(error)

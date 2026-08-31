@@ -37,7 +37,7 @@ paused. Avoid mission-critical work while the product is still in Alpha.
   while preserving provenance, target-readiness checks, and credential isolation.
 - Pi Inspector, the Resource Center, and Run Debugger expose Runtime, authorization,
   loaded resources, tool calls, context, tokens, cost, compaction, errors, and per-turn evidence.
-- The embedded Pi Runtime is upgraded to verified `0.84.1`, with Runtime contracts,
+- The embedded Pi Runtime is upgraded to verified `0.84.4`, with Runtime contracts,
   production SBOM coverage, and zero known production dependency vulnerabilities.
 - The right-side tool navigation is grouped into session/runtime, project workspace,
   and extension sections with three compact items per row and direct switching.
@@ -50,7 +50,7 @@ See [CHANGELOG.md](CHANGELOG.md) for the complete release notes.
 
 - **Native Pi model workflow**: choose provider, model, and thinking level;
   authenticate with `/login`, `/logout`, OAuth, or an API key. The embedded and
-  tested Pi Runtime is currently `0.84.1`.
+  tested Pi Runtime is currently `0.84.4`.
 - **Effective defaults for new conversations**: reuse the last valid model and
   thinking level and show them immediately.
 - **Provider-specific routing**: send overseas providers through a V2Ray-style
@@ -192,11 +192,30 @@ See [CHANGELOG.md](CHANGELOG.md) for the complete release notes.
 ## Install and run Vizruna-web
 
 Vizruna-web opens its interface in your default browser while the Pi Runtime,
-terminal, files, and credentials remain on your computer. The current public
-Alpha has been accepted on macOS and runs from a source bundle, with no `.app`
-or DMG installation.
+terminal, files, and credentials remain on your computer. Its local backend is
+pure Node.js and does not depend on Electron, an `.app`, DMG, Apple Developer
+certificates, or Gatekeeper workarounds.
 
-### Option 1: Download the Release source bundle (recommended for users)
+### Option 1: one-command npx launch (recommended for the current Alpha)
+
+Install Node.js 22.19.0 or newer, then run:
+
+```bash
+npx --yes vizruna@alpha
+```
+
+The first launch downloads the roughly 17 MB prebuilt Vizruna package and its
+runtime dependencies, then opens the default browser. Run the same command for
+the latest published release. Keep the terminal open and press `Control+C` to
+stop. Updates preserve conversations, Agent Profiles, model authorization, and
+cases because user data lives outside the source tree and npm cache.
+
+The published npx package passes an automated build, pack, clean
+temporary-project install, Runtime lifecycle, Web token exchange, authenticated
+health check, and renderer-load test. Maintainers can verify a candidate with
+`npm run package:npm:test`.
+
+### Option 2: Download the Release source bundle (auditable fallback)
 
 1. Install [Node.js](https://nodejs.org/en/download) 22.19.0 or newer; npm is included.
 2. Open [Vizruna Releases](https://github.com/oliverzhu823/vizruna/releases),
@@ -227,7 +246,7 @@ chmod +x Start-Vizruna-web.command
 
 Do not run these commands for a script from an untrusted source.
 
-### Option 2: Clone with Git (recommended for ongoing testing and development)
+### Option 3: Clone with Git (recommended for ongoing testing and development)
 
 Run:
 
@@ -248,8 +267,9 @@ start normally. To skip one update check, run:
 VIZRUNA_WEB_SKIP_UPDATE=1 ./Start-Vizruna-web.command
 ```
 
-Each Release contains one Vizruna-web source ZIP plus SHA-256 checksums, an SBOM,
-and GitHub build provenance. Desktop installers are no longer published.
+Each Release continues to contain a Vizruna-web source ZIP plus SHA-256 checksums,
+an SBOM, and GitHub build provenance as an auditable fallback to npx. Desktop
+installers are no longer published.
 
 The service binds only to `127.0.0.1`, so other devices on the LAN cannot reach
 it. Every launch creates a new random access token, and the local API is further

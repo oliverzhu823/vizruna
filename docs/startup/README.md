@@ -21,7 +21,7 @@ v0.1 产品名称：Vizruna\
 10. `pi-app` 的 MIT 商业使用与再分发权限已经确认；分发时必须随包保留版权和许可
     声明。桌面签名与公证路线暂停，恢复桌面分发时再重新启用对应门禁。
 11. 产品负责人已确认第一阶段必须交付 GUI OAuth 和完整内嵌终端；两项已进入工程候选版，不再属于可选后续范围。
-12. Pi 采用经过当前产品测试的内嵌版本 `0.84.1`；外部 SDK 必须位于已验证的
+12. Pi 采用经过当前产品测试的内嵌版本 `0.84.4`；外部 SDK 必须位于已验证的
     `0.84.x` 兼容线，并通过模型、会话、Settings 与 Package 生命周期能力检查，否则
     自动回退内嵌版。
 
@@ -51,6 +51,10 @@ v0.1 产品名称：Vizruna\
 | [20-alpha3-Agent-Case-Progress.md](./20-alpha3-Agent-Case-Progress.md) | Agent 案例库与 Alpha 迭代进展 | Engineering candidate |
 | [21-Vizruna-web-Implementation.md](./21-Vizruna-web-Implementation.md) | Local Web 架构、安全边界、实测证据和发布方式 | Release candidate |
 | [22-Pi-Native-Harness-Roadmap.md](./22-Pi-Native-Harness-Roadmap.md) | Pi-native Harness 定位、Pi Inspector、资源中心和 Agent Composer 路线 | Active |
+| [23-Vizruna-Development-Backlog.md](./23-Vizruna-Development-Backlog.md) | Runtime、RPC、CLI 与企业能力的分级待开发清单 | Active backlog |
+| [24-Pi-0.84.4-Upgrade-Record.md](./24-Pi-0.84.4-Upgrade-Record.md) | Pi 0.84.4 内核升级范围、兼容策略、自动验证与发布前人工门禁 | Engineering passed; live provider smoke pending |
+| [25-Headless-Runtime-RPC-CLI.md](./25-Headless-Runtime-RPC-CLI.md) | K0–K6 独立 Runtime、RPC v1、权限、CLI、证据与评测实施说明 | Engineering candidate |
+| [26-Node-Web-Npx-Distribution.md](./26-Node-Web-Npx-Distribution.md) | 纯 Node Local Web、npx 包结构、升级与发布门禁 | Engineering passed; publication pending |
 
 ## 3. 研究基线
 
@@ -60,7 +64,7 @@ v0.1 产品名称：Vizruna\
 |---|---|---|
 | `justhil/pi-app` | `bcef920e3900a858b305c67c42a34e61779f977c` | 主产品底座 |
 | `minghinmatthewlam/pi-gui` | `48ed3025868ddb9fd359cd1fc19b7ac48916cb39` | Worktree、Orchestration、Terminal、Session Lease 行为参考 |
-| `@earendil-works/pi-coding-agent` | `0.84.1` | 当前内嵌 Agent Runtime；外部版本限已验证的 0.84.x 兼容线 |
+| `@earendil-works/pi-coding-agent` | `0.84.4` | 当前内嵌 Agent Runtime；外部版本限已验证的 0.84.x 兼容线 |
 
 上游地址：
 

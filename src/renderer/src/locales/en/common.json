@@ -42,6 +42,9 @@
     "failureRecovery": "Any created Worktree is kept for inspection in the Worktree panel. This error never automatically overwrites project files."
   },
   "sidebar": {
+    "mascotTitle": "Build with Tiger",
+    "mascotSubtitle": "Make complex Agent work feel clear",
+    "mascotBadge": "Local · Private · In control",
     "sessions": "Sessions",
     "settings": "Settings",
     "openProject": "Open folder",

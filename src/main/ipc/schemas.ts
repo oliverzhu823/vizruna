@@ -588,7 +588,7 @@ export const sdkInstallSchema = z.object({
 })
 
 const settingsValueSchemas: Record<string, z.ZodTypeAny> = {
-  theme: z.enum(['light', 'dark', 'sage', 'system']),
+  theme: z.enum(['light', 'dark', 'sage', 'apricot', 'system']),
   language: z.enum(['zh', 'en']),
   currentProject: z.string().nullable(),
   recentProjects: z.array(z.string()),

@@ -13,8 +13,9 @@
           var raw = localStorage.getItem('vizruna-ui:v1');
           var theme = raw ? (JSON.parse(raw).state || {}).theme : null;
           if (theme === 'sage') document.documentElement.classList.add('sage');
+          if (theme === 'apricot') document.documentElement.classList.add('apricot');
           var isDark = theme === 'dark'
-            || (theme !== 'light' && theme !== 'sage' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            || (theme !== 'light' && theme !== 'sage' && theme !== 'apricot' && window.matchMedia('(prefers-color-scheme: dark)').matches);
           if (isDark) document.documentElement.classList.add('dark');
         } catch (e) {
           console.warn('[vizruna] theme bootstrap failed', e);

@@ -14,7 +14,7 @@ export interface StoreSchema {
   recentProjects: string[]
   currentProject: string | null
   windowBounds: { width: number; height: number; x?: number; y?: number } | null
-  theme: 'light' | 'dark' | 'sage' | 'system'
+  theme: 'light' | 'dark' | 'sage' | 'apricot' | 'system'
   panelWidths: { sidebar: number; right: number } | null
   extensionOverrides: Record<string, boolean>
   /** Skill 启用：key 为 skillStorageKey，false=禁用，缺省=启用 */

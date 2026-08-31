@@ -17,7 +17,8 @@ Vizruna-web 不是云端服务，也不是削减功能的演示页面。它把�
 
 当前代码已经具备以下真实闭环：
 
-- `npm run build:web` 构建 Vizruna-web 后台、Pi Worker 和现有 React Renderer。
+- `npm run build:web` 构建纯 Node Vizruna-web 后台、Node 子进程 Pi Worker 和现有
+  React Renderer。
 - `npm run start:web` 启动后台，并自动打开默认浏览器。
 - 浏览器 RPC 复用现有 IPC 白名单、Zod 输入校验、错误分类和审计逻辑。
 - SSE 传递消息流、思考、工具调用、文件、运行状态、终端、OAuth、扩展问答、编排和
@@ -64,15 +65,21 @@ Browser / React Renderer
 Vizruna-web local runtime
         │
         ├── 现有 IPC handlers / Zod / audit
-        ├── Pi Utility Workers
+        ├── Node child-process Pi Workers
         ├── terminal / filesystem / git / review
         └── SQLite + Vizruna/Pi 本地数据
 ```
 
-首版仍使用 Electron 的后台运行时承载现有 Utility Worker、系统文件框、OAuth 浏览器
-打开、系统通知和 safeStorage，但不创建 Electron 窗口。这样可以最快保持功能一致，
-同时彻底移除 DMG 安装和未签名应用启动问题。该后台实现未来可以替换为纯 Node，浏览器
-协议和用户使用方式不需要改变。
+当前用户版后台已经迁移为纯 Node.js：构建时通过平台兼容层保留原有 Main handler
+边界，Pi Worker 由 Node `child_process.fork` 承载，OAuth/文件打开调用系统默认应用，
+浏览器 RPC 与 React Renderer 无需重写。Electron 只保留在冻结的 Desktop 源码与开发
+依赖中，不进入 npx 用户运行链路。因此 Local Web 不再受 `.app` 签名、公证或 macOS
+Gatekeeper 安装限制影响。
+
+系统文件选择器在浏览器形态下由内置路径选择界面替代；系统通知兼容层当前不发送原生
+桌面通知。敏感配置文件和本机加密密钥以仅当前用户可读权限保存，Pi OAuth/API 配置继续
+使用 Pi 原生目录。它们防止其他系统用户直接读取，但不承诺抵御已经取得当前操作系统
+账号权限的恶意程序。
 
 ## 5. 发布状态与后续工作
 
@@ -95,10 +102,13 @@ Vizruna-web local runtime
 - 诊断包与审计日志的浏览器下载已经纳入 E2E；浏览器安全上下文、`getUserMedia` 和
   `MediaRecorder` 能力也已验证。OAuth 最终账号确认和麦克风授权属于必须由使用者
   明确同意的系统权限，不能在自动测试中代替使用者授权。
-- 当前双击启动与 Git 安全更新已经可供 Alpha 使用；后续再冻结 npm 包结构，目标命令
-  为 `npx vizruna-web`。
+- npm 包结构已经冻结为 `vizruna`：包含预构建的 Node Web Host、Renderer、Runtime/CLI、
+  第三方声明和 Pi 运行依赖；零参数命令直接启动 Web，目标公开命令为
+  `npx --yes vizruna@alpha`；稳定版发布后再切换为 `latest`。
 - Git 克隆版的官方来源、干净分支和 fast-forward 安全更新已完成；ZIP 版通过覆盖源码
   目录升级且保留外部用户数据。Vizruna-web 不下载或引导安装 DMG。
 
-在 npm 启动包发布前，`npm run start:web` 是公开 Alpha 的源码启动方式；它已经可以
-用于本机实测，但尚不是一条命令安装的正式发行形态。
+`npm run package:npm:test` 会生成 tarball，在全新临时项目中安装它，并实际验证 CLI
+诊断、独立 Runtime 启停、Web 未授权拒绝、一次性令牌交换、授权健康检查、Renderer
+加载和干净退出。工程链路已经完成；在 npm 启动包正式发布前，`npm run start:web`
+和 Release 源码包仍是公开 Alpha 的启动方式。

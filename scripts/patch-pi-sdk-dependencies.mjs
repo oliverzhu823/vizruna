@@ -3,7 +3,26 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
-const piSdkRoot = join(root, 'node_modules', '@earendil-works', 'pi-coding-agent')
+
+function resolvePackageRoot(packageName) {
+  // Pi only exports an ESM entry point. `require.resolve()` selects the
+  // CommonJS condition and therefore fails in a clean npm installation even
+  // though the package is installed correctly. Resolve through the ESM import
+  // condition, then walk back to the owning package manifest.
+  let current = dirname(fileURLToPath(import.meta.resolve(packageName)))
+  for (;;) {
+    const manifestPath = join(current, 'package.json')
+    if (existsSync(manifestPath)) {
+      const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'))
+      if (manifest.name === packageName) return current
+    }
+    const parent = dirname(current)
+    if (parent === current) throw new Error(`Unable to locate package root: ${packageName}`)
+    current = parent
+  }
+}
+
+const piSdkRoot = resolvePackageRoot('@earendil-works/pi-coding-agent')
 
 const patches = [
   { packageName: 'brace-expansion', expectedVersion: '5.0.9' },
@@ -22,7 +41,7 @@ if (!existsSync(join(piSdkRoot, 'package.json'))) {
 }
 
 for (const patch of patches) {
-  const sourceRoot = join(root, 'node_modules', patch.packageName)
+  const sourceRoot = resolvePackageRoot(patch.packageName)
   const targetRoot = join(piSdkRoot, 'node_modules', patch.packageName)
   const sourceVersion = readPackageVersion(sourceRoot)
 

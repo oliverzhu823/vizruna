@@ -13,6 +13,7 @@ export default defineConfig({
       'src/main/**/*.test.ts',
       'src/worker/**/*.test.ts',
       'src/web/**/*.test.ts',
+      'src/runtime/**/*.test.ts',
       'packages/shared/**/*.test.ts',
       'src/extension-compat/**/*.test.ts',
     ],

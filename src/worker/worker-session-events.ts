@@ -201,7 +201,8 @@ export function handleSessionEvent(event: AgentSessionEvent, deps: SessionEventD
     }
     case 'compaction_start': {
       deps.emit({ ...base, type: 'compaction', phase: 'start' } as AppEvent)
-      process.parentPort?.postMessage({ type: 'extension-ui-dismiss-all', reason: 'compaction' })
+      if (process.parentPort) process.parentPort.postMessage({ type: 'extension-ui-dismiss-all', reason: 'compaction' })
+      else process.send?.({ type: 'extension-ui-dismiss-all', reason: 'compaction' })
       break
     }
     case 'session_info_changed':

@@ -21,7 +21,7 @@ afterEach(() => {
 })
 
 describe('embedded Pi SDK runtime contract', () => {
-  it('pins the tested 0.84.1 runtime and exposes every Vizruna capability', () => {
+  it('pins the tested 0.84.4 runtime and exposes every Vizruna capability', () => {
     const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
     const manifest = JSON.parse(
       readFileSync(
@@ -30,7 +30,7 @@ describe('embedded Pi SDK runtime contract', () => {
       ),
     ) as { version?: string }
 
-    expect(manifest.version).toBe('0.84.1')
+    expect(manifest.version).toBe('0.84.4')
     expect(inspectPiSdkCompatibility(sdk)).toEqual({
       compatible: true,
       missingCapabilities: [],
