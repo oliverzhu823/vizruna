@@ -38,6 +38,10 @@ test('the npm distribution contains prebuilt web assets and compliance notices',
   assert.match(prepare, /THIRD_PARTY_LICENSES/)
   assert.match(packageTest, /authentication_required|status !== 401/)
   assert.match(packageTest, /healthBody\.product !== 'Vizruna-web'/)
+  assert.match(prepare, /'proxy-chain': sourceManifest\.dependencies\['proxy-chain'\]/)
+  assert.match(prepare, /'undici': sourceManifest\.dependencies\.undici/)
+  assert.match(packageTest, /assertPackagedWorkerCanInitialize/)
+  assert.match(packageTest, /type: 'init'/)
 })
 
 test('RPC v1 keeps loopback, authentication, CSRF, and resumable-event guards', () => {

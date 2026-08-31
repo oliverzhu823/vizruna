@@ -140,6 +140,12 @@ async function main(): Promise<void> {
       checks.push({ name: 'User data', ok: true, detail: getRuntimeUserDataPath() })
     } catch (error) { checks.push({ name: 'User data', ok: false, detail: String(error) }) }
     checks.push({ name: 'Runtime build', ok: existsSync(fileURLToPath(new URL('./runtime.js', import.meta.url))), detail: fileURLToPath(new URL('./runtime.js', import.meta.url)) })
+    try {
+      await Promise.all([import('undici'), import('proxy-chain')])
+      checks.push({ name: 'Pi Worker dependencies', ok: true, detail: 'undici, proxy-chain' })
+    } catch (error) {
+      checks.push({ name: 'Pi Worker dependencies', ok: false, detail: error instanceof Error ? error.message : String(error) })
+    }
     checks.push({ name: 'Runtime process', ok: await healthy(readState()), detail: (await healthy(readState())) ? 'running' : 'stopped (normal)' })
     const ok = checks.filter((check) => check.name !== 'Runtime process').every((check) => check.ok)
     print({ ok, checks })

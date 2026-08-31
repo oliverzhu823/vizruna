@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { execFileSync, spawn } from 'node:child_process'
+import { execFileSync, fork, spawn } from 'node:child_process'
 import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -31,6 +31,46 @@ async function waitForWebOrigin(child, timeout = 15_000) {
   throw new Error(`packaged web did not become ready\n${output}`)
 }
 
+async function assertPackagedWorkerCanInitialize(installedRoot, cwd, userData, timeout = 30_000) {
+  const worker = fork(join(installedRoot, 'out', 'main', 'worker.mjs'), [], {
+    cwd: installedRoot,
+    env: { ...process.env, NODE_ENV: 'production', VIZRUNA_USER_DATA_PATH: userData },
+    stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
+  })
+  let stdout = ''
+  let stderr = ''
+  worker.stdout?.on('data', (chunk) => { stdout += chunk.toString() })
+  worker.stderr?.on('data', (chunk) => { stderr += chunk.toString() })
+  const exited = new Promise((resolveExit) => worker.once('exit', (code, signal) => resolveExit({ code, signal })))
+  try {
+    await new Promise((resolveInit, rejectInit) => {
+      const timer = setTimeout(() => rejectInit(new Error(`packaged Pi Worker init timed out\n${stdout}\n${stderr}`)), timeout)
+      worker.once('error', (error) => { clearTimeout(timer); rejectInit(error) })
+      worker.on('exit', (code, signal) => {
+        clearTimeout(timer)
+        rejectInit(new Error(`packaged Pi Worker exited during init (${code ?? signal})\n${stdout}\n${stderr}`))
+      })
+      worker.on('message', (message) => {
+        if (message?.requestId !== 'package-smoke-init') return
+        clearTimeout(timer)
+        if (message.type === 'init-done') resolveInit()
+        else rejectInit(new Error(`packaged Pi Worker init failed: ${JSON.stringify(message)}\n${stdout}\n${stderr}`))
+      })
+      worker.send({
+        type: 'init',
+        requestId: 'package-smoke-init',
+        cwd,
+        sdkPath: null,
+        providerRouting: { routes: {} },
+      })
+    })
+  } finally {
+    if (worker.exitCode == null && worker.signalCode == null) worker.kill('SIGTERM')
+    await Promise.race([exited, new Promise((resolveWait) => setTimeout(resolveWait, 2_000))])
+    if (worker.exitCode == null && worker.signalCode == null) worker.kill('SIGKILL')
+  }
+}
+
 try {
   execFileSync('npm', ['pack', '--silent', packageRoot, '--pack-destination', work], { cwd: root, stdio: 'inherit' })
   const tarball = join(work, readdirSync(work).find((file) => file.endsWith('.tgz')))
@@ -38,11 +78,13 @@ try {
   execFileSync('npm', ['install', '--no-audit', '--no-fund', tarball], { cwd: work, stdio: 'inherit' })
   const userData = join(work, 'user-data')
   const cli = join(work, 'node_modules', '.bin', process.platform === 'win32' ? 'vizruna.cmd' : 'vizruna')
+  const installedRoot = join(work, 'node_modules', 'vizruna')
   const doctor = execFileSync(cli, ['doctor', '--json'], {
     cwd: work, env: { ...process.env, VIZRUNA_USER_DATA_PATH: userData }, encoding: 'utf8',
   })
   const result = JSON.parse(doctor)
   if (result.ok !== true) throw new Error(`packaged doctor failed: ${doctor}`)
+  await assertPackagedWorkerCanInitialize(installedRoot, work, userData)
   const child = spawn(cli, ['runtime', 'start', '--json'], {
     cwd: work, env: { ...process.env, VIZRUNA_USER_DATA_PATH: userData }, stdio: ['ignore', 'pipe', 'inherit'],
   })
@@ -89,7 +131,7 @@ try {
     web.kill('SIGTERM')
     await waitForExit(web, 'web shutdown', { allowSignal: true })
   }
-  const installed = JSON.parse(readFileSync(join(work, 'node_modules', 'vizruna', 'package.json'), 'utf8'))
+  const installed = JSON.parse(readFileSync(join(installedRoot, 'package.json'), 'utf8'))
   console.log(`[npm-package] clean install passed for ${installed.name}@${installed.version}`)
 } finally {
   rmSync(work, { recursive: true, force: true })

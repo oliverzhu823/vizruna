@@ -4,11 +4,12 @@
 
 实施日期：2026-08-31
 
-候选版本：`0.1.0-alpha.6`
+当前版本：`0.1.0-alpha.7`
 
 ## 1. 用户结果
 
-Vizruna Local Web 已于 2026-08-31 发布 `vizruna@0.1.0-alpha.6`。用户只需安装
+Vizruna Local Web 已于 2026-08-31 首次发布，并在 `0.1.0-alpha.7` 修复 npm 包的
+Pi Worker 直接依赖清单。用户只需安装
 Node.js 22.19.0 或更高版本并执行：
 
 ```bash
@@ -79,6 +80,7 @@ npm run package:npm:test
 5. 未授权 API 返回 401，一次性启动令牌能换取 HttpOnly 会话；
 6. 授权健康检查返回 Vizruna-web，Renderer 首页可以读取；
 7. Web 进程收到终止信号后完成清理退出。
+8. 干净安装后的真实 Pi Worker 能加载 SDK 并完成一次会话初始化。
 
 仓库浏览器 E2E 还会验证项目打开、核心 RPC、Node Pi Worker 与 `node-pty` 终端闭环。
 

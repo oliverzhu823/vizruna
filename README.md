@@ -23,7 +23,11 @@ Skills、Extensions、提示词、工具和会话运行过程组织成容易理�
 
 ![Vizruna-web 工作台界面](docs/images/vizruna-web.png)
 
-## v0.1.0-alpha.6 本次重点
+## v0.1.0-alpha.7 本次重点
+
+- 修复 npm 安装版首次发送消息时 Pi Worker 因缺少 `undici`、`proxy-chain` 而退出的问题。
+- `vizruna doctor` 现在会检查 Pi Worker 的关键运行依赖。
+- npm 干净安装门禁现在必须真正完成一次 Pi Worker 初始化，不再只检查页面和健康接口。
 
 - Agent 配置库升级为完整的 Pi-native Agent 工作台：组合模型、思考度、System Prompt、
   工具、Skills、Extensions、Prompt Templates、Packages 与项目上下文，并预览最终有效配置。

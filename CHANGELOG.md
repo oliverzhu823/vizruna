@@ -56,6 +56,16 @@
 
 面向仓库的完整版本记录。发版时由 `scripts/generate-release-notes.mjs` 从对应章节生成 **GitHub Release 正文**（用户可读更新说明，应用内「发现新版本」弹窗展示）。发布与应用内更新流程见 [doc/RELEASE.md](doc/RELEASE.md)。
 
+## [0.1.0-alpha.7] — 2026-08-31
+
+### npm Local Web hotfix
+
+- Fixed `vizruna@alpha` failing on the first prompt because the published package omitted the
+  direct Pi Worker dependencies `undici` and `proxy-chain`.
+- Extended `vizruna doctor` to verify the critical Worker network dependencies.
+- Strengthened the clean-install package gate so it must load the published Worker, Pi SDK and
+  initialize a real local session before publication.
+
 ## [0.1.0-alpha.6] — 2026-08-14
 
 ### Pi-native Harness
