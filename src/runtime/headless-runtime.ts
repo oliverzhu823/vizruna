@@ -25,6 +25,7 @@ import {
   buildAgentResourceLoaderOverrides,
   buildAgentToolsOverride,
 } from '../worker/agent-profile-runtime'
+import { createSkillDiscoveryRuntime } from '../worker/skill-discovery'
 import { getRuntimeVersion } from './runtime-paths'
 import { resolveRuntimePermission } from './permission-policy'
 import { RuntimeStore } from './runtime-store'
@@ -258,6 +259,11 @@ export class VizrunaHeadlessRuntime {
       const snapshot = initialSnapshot
         ? await resolveHeadlessResourceSnapshot(initialSnapshot, run.workspacePath, baseServices)
         : undefined
+      const skillDiscovery = createSkillDiscoveryRuntime(
+        snapshot || null,
+        buildAgentResourceLoaderOverrides(snapshot || null),
+        { agentDir: baseServices.agentDir },
+      )
       const services = snapshot
         ? await pi.createAgentSessionServices({
             cwd: run.workspacePath,
@@ -265,11 +271,17 @@ export class VizrunaHeadlessRuntime {
             modelRuntime: baseServices.modelRuntime,
             settingsManager: baseServices.settingsManager,
             resourceLoaderOptions: {
-              ...buildAgentResourceLoaderOverrides(snapshot),
+              ...skillDiscovery.resourceLoaderOptions,
               ...buildAgentPromptLoaderOverrides(snapshot),
             },
           })
-        : baseServices
+        : await pi.createAgentSessionServices({
+            cwd: run.workspacePath,
+            agentDir: baseServices.agentDir,
+            modelRuntime: baseServices.modelRuntime,
+            settingsManager: baseServices.settingsManager,
+            resourceLoaderOptions: skillDiscovery.resourceLoaderOptions,
+          })
       let model
       if (run.modelId) {
         const key = splitModelKey(run.modelId)
@@ -290,7 +302,10 @@ export class VizrunaHeadlessRuntime {
         sessionManager: pi.SessionManager.create(run.workspacePath),
         model,
         thinkingLevel: run.thinkingLevel as Parameters<typeof pi.createAgentSession>[0] extends { thinkingLevel?: infer T } ? T : never,
-        tools: permission.allowedTools,
+        tools: skillDiscovery.mode === 'on-demand'
+          ? [...new Set([...permission.allowedTools, 'skill_search'])]
+          : permission.allowedTools,
+        customTools: skillDiscovery.customTools,
       })
       session = created.session
       this.active.set(run.id, { session, cancelled: false })

@@ -11,6 +11,7 @@ import {
   Gauge,
   KeyRound,
   Network,
+  Layers3,
   Orbit,
   Package,
   RefreshCw,
@@ -24,6 +25,7 @@ import {
 import type {
   PiInspectorNamedResource,
   PiInspectorSnapshot,
+  PiPromptDocumentResponse,
 } from '@shared/pi-inspector'
 import { ipcClient } from '@renderer/lib/ipc-client'
 import { cn } from '@renderer/lib/utils'
@@ -110,6 +112,8 @@ export function PiInspectorPanel() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [resourceKind, setResourceKind] = useState<ResourceKind>('tools')
+  const [promptDocument, setPromptDocument] = useState<PiPromptDocumentResponse | null>(null)
+  const [promptLoading, setPromptLoading] = useState(false)
 
   const currentSessionFile = useMemo(
     () =>
@@ -135,6 +139,23 @@ export function PiInspectorPanel() {
     }
   }, [currentSessionFile, currentSessionId, currentWorkspace])
 
+  const loadPromptDocument = useCallback(async () => {
+    if (promptDocument || promptLoading) return
+    setPromptLoading(true)
+    try {
+      const response = await ipcClient.invoke('pi.inspector.prompt', {
+        workspaceId: currentWorkspace || undefined,
+        sessionId: currentSessionId || undefined,
+        sessionFile: currentSessionFile,
+      })
+      setPromptDocument(response)
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : String(reason))
+    } finally {
+      setPromptLoading(false)
+    }
+  }, [currentSessionFile, currentSessionId, currentWorkspace, promptDocument, promptLoading])
+
   useEffect(() => {
     let cancelled = false
     setLoading(true)
@@ -157,6 +178,10 @@ export function PiInspectorPanel() {
     return () => {
       cancelled = true
     }
+  }, [currentSessionFile, currentSessionId, currentWorkspace, runStatus])
+
+  useEffect(() => {
+    setPromptDocument(null)
   }, [currentSessionFile, currentSessionId, currentWorkspace, runStatus])
 
   const resources = snapshot?.resources[resourceKind] || []
@@ -376,14 +401,79 @@ export function PiInspectorPanel() {
               ) : (
                 <p className="px-3 py-3 text-[10px] text-muted-foreground">{t('context.empty')}</p>
               )}
-              {snapshot.context.systemPromptPreview ? (
-                <details className="border-t border-border/40">
+              {snapshot.context.sections.length ? (
+                <div className="border-t border-border/40 px-3 py-2.5">
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 text-[10px] font-semibold text-foreground">
+                      <Layers3 className="h-3.5 w-3.5 text-primary" />
+                      {t('context.manifest')}
+                    </div>
+                    <span className="text-[9px] tabular-nums text-muted-foreground">
+                      {t('context.budget', {
+                        chars: snapshot.context.systemPromptChars.toLocaleString(),
+                        tokens: snapshot.context.estimatedTokens.toLocaleString(),
+                      })}
+                    </span>
+                  </div>
+                  <div className="space-y-1.5">
+                    {snapshot.context.sections.map((section) => (
+                      <div key={section.id} className="rounded-lg border border-border/35 bg-background/40 px-2.5 py-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex min-w-0 items-center gap-1.5">
+                            <span className={cn(
+                              'h-1.5 w-1.5 shrink-0 rounded-full',
+                              section.enabled ? 'bg-emerald-500' : 'bg-muted-foreground/25',
+                            )} />
+                            <span className="truncate text-[10px] font-medium text-foreground">
+                              {t(`context.section.${section.id}`, { defaultValue: section.label })}
+                            </span>
+                          </div>
+                          <div className="flex shrink-0 items-center gap-1.5 text-[9px] tabular-nums text-muted-foreground">
+                            <span>{t(`context.manifestState.${section.enabled ? 'active' : 'inactive'}`)}</span>
+                            <span>·</span>
+                            <span>{section.charCount.toLocaleString()} · ~{section.estimatedTokens.toLocaleString()}t</span>
+                          </div>
+                        </div>
+                        <div className="mt-0.5 flex items-center gap-1.5 text-[9px] text-muted-foreground/75">
+                          <span>{t(`context.owner.${section.owner}`)}</span>
+                          <span>·</span>
+                          <span className="truncate" title={t(`context.activation.${section.id}`, { defaultValue: section.activation })}>
+                            {t(`context.activation.${section.id}`, { defaultValue: section.activation })}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {snapshot.context.skillDiscovery ? (
+                    <p className="mt-2 rounded-lg bg-primary/[0.06] px-2.5 py-2 text-[9px] leading-relaxed text-primary">
+                      {snapshot.context.skillDiscovery.mode === 'on-demand'
+                        ? t('context.skillOnDemand', {
+                            count: snapshot.context.skillDiscovery.searchableCount,
+                          })
+                        : t('context.skillFixed', {
+                            count: snapshot.context.skillDiscovery.promptSkillCount,
+                          })}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+              {snapshot.context.systemPromptChars > 0 ? (
+                <details
+                  className="border-t border-border/40"
+                  onToggle={(event) => {
+                    if (event.currentTarget.open) void loadPromptDocument()
+                  }}
+                >
                   <summary className="cursor-pointer px-3 py-2 text-[10px] font-medium text-primary">
                     {t('context.preview', { count: snapshot.context.systemPromptChars })}
                   </summary>
-                  <pre className="max-h-48 overflow-auto whitespace-pre-wrap border-t border-border/30 bg-muted/20 px-3 py-2.5 font-mono text-[9px] leading-relaxed text-muted-foreground">
-                    {snapshot.context.systemPromptPreview}
-                  </pre>
+                  {promptLoading ? (
+                    <p className="border-t border-border/30 px-3 py-3 text-[9px] text-muted-foreground">{t('loading')}</p>
+                  ) : promptDocument ? (
+                    <pre className="max-h-80 overflow-auto whitespace-pre-wrap border-t border-border/30 bg-muted/20 px-3 py-2.5 font-mono text-[9px] leading-relaxed text-muted-foreground">
+                      {promptDocument.text}
+                    </pre>
+                  ) : null}
                 </details>
               ) : null}
             </div>

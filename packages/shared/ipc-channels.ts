@@ -92,6 +92,7 @@ export const IPC_INVOKE_CHANNELS = [
   'ipc:orchestration.stop',
   'ipc:pi.getInfo',
   'ipc:pi.inspector.get',
+  'ipc:pi.inspector.prompt',
   'ipc:pi.packageStudio.export',
   'ipc:pi.packageStudio.import.apply',
   'ipc:pi.packageStudio.import.preview',

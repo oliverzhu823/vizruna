@@ -23,12 +23,17 @@ Skills、Extensions、提示词、工具和会话运行过程组织成容易理�
 
 ![Vizruna-web 工作台界面](docs/images/vizruna-web.png)
 
-## v0.1.0-alpha.8 本次重点
+## v0.1.0-alpha.9 本次重点
 
-- 修复 npm 安装版首次发送消息时 Pi Worker 因缺少 `undici`、`proxy-chain` 而退出的问题。
-- `vizruna doctor` 现在会检查 Pi Worker 的关键运行依赖。
-- npm 干净安装门禁现在必须真正完成一次 Pi Worker 初始化，不再只检查页面和健康接口。
-- Local Web 浏览器 E2E 会先按当前 Node.js ABI 重建原生模块，避免 Electron 与 Node.js ABI 混用。
+- 普通对话改为 **Skills 按需发现**：不再把所有已安装 Skill 全量塞进系统提示词，而是由
+  本地 `skill_search` 工具根据当前任务查找并加载最相关的 Skill，降低无关上下文占用。
+- 保留原生 `/skill:name` 显式调用；被禁用的 Skill 现在会在 Runtime 层真正排除。
+- 固定 Agent 配置仍保持确定性：主动绑定到 Agent 的 Skills 会继续进入该 Agent 的有效配置。
+- Pi 检查器新增 **Prompt Manifest**，可查看提示词各部分的来源、所有者、生效条件、顺序、
+  体积估算以及常驻/按需状态；完整系统提示词只在用户主动展开时加载。
+- Desktop Worker 与 Headless Local Web Runtime 已统一采用同一套提示词组合和 Skill 发现规则。
+
+此前 alpha.8 的 npm 运行依赖、原生模块 ABI 与干净安装门禁修复均已保留。
 
 - Agent 配置库升级为完整的 Pi-native Agent 工作台：组合模型、思考度、System Prompt、
   工具、Skills、Extensions、Prompt Templates、Packages 与项目上下文，并预览最终有效配置。

@@ -17,6 +17,10 @@ import {
 import { handleSessionEvent as dispatchSessionEvent } from './worker-session-events.js'
 import { errorMessage } from '@shared/error-message'
 import { createOrchestrationTools } from './orchestration-tools.js'
+import {
+  createSkillDiscoveryRuntime,
+  type SkillDiscoverySnapshot,
+} from './skill-discovery.js'
 import type { ProviderRoutingRuntime } from '@shared/provider-routing'
 import { installProviderRouting } from './provider-routing-runtime.js'
 import {
@@ -51,6 +55,7 @@ export type WorkerMutableState = {
    * `undefined` means retain the active configuration; `null` means General Pi.
    */
   nextConversationConfig: ConversationRuntimeSnapshot | null | undefined
+  skillDiscoverySnapshot: (() => SkillDiscoverySnapshot) | null
 }
 
 export const st: WorkerMutableState = {
@@ -72,6 +77,7 @@ export const st: WorkerMutableState = {
   providerRouting: { routes: {} },
   activeConversationConfig: null,
   nextConversationConfig: undefined,
+  skillDiscoverySnapshot: null,
 }
 
 function nextSeq(): number {
@@ -165,25 +171,35 @@ function buildRuntimeFactory(): CreateAgentSessionRuntimeFactory {
       st.nextConversationConfig !== undefined
         ? st.nextConversationConfig
         : st.activeConversationConfig
+    const skillDiscovery = createSkillDiscoveryRuntime(
+      conversationConfig,
+      buildAgentResourceLoaderOverrides(conversationConfig),
+      { agentDir },
+    )
     const services = await sdk.createAgentSessionServices({
       cwd,
       agentDir,
       resourceLoaderOptions: {
         eventBus: st.sharedEventBus!,
-        ...buildAgentResourceLoaderOverrides(conversationConfig),
+        ...skillDiscovery.resourceLoaderOptions,
         ...buildAgentPromptLoaderOverrides(conversationConfig),
       },
     })
+    st.skillDiscoverySnapshot = skillDiscovery.snapshot
     installProviderRouting(services.modelRuntime, () => st.providerRouting)
     const selectedExtensionTools = services.resourceLoader
       .getExtensions()
       .extensions.flatMap((extension) => [...extension.tools.keys()])
+    const toolsOverride = buildAgentToolsOverride(conversationConfig, selectedExtensionTools)
+    if (toolsOverride.tools && skillDiscovery.mode === 'on-demand') {
+      toolsOverride.tools = [...new Set([...toolsOverride.tools, 'skill_search'])]
+    }
     const created = await sdk.createAgentSessionFromServices({
       services,
       sessionManager,
       sessionStartEvent,
-      ...buildAgentToolsOverride(conversationConfig, selectedExtensionTools),
-      customTools: createOrchestrationTools(),
+      ...toolsOverride,
+      customTools: [...createOrchestrationTools(), ...skillDiscovery.customTools],
     })
     return {
       ...created,

@@ -21,7 +21,7 @@ describe('M3 orchestration contracts', () => {
     }
     assert.match(
       read('src/worker/worker-runtime.ts'),
-      /customTools:\s*createOrchestrationTools\(\)/,
+      /customTools:\s*\[\.\.\.createOrchestrationTools\(\),\s*\.\.\.skillDiscovery\.customTools\]/,
     )
   })
 

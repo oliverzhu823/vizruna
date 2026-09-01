@@ -84,7 +84,45 @@
     "title": "提示词与项目上下文",
     "sourceCount": "{{count}} 个来源",
     "empty": "当前没有检测到额外的提示词或项目上下文。",
-    "preview": "查看最终 System Prompt 预览（{{count}} 字符）",
+    "preview": "查看完整最终 System Prompt（{{count}} 字符）",
+    "manifest": "Prompt Manifest · 生效清单",
+    "manifestState": {
+      "active": "生效",
+      "inactive": "未生效"
+    },
+    "section": {
+      "pi-core": "Pi 核心约束",
+      "runtime-tools": "实际工具约束",
+      "append-prompt": "用户追加提示词",
+      "agent-config": "Agent / 会话提示词",
+      "project-context": "项目上下文",
+      "skill-router": "按需 Skill 路由器",
+      "skill-catalog": "固定 Skill 清单",
+      "workspace": "工作目录"
+    },
+    "budget": "{{chars}} 字符 · 约 {{tokens}} tokens",
+    "skillOnDemand": "通用会话按需检索 {{count}} 个可调用 Skill；目录不会整体占用上下文。",
+    "skillFixed": "当前 Agent 固定加载 {{count}} 个 Skill，以保证运行可复现。",
+    "owner": {
+      "pi-runtime": "Pi 内核",
+      "runtime-tools": "实际工具",
+      "user-prompt": "用户配置",
+      "project-context": "可信项目",
+      "agent-config": "会话快照",
+      "skill-router": "Skill 路由器",
+      "skill-catalog": "固定 Skill",
+      "workspace": "工作区"
+    },
+    "activation": {
+      "pi-core": "当前 Pi 会话始终生效",
+      "runtime-tools": "只按实际启用的工具编译",
+      "append-prompt": "存在追加提示词时生效",
+      "agent-config": "创建会话时冻结，中途不变",
+      "project-context": "仅加载已信任的项目指令",
+      "skill-router": "通用会话按任务意图本地检索",
+      "skill-catalog": "仅固定 Agent 直接注入",
+      "workspace": "跟随当前工作目录"
+    },
     "kind": {
       "agents": "项目上下文",
       "system": "基础 System Prompt",

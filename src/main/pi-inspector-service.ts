@@ -6,6 +6,8 @@ import type {
   PiInspectorRequest,
   PiInspectorScope,
   PiInspectorSnapshot,
+  PiPromptDocumentResponse,
+  PiPromptManifestSection,
 } from '@shared/pi-inspector'
 import type { ConversationConfigBinding } from '@shared/system-prompt-preset'
 import type { ProviderRoutingConfig } from '@shared/provider-routing'
@@ -290,7 +292,12 @@ export function buildPiInspectorSnapshot(facts: InspectorFacts): PiInspectorSnap
   const routeProfile = route?.profileId
     ? facts.routeConfig.profiles.find((profile) => profile.id === route.profileId)
     : undefined
-  const systemPromptPreview = nonEmpty(facts.contextPrompts.builtSystemPreview)
+  const systemPromptChars = Number(facts.contextPrompts.builtSystemChars) || 0
+  const estimatedTokens = Number(facts.contextPrompts.builtSystemEstimatedTokens) || Math.ceil(systemPromptChars / 4)
+  const sections = Array.isArray(facts.contextPrompts.promptManifest)
+    ? facts.contextPrompts.promptManifest as PiPromptManifestSection[]
+    : []
+  const skillDiscovery = record(facts.contextPrompts.skillDiscovery) as PiInspectorSnapshot['context']['skillDiscovery']
   const warnings: PiInspectorSnapshot['warnings'] = []
   if (!loaded) {
     warnings.push({
@@ -365,8 +372,10 @@ export function buildPiInspectorSnapshot(facts: InspectorFacts): PiInspectorSnap
     configuration,
     context: {
       sources: contextSources(facts.contextCatalog, binding),
-      systemPromptChars: systemPromptPreview?.length || 0,
-      systemPromptPreview,
+      systemPromptChars,
+      estimatedTokens,
+      sections,
+      skillDiscovery: skillDiscovery?.mode ? skillDiscovery : undefined,
     },
     resources: {
       tools: runtimeTools
@@ -385,6 +394,20 @@ export function buildPiInspectorSnapshot(facts: InspectorFacts): PiInspectorSnap
       packages: facts.packages,
     },
     warnings,
+  }
+}
+
+export async function collectPiPromptDocument(
+  request: PiInspectorRequest,
+): Promise<PiPromptDocumentResponse> {
+  const raw = await workerManager.getSystemPromptDocument(nonEmpty(request.sessionFile))
+  return {
+    text: typeof raw.text === 'string' ? raw.text : '',
+    charCount: Number(raw.charCount) || 0,
+    estimatedTokens: Number(raw.estimatedTokens) || 0,
+    sections: Array.isArray(raw.sections)
+      ? raw.sections as PiPromptManifestSection[]
+      : [],
   }
 }
 

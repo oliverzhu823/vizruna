@@ -26,12 +26,22 @@ paused. Avoid mission-critical work while the product is still in Alpha.
 
 ![Vizruna-web workspace](docs/images/vizruna-web.png)
 
-## Highlights in v0.1.0-alpha.8
+## Highlights in v0.1.0-alpha.9
 
-- Fixed the npm-installed Pi Worker exiting on first send because `undici` and `proxy-chain` were missing.
-- `vizruna doctor` now checks critical Pi Worker runtime dependencies.
-- The clean npm install gate must now initialize a real Pi Worker instead of checking only the page and health endpoint.
-- Local Web browser E2E now rebuilds native modules for the active Node.js ABI, preventing Electron/Node ABI mismatches.
+- General conversations now use **on-demand Skill discovery**. Instead of injecting every installed
+  Skill into the System Prompt, a local `skill_search` tool finds and loads only the Skills relevant
+  to the current task, reducing unrelated context overhead.
+- Native `/skill:name` invocation remains available, and disabled Skills are now excluded at Runtime.
+- Fixed Agent Profiles remain deterministic: Skills deliberately bound to an Agent stay in that
+  Agent's effective configuration.
+- Pi Inspector now includes a **Prompt Manifest** with each section's source, owner, activation
+  condition, order, estimated size, and always-on or conditional status. The full effective System
+  Prompt is fetched only when explicitly opened.
+- Desktop Worker and headless Local Web Runtime now share the same prompt-composition and Skill
+  discovery rules.
+
+All alpha.8 fixes for npm runtime dependencies, native-module ABI handling, and clean-install gates
+remain included.
 
 - Agent Profiles are now a complete Pi-native Agent workspace that composes models,
   thinking levels, System Prompts, tools, Skills, Extensions, Prompt Templates,

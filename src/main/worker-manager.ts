@@ -1436,6 +1436,9 @@ export class WorkerManager {
   async getContextPrompts(sessionFile?: string): Promise<WorkerResponsePayload> {
     return (await this.readOnlySessionRequest('getContextPrompts', sessionFile)) || {}
   }
+  async getSystemPromptDocument(sessionFile?: string): Promise<WorkerResponsePayload> {
+    return (await this.readOnlySessionRequest('getSystemPromptDocument', sessionFile)) || {}
+  }
   async reloadResources(): Promise<void> {
     await this.request('reloadResources')
   }

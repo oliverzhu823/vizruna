@@ -38,6 +38,7 @@ const dispatch: Record<string, (msg: WorkerIncomingMessage, reply: WorkerReply) 
   'getSkillsList': Catalog.handleGetskillslist,
   'getPromptTemplatesList': Catalog.handleGetprompttemplateslist,
   'getContextPrompts': Catalog.handleGetcontextprompts,
+  'getSystemPromptDocument': Catalog.handleGetsystempromptdocument,
   'reloadResources': Catalog.handleReloadresources,
   'getCommandCompletions': Catalog.handleGetcommandcompletions,
   'getState': Catalog.handleGetstate,

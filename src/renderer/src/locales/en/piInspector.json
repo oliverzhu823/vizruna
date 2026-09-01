@@ -84,7 +84,45 @@
     "title": "Prompts and project context",
     "sourceCount": "{{count}} sources",
     "empty": "No additional prompt or project context was detected.",
-    "preview": "View final System Prompt preview ({{count}} chars)",
+    "preview": "View complete final System Prompt ({{count}} chars)",
+    "manifest": "Prompt Manifest · effective sections",
+    "manifestState": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "section": {
+      "pi-core": "Pi core contract",
+      "runtime-tools": "Active tool contract",
+      "append-prompt": "User append prompt",
+      "agent-config": "Agent / conversation prompt",
+      "project-context": "Project context",
+      "skill-router": "On-demand Skill router",
+      "skill-catalog": "Fixed Skill catalogue",
+      "workspace": "Working directory"
+    },
+    "budget": "{{chars}} chars · about {{tokens}} tokens",
+    "skillOnDemand": "General sessions search {{count}} callable Skills on demand; the catalogue does not occupy the prompt.",
+    "skillFixed": "This Agent loads {{count}} fixed Skills for reproducible runs.",
+    "owner": {
+      "pi-runtime": "Pi runtime",
+      "runtime-tools": "Active tools",
+      "user-prompt": "User configuration",
+      "project-context": "Trusted project",
+      "agent-config": "Conversation snapshot",
+      "skill-router": "Skill router",
+      "skill-catalog": "Fixed Skills",
+      "workspace": "Workspace"
+    },
+    "activation": {
+      "pi-core": "Always active for the current Pi session",
+      "runtime-tools": "Compiled only from actually enabled tools",
+      "append-prompt": "Active when append instructions exist",
+      "agent-config": "Frozen when the conversation is created",
+      "project-context": "Loads only trusted project instructions",
+      "skill-router": "General sessions search locally by task intent",
+      "skill-catalog": "Injected only for fixed Agents",
+      "workspace": "Follows the current working directory"
+    },
     "kind": {
       "agents": "Project context",
       "system": "Base System Prompt",

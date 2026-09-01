@@ -28,6 +28,37 @@ export interface PiInspectorContextSource {
   charCount?: number
 }
 
+export type PiPromptOwner =
+  | 'pi-runtime'
+  | 'runtime-tools'
+  | 'user-prompt'
+  | 'project-context'
+  | 'agent-config'
+  | 'skill-router'
+  | 'skill-catalog'
+  | 'workspace'
+
+export interface PiPromptManifestSection {
+  id: string
+  label: string
+  owner: PiPromptOwner
+  order: number
+  enabled: boolean
+  activation: string
+  charCount: number
+  estimatedTokens: number
+  details?: string[]
+}
+
+export interface PiPromptDocumentRequest extends PiInspectorRequest {}
+
+export interface PiPromptDocumentResponse {
+  text: string
+  charCount: number
+  estimatedTokens: number
+  sections: PiPromptManifestSection[]
+}
+
 export interface PiInspectorWarning {
   code:
     | 'runtime-offline'
@@ -88,7 +119,14 @@ export interface PiInspectorSnapshot {
   context: {
     sources: PiInspectorContextSource[]
     systemPromptChars: number
-    systemPromptPreview?: string
+    estimatedTokens: number
+    sections: PiPromptManifestSection[]
+    skillDiscovery?: {
+      mode: 'on-demand' | 'fixed'
+      indexedCount: number
+      promptSkillCount: number
+      searchableCount: number
+    }
   }
   resources: {
     tools: PiInspectorNamedResource[]

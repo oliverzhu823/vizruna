@@ -56,6 +56,24 @@
 
 面向仓库的完整版本记录。发版时由 `scripts/generate-release-notes.mjs` 从对应章节生成 **GitHub Release 正文**（用户可读更新说明，应用内「发现新版本」弹窗展示）。发布与应用内更新流程见 [doc/RELEASE.md](doc/RELEASE.md)。
 
+## [0.1.0-alpha.9] — 2026-09-01
+
+### On-demand Skills and explainable prompts
+
+- General conversations no longer inject every installed Skill into the System Prompt. The Runtime
+  now exposes a local `skill_search` tool and loads the most relevant Skill instructions only when
+  the current task needs them, reducing idle prompt size and context pressure.
+- Explicit `/skill:name` invocation remains available, while disabled Skills are now consistently
+  excluded at Runtime instead of being hidden only in the interface.
+- Agent Profiles retain deterministic Skill behavior: Skills deliberately bound to a fixed Agent
+  remain part of that Agent's effective configuration.
+- Added a Prompt Manifest to Pi Inspector, showing prompt sections, owners, activation conditions,
+  ordering, approximate size, and the difference between always-on and conditional content.
+- Full effective System Prompt content is loaded only on request, avoiding unnecessary IPC traffic
+  and UI work during normal conversations.
+- Kept the Desktop Worker and headless Local Web Runtime on the same prompt-composition and Skill
+  discovery rules, with new contract and unit coverage for both paths.
+
 ## [0.1.0-alpha.8] — 2026-08-31
 
 ### Local Web release hardening

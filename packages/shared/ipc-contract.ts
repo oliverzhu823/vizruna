@@ -107,7 +107,12 @@ import type {
   ProxyProfile,
   ProxyProfileSaveRequest,
 } from './provider-routing'
-import type { PiInspectorRequest, PiInspectorResponse } from './pi-inspector'
+import type {
+  PiInspectorRequest,
+  PiInspectorResponse,
+  PiPromptDocumentRequest,
+  PiPromptDocumentResponse,
+} from './pi-inspector'
 import type {
   PiPackageImportApplyRequest,
   PiPackageImportApplyResponse,
@@ -551,6 +556,10 @@ export interface IpcMethodMap {
   'pi.inspector.get': {
     request: PiInspectorRequest
     response: PiInspectorResponse
+  }
+  'pi.inspector.prompt': {
+    request: PiPromptDocumentRequest
+    response: PiPromptDocumentResponse
   }
   'pi.resources.center.get': {
     request: PiResourceCenterRequest

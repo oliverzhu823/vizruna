@@ -3,6 +3,7 @@ import { errorMessage } from '@shared/error-message'
 import type { WorkerCommandRow, WorkerIncomingMessage } from '../worker-port-types.js'
 import type { WorkerReply } from '../worker-handler-types.js'
 import { reloadAuthenticationRuntime, st } from '../worker-runtime.js'
+import { buildPromptManifest } from '../prompt-manifest.js'
 
 export async function handleReloadauthentication(
   _msg: WorkerIncomingMessage,
@@ -245,19 +246,56 @@ export async function handleGetcontextprompts(msg: WorkerIncomingMessage, reply:
           const agentsFiles = rl?.getAgentsFiles?.()?.agentsFiles ?? []
           const systemPromptFile = rl?.getSystemPrompt?.() ?? undefined
           const appendParts = rl?.getAppendSystemPrompt?.() ?? []
-          const builtSystemPreview = st.session?.systemPrompt?.slice(0, 12000) ?? ''
+          const builtSystemPrompt = st.session?.systemPrompt ?? ''
+          const skillDiscovery = st.skillDiscoverySnapshot?.()
+          const promptManifest = buildPromptManifest({
+            text: builtSystemPrompt,
+            appendParts,
+            activeTools: st.session?.getActiveToolNames?.() ?? [],
+            profile: st.activeConversationConfig,
+            skillDiscovery,
+          })
           reply({
             type: 'getContextPrompts-done',
             agentsFiles,
             systemPromptFile: systemPromptFile ?? null,
             appendSystemPromptParts: appendParts,
-            builtSystemPreview,
+            builtSystemPreview: builtSystemPrompt.slice(0, 2_000),
+            builtSystemChars: builtSystemPrompt.length,
+            builtSystemEstimatedTokens: Math.ceil(builtSystemPrompt.length / 4),
+            promptManifest,
+            skillDiscovery,
             projectTrusted: st.session?.settingsManager?.isProjectTrusted?.() ?? true,
           })
         } catch (e: unknown) {
           reply({ type: 'error', error: `getContextPrompts failed: ${errorMessage(e)}` })
         }
         return
+}
+
+export async function handleGetsystempromptdocument(
+  _msg: WorkerIncomingMessage,
+  reply: WorkerReply,
+): Promise<void> {
+  try {
+    const text = st.session?.systemPrompt ?? ''
+    const appendParts = st.session?.resourceLoader?.getAppendSystemPrompt?.() ?? []
+    reply({
+      type: 'getSystemPromptDocument-done',
+      text,
+      charCount: text.length,
+      estimatedTokens: Math.ceil(text.length / 4),
+      sections: buildPromptManifest({
+        text,
+        appendParts,
+        activeTools: st.session?.getActiveToolNames?.() ?? [],
+        profile: st.activeConversationConfig,
+        skillDiscovery: st.skillDiscoverySnapshot?.(),
+      }),
+    })
+  } catch (e: unknown) {
+    reply({ type: 'error', error: `getSystemPromptDocument failed: ${errorMessage(e)}` })
+  }
 }
 
 
