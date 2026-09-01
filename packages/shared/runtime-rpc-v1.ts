@@ -52,6 +52,23 @@ export interface RuntimeRunRecord {
   permission: RuntimePermissionDecision
   sessionId?: string
   sessionFile?: string
+  promptContract?: import('./pi-inspector').PiPromptContractSnapshot
+  skillRuntime?: {
+    mode: 'on-demand' | 'fixed'
+    catalogDigest: string
+    indexedCount: number
+    searchCount: number
+    loadCount: number
+    loadedSkills: string[]
+  }
+  contextGovernor?: {
+    version: 1
+    thresholdChars: number
+    spillCount: number
+    spilledChars: number
+    retainedChars: number
+    lastSpillAt?: number
+  }
   outputText?: string
   error?: string
   createdAt: number

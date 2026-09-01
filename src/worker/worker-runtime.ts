@@ -28,6 +28,9 @@ import {
   AUTH_RELOAD_DEFERRED_ACTIVE_TURN,
   AUTH_RELOAD_RUNTIME_INVALID,
 } from '@shared/worker-auth-reload'
+import { buildPromptContract, createPromptContractObserver } from './prompt-manifest.js'
+import type { PiPromptContractSnapshot } from '@shared/pi-inspector'
+import { createContextGovernor, type ContextGovernorSnapshot } from './context-governor.js'
 
 export type WorkerMutableState = {
   sdk: typeof import('@earendil-works/pi-coding-agent') | null
@@ -56,6 +59,8 @@ export type WorkerMutableState = {
    */
   nextConversationConfig: ConversationRuntimeSnapshot | null | undefined
   skillDiscoverySnapshot: (() => SkillDiscoverySnapshot) | null
+  contextGovernorSnapshot: (() => ContextGovernorSnapshot) | null
+  currentCompiledSystemPrompt: string | null
 }
 
 export const st: WorkerMutableState = {
@@ -78,6 +83,8 @@ export const st: WorkerMutableState = {
   activeConversationConfig: null,
   nextConversationConfig: undefined,
   skillDiscoverySnapshot: null,
+  contextGovernorSnapshot: null,
+  currentCompiledSystemPrompt: null,
 }
 
 function nextSeq(): number {
@@ -95,6 +102,18 @@ function now(): number {
 
 export function currentSessionModelKey(): string | undefined {
   return st.session ? formatSessionModelKey(st.session.model as SessionModelRef) : undefined
+}
+
+export function currentPromptContract(): PiPromptContractSnapshot | undefined {
+  if (!st.session) return undefined
+  const text = st.currentCompiledSystemPrompt ?? st.session.systemPrompt ?? ''
+  return buildPromptContract({
+    text,
+    appendParts: st.session.resourceLoader.getAppendSystemPrompt?.() ?? [],
+    activeTools: st.session.getActiveToolNames?.() ?? [],
+    profile: st.activeConversationConfig,
+    skillDiscovery: st.skillDiscoverySnapshot?.(),
+  })
 }
 
 export function baseEvent() {
@@ -124,6 +143,7 @@ function detachSessionSubscription(): void {
 export async function rebindAfterRuntimeReplace(session: AgentSession): Promise<void> {
   detachSessionSubscription()
   st.session = session
+  st.currentCompiledSystemPrompt = null
   st.currentSessionId = session.sessionId
   if (st.nextConversationConfig !== undefined) {
     st.activeConversationConfig = st.nextConversationConfig
@@ -176,23 +196,29 @@ function buildRuntimeFactory(): CreateAgentSessionRuntimeFactory {
       buildAgentResourceLoaderOverrides(conversationConfig),
       { agentDir },
     )
+    const contextGovernor = createContextGovernor(agentDir)
+    const promptObserver = createPromptContractObserver((systemPrompt) => {
+      st.currentCompiledSystemPrompt = systemPrompt
+    })
     const services = await sdk.createAgentSessionServices({
       cwd,
       agentDir,
       resourceLoaderOptions: {
         eventBus: st.sharedEventBus!,
+        extensionFactories: [contextGovernor.extension, promptObserver],
         ...skillDiscovery.resourceLoaderOptions,
         ...buildAgentPromptLoaderOverrides(conversationConfig),
       },
     })
     st.skillDiscoverySnapshot = skillDiscovery.snapshot
+    st.contextGovernorSnapshot = contextGovernor.snapshot
     installProviderRouting(services.modelRuntime, () => st.providerRouting)
     const selectedExtensionTools = services.resourceLoader
       .getExtensions()
       .extensions.flatMap((extension) => [...extension.tools.keys()])
     const toolsOverride = buildAgentToolsOverride(conversationConfig, selectedExtensionTools)
     if (toolsOverride.tools && skillDiscovery.mode === 'on-demand') {
-      toolsOverride.tools = [...new Set([...toolsOverride.tools, 'skill_search'])]
+      toolsOverride.tools = [...new Set([...toolsOverride.tools, 'skill_search', 'skill_load'])]
     }
     const created = await sdk.createAgentSessionFromServices({
       services,
@@ -491,6 +517,8 @@ function sessionEventDeps() {
     getSession: () => st.session,
     getSessionModelKey: currentSessionModelKey,
     getUiBridge: () => st.uiBridge,
+    getPromptContract: currentPromptContract,
+    getContextGovernor: () => st.contextGovernorSnapshot?.(),
     isAgentTurnActive: () => st.agentTurnActive,
     setAgentTurnActive: (v: boolean) => {
       st.agentTurnActive = v

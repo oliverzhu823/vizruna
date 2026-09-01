@@ -8,6 +8,7 @@ import type {
   PiInspectorSnapshot,
   PiPromptDocumentResponse,
   PiPromptManifestSection,
+  PiPromptContractSnapshot,
 } from '@shared/pi-inspector'
 import type { ConversationConfigBinding } from '@shared/system-prompt-preset'
 import type { ProviderRoutingConfig } from '@shared/provider-routing'
@@ -298,6 +299,7 @@ export function buildPiInspectorSnapshot(facts: InspectorFacts): PiInspectorSnap
     ? facts.contextPrompts.promptManifest as PiPromptManifestSection[]
     : []
   const skillDiscovery = record(facts.contextPrompts.skillDiscovery) as PiInspectorSnapshot['context']['skillDiscovery']
+  const promptContract = record(facts.contextPrompts.promptContract) as unknown as PiPromptContractSnapshot
   const warnings: PiInspectorSnapshot['warnings'] = []
   if (!loaded) {
     warnings.push({
@@ -375,6 +377,7 @@ export function buildPiInspectorSnapshot(facts: InspectorFacts): PiInspectorSnap
       systemPromptChars,
       estimatedTokens,
       sections,
+      promptContract: promptContract?.version === 2 ? promptContract : undefined,
       skillDiscovery: skillDiscovery?.mode ? skillDiscovery : undefined,
     },
     resources: {
@@ -408,6 +411,9 @@ export async function collectPiPromptDocument(
     sections: Array.isArray(raw.sections)
       ? raw.sections as PiPromptManifestSection[]
       : [],
+    contract: record(raw.contract)?.version === 2
+      ? record(raw.contract) as unknown as PiPromptContractSnapshot
+      : undefined,
   }
 }
 

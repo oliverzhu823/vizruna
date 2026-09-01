@@ -1,5 +1,6 @@
 // AppEvent - Unified event model for Renderer/Main/Worker
 import type { OrchestrationEvent } from './orchestration'
+import type { PiPromptContractSnapshot } from './pi-inspector'
 
 export interface AppEventBase {
   seq: number
@@ -58,6 +59,16 @@ export interface RunResourceEvidence {
   extensions: RunResourceItem[]
   contextFiles: RunResourceItem[]
   systemPromptSources: RunResourceItem[]
+  /** Exact prompt/tool contract captured at the run boundary. */
+  promptContract?: PiPromptContractSnapshot
+  contextGovernor?: {
+    version: 1
+    thresholdChars: number
+    spillCount: number
+    spilledChars: number
+    retainedChars: number
+    lastSpillAt?: number
+  }
 }
 
 export interface FileEvent extends AppEventBase {
@@ -96,6 +107,11 @@ export interface RunEvent extends AppEventBase {
 export interface CompactionEvent extends AppEventBase {
   type: 'compaction'
   phase: 'start' | 'end'
+  transactionId?: string
+  status?: 'started' | 'completed' | 'failed' | 'aborted'
+  startedAt?: number
+  completedAt?: number
+  error?: string
   tokensBefore?: number
   tokensSaved?: number
   summary?: string

@@ -23,17 +23,19 @@ Skills、Extensions、提示词、工具和会话运行过程组织成容易理�
 
 ![Vizruna-web 工作台界面](docs/images/vizruna-web.png)
 
-## v0.1.0-alpha.9 本次重点
+## v0.1.0-alpha.10 本次重点
 
-- 普通对话改为 **Skills 按需发现**：不再把所有已安装 Skill 全量塞进系统提示词，而是由
-  本地 `skill_search` 工具根据当前任务查找并加载最相关的 Skill，降低无关上下文占用。
-- 保留原生 `/skill:name` 显式调用；被禁用的 Skill 现在会在 Runtime 层真正排除。
-- 固定 Agent 配置仍保持确定性：主动绑定到 Agent 的 Skills 会继续进入该 Agent 的有效配置。
-- Pi 检查器新增 **Prompt Manifest**，可查看提示词各部分的来源、所有者、生效条件、顺序、
-  体积估算以及常驻/按需状态；完整系统提示词只在用户主动展开时加载。
-- Desktop Worker 与 Headless Local Web Runtime 已统一采用同一套提示词组合和 Skill 发现规则。
+- 新增 **Prompt Contract v2**：每次运行记录最终提示词、实际工具和组合请求摘要，并在 Pi
+  检查器中展示区段所有者、生效条件、稳定性和来源；完整提示词仍按需加载。
+- Skills 升级为 `skill_search → skill_load` 两阶段按需使用：搜索只返回紧凑元数据，选中后
+  才重新校验并完整读取当前 `SKILL.md`，同时记录目录摘要和实际加载证据。
+- 新增 **Context Governor**：超大文本工具结果保存为本机私有文件，上下文只保留头尾摘要、
+  内容指纹和可恢复引用；继续使用 Pi 原生压缩算法，并补充压缩事务证据。
+- 新增 Pi-native **Agent Factory Loop**：多个全新 Pi 子会话按结构化交接顺序实现、检查与
+  修复 Agent；没有实际验证证据时，模型不能只凭一句“完成”结束循环。
+- Desktop Worker 与 Headless Local Web Runtime 已统一采用上述提示词、Skill、上下文和证据契约。
 
-此前 alpha.8 的 npm 运行依赖、原生模块 ABI 与干净安装门禁修复均已保留。
+此前 alpha.9 的按需 Skill 与 Prompt Manifest 能力，以及 npm 干净安装门禁均已保留。
 
 - Agent 配置库升级为完整的 Pi-native Agent 工作台：组合模型、思考度、System Prompt、
   工具、Skills、Extensions、Prompt Templates、Packages 与项目上下文，并预览最终有效配置。

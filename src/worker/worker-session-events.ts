@@ -13,6 +13,9 @@ import { extractJsonPath } from '../extension-compat/json-path.js'
 import type { DesktopUIBridge } from './desktop-ui-bridge.js'
 import { emitAgentErrorFromAssistant, lastAssistantFromMessages } from './session-event-helpers.js'
 import { captureRunContextSnapshot, captureRunResourceEvidence } from './pi-run-evidence.js'
+import type { PiPromptContractSnapshot } from '@shared/pi-inspector'
+
+const compactionTransactions = new WeakMap<object, { id: string; startedAt: number }>()
 
 export type SessionEventDeps = {
   baseEvent: () => Record<string, unknown>
@@ -20,6 +23,8 @@ export type SessionEventDeps = {
   getSession: () => AgentSession | null
   getSessionModelKey: () => string | undefined
   getUiBridge: () => DesktopUIBridge | null
+  getPromptContract: () => PiPromptContractSnapshot | undefined
+  getContextGovernor: () => import('@shared/app-events').RunResourceEvidence['contextGovernor']
   isAgentTurnActive: () => boolean
   setAgentTurnActive: (v: boolean) => void
   setCurrentRunId: (id: string) => void
@@ -43,7 +48,12 @@ export function handleSessionEvent(event: AgentSessionEvent, deps: SessionEventD
         type: 'run',
         phase: 'started',
         contextSnapshot: captureRunContextSnapshot(session, startedAt),
-        resourceEvidence: captureRunResourceEvidence(session, startedAt),
+        resourceEvidence: captureRunResourceEvidence(
+          session,
+          startedAt,
+          deps.getPromptContract(),
+          deps.getContextGovernor(),
+        ),
       } as AppEvent)
       break
     }
@@ -200,7 +210,18 @@ export function handleSessionEvent(event: AgentSessionEvent, deps: SessionEventD
       break
     }
     case 'compaction_start': {
-      deps.emit({ ...base, type: 'compaction', phase: 'start' } as AppEvent)
+      const transaction = { id: randomUUID(), startedAt: Date.now() }
+      if (session?.sessionManager) {
+        compactionTransactions.set(session.sessionManager, transaction)
+      }
+      deps.emit({
+        ...base,
+        type: 'compaction',
+        phase: 'start',
+        transactionId: transaction.id,
+        status: 'started',
+        startedAt: transaction.startedAt,
+      } as AppEvent)
       if (process.parentPort) process.parentPort.postMessage({ type: 'extension-ui-dismiss-all', reason: 'compaction' })
       else process.send?.({ type: 'extension-ui-dismiss-all', reason: 'compaction' })
       break
@@ -255,10 +276,34 @@ export function handleSessionEvent(event: AgentSessionEvent, deps: SessionEventD
       }
       {
         const cr = (event as { result?: PiCompactionEndResult }).result
+        const transaction = session?.sessionManager
+          ? compactionTransactions.get(session.sessionManager)
+          : undefined
+        const status = e.aborted ? 'aborted' : e.errorMessage ? 'failed' : 'completed'
+        const completedAt = Date.now()
+        if (session?.sessionManager && transaction) {
+          try {
+            session.sessionManager.appendCustomEntry('vizruna.context.compaction', {
+              transactionId: transaction.id,
+              status,
+              startedAt: transaction.startedAt,
+              completedAt,
+              error: e.errorMessage,
+              tokensBefore: cr?.tokensBefore,
+              summaryChars: cr?.summary?.length || 0,
+            })
+          } catch { /* best-effort durable journal */ }
+          compactionTransactions.delete(session.sessionManager)
+        }
         deps.emit({
           ...base,
           type: 'compaction',
           phase: 'end',
+          transactionId: transaction?.id,
+          status,
+          startedAt: transaction?.startedAt,
+          completedAt,
+          error: e.errorMessage,
           tokensSaved: cr?.tokensBefore,
           summary: cr?.summary,
         } as AppEvent)

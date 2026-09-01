@@ -415,6 +415,14 @@ export function PiInspectorPanel() {
                       })}
                     </span>
                   </div>
+                  {snapshot.context.promptContract ? (
+                    <div className="mb-2 flex items-center justify-between gap-2 rounded-lg bg-primary/[0.06] px-2.5 py-1.5 text-[9px] text-primary">
+                      <span>{t('context.contractVersion', { version: snapshot.context.promptContract.version })}</span>
+                      <span className="font-mono" title={snapshot.context.promptContract.requestDigest}>
+                        {snapshot.context.promptContract.requestDigest.slice(7, 19)}
+                      </span>
+                    </div>
+                  ) : null}
                   <div className="space-y-1.5">
                     {snapshot.context.sections.map((section) => (
                       <div key={section.id} className="rounded-lg border border-border/35 bg-background/40 px-2.5 py-2">
@@ -437,6 +445,12 @@ export function PiInspectorPanel() {
                         <div className="mt-0.5 flex items-center gap-1.5 text-[9px] text-muted-foreground/75">
                           <span>{t(`context.owner.${section.owner}`)}</span>
                           <span>·</span>
+                          {section.stability ? (
+                            <>
+                              <span>{t(`context.stability.${section.stability}`)}</span>
+                              <span>·</span>
+                            </>
+                          ) : null}
                           <span className="truncate" title={t(`context.activation.${section.id}`, { defaultValue: section.activation })}>
                             {t(`context.activation.${section.id}`, { defaultValue: section.activation })}
                           </span>
@@ -449,6 +463,8 @@ export function PiInspectorPanel() {
                       {snapshot.context.skillDiscovery.mode === 'on-demand'
                         ? t('context.skillOnDemand', {
                             count: snapshot.context.skillDiscovery.searchableCount,
+                            searched: snapshot.context.skillDiscovery.searchCount || 0,
+                            loaded: snapshot.context.skillDiscovery.loadCount || 0,
                           })
                         : t('context.skillFixed', {
                             count: snapshot.context.skillDiscovery.promptSkillCount,

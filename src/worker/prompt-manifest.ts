@@ -1,11 +1,20 @@
-import type { PiPromptManifestSection, PiPromptOwner } from '@shared/pi-inspector'
+import type {
+  PiPromptContractSnapshot,
+  PiPromptManifestSection,
+  PiPromptOwner,
+} from '@shared/pi-inspector'
 import type { ConversationRuntimeSnapshot } from '@shared/system-prompt-preset'
 import type { SkillDiscoverySnapshot } from './skill-discovery.js'
+import { createHash } from 'node:crypto'
+import type { InlineExtension } from '@earendil-works/pi-coding-agent'
 
 type SectionSeed = Omit<PiPromptManifestSection, 'charCount' | 'estimatedTokens'> & {
   priority: number
   ranges: Array<[number, number]>
 }
+
+const digest = (value: string): string =>
+  `sha256:${createHash('sha256').update(value).digest('hex')}`
 
 const estimateTokens = (chars: number): number => Math.ceil(chars / 4)
 
@@ -39,8 +48,22 @@ function seed(
   priority: number,
   ranges: Array<[number, number]>,
   details?: string[],
+  stability: PiPromptManifestSection['stability'] = 'session',
+  source?: string,
 ): SectionSeed {
-  return { id, label, owner, order, enabled: ranges.length > 0, activation, priority, ranges, details }
+  return {
+    id,
+    label,
+    owner,
+    order,
+    enabled: ranges.length > 0,
+    activation,
+    priority,
+    ranges,
+    details,
+    stability,
+    source,
+  }
 }
 
 export function buildPromptManifest(input: {
@@ -67,18 +90,18 @@ export function buildPromptManifest(input: {
   const routerRanges = [
     ...allRanges(text, '- skill_search:'),
     ...allRanges(text, 'Use skill_search only when specialized instructions may materially improve the task; do not search for routine work.'),
-    ...allRanges(text, 'After choosing a result, read its SKILL.md completely before acting and load referenced files only as needed.'),
+    ...allRanges(text, 'After choosing a result, call skill_load with its exact name before acting and load referenced files only as needed.'),
   ]
 
   const seeds: SectionSeed[] = [
-    seed('pi-core', 'Pi core contract', 'pi-runtime', 10, 'Always active for the current Pi session.', 1, [[0, text.length]]),
-    seed('runtime-tools', 'Active tool contract', 'runtime-tools', 20, 'Compiled from tools that are actually enabled.', 20, toolRanges, activeTools),
-    seed('append-prompt', 'User append prompt', 'user-prompt', 30, 'Active when SYSTEM/APPEND_SYSTEM or a prompt preset appends instructions.', 35, appendRanges),
-    seed('agent-config', profile && 'profileId' in profile ? profile.name : 'Conversation prompt', 'agent-config', 40, 'Frozen when the conversation is created; never changed mid-conversation.', 50, configRanges, profile ? [profile.promptMode] : undefined),
-    seed('project-context', 'Project context', 'project-context', 50, 'Active only for trusted project context files.', 40, projectRanges),
-    seed('skill-router', 'On-demand Skill router', 'skill-router', 60, 'Active in general/inherited sessions; searches locally before a Skill is read.', 60, routerRanges, skillDiscovery ? [`mode:${skillDiscovery.mode}`, `indexed:${skillDiscovery.indexedCount}`] : undefined),
-    seed('skill-catalog', 'Fixed Skill catalogue', 'skill-catalog', 70, 'Active only for a fixed Agent Skill selection.', 45, skillRanges, skillDiscovery ? [`prompt:${skillDiscovery.promptSkillCount}`, `searchable:${skillDiscovery.searchableCount}`] : undefined),
-    seed('workspace', 'Working directory', 'workspace', 80, 'Active for the current workspace.', 30, cwdRanges),
+    seed('pi-core', 'Pi core contract', 'pi-runtime', 10, 'Always active for the current Pi session.', 1, [[0, text.length]], undefined, 'session', '@earendil-works/pi-coding-agent'),
+    seed('runtime-tools', 'Active tool contract', 'runtime-tools', 20, 'Compiled from tools that are actually enabled.', 20, toolRanges, activeTools, 'turn', 'AgentSession.getActiveToolNames()'),
+    seed('append-prompt', 'User append prompt', 'user-prompt', 30, 'Active when SYSTEM/APPEND_SYSTEM or a prompt preset appends instructions.', 35, appendRanges, undefined, 'session', 'Pi append-system resources'),
+    seed('agent-config', profile && 'profileId' in profile ? profile.name : 'Conversation prompt', 'agent-config', 40, 'Frozen when the conversation is created; never changed mid-conversation.', 50, configRanges, profile ? [profile.promptMode] : undefined, 'session', 'Vizruna conversation configuration'),
+    seed('project-context', 'Project context', 'project-context', 50, 'Active only for trusted project context files.', 40, projectRanges, undefined, 'session', 'Trusted AGENTS.md context'),
+    seed('skill-router', 'On-demand Skill router', 'skill-router', 60, 'Active in general/inherited sessions; searches locally before a Skill is loaded.', 60, routerRanges, skillDiscovery ? [`mode:${skillDiscovery.mode}`, `indexed:${skillDiscovery.indexedCount}`, `catalog:${skillDiscovery.catalogDigest}`] : undefined, 'session', 'Vizruna Skill Runtime v2'),
+    seed('skill-catalog', 'Fixed Skill catalogue', 'skill-catalog', 70, 'Active only for a fixed Agent Skill selection.', 45, skillRanges, skillDiscovery ? [`prompt:${skillDiscovery.promptSkillCount}`, `searchable:${skillDiscovery.searchableCount}`] : undefined, 'session', 'Pi native Skill catalogue'),
+    seed('workspace', 'Working directory', 'workspace', 80, 'Active for the current workspace.', 30, cwdRanges, undefined, 'session', 'AgentSession workspace'),
   ]
 
   // Assign every character to the highest-priority owner so section totals are
@@ -100,10 +123,45 @@ export function buildPromptManifest(input: {
   const counts = new Array(seeds.length).fill(0) as number[]
   for (const owner of owners) counts[owner] += 1
 
-  return seeds.map(({ priority: _priority, ranges: _ranges, ...section }, index) => ({
-    ...section,
-    enabled: section.enabled && counts[index] > 0,
-    charCount: counts[index],
-    estimatedTokens: estimateTokens(counts[index]),
-  }))
+  return seeds.map(({ priority: _priority, ranges, ...section }, index) => {
+    const content = ranges.map(([start, end]) => text.slice(start, end)).join('\n')
+    return {
+      ...section,
+      enabled: section.enabled && counts[index] > 0,
+      charCount: counts[index],
+      estimatedTokens: estimateTokens(counts[index]),
+      digest: digest(content),
+    }
+  })
+}
+
+/** Compile the authoritative, reproducible request contract. */
+export function buildPromptContract(input: Parameters<typeof buildPromptManifest>[0]): PiPromptContractSnapshot {
+  const activeTools = [...new Set(input.activeTools)].sort()
+  const promptDigest = digest(input.text)
+  const toolsDigest = digest(JSON.stringify(activeTools))
+  return {
+    version: 2,
+    capturedAt: Date.now(),
+    promptDigest,
+    toolsDigest,
+    requestDigest: digest(`${promptDigest}\n${toolsDigest}`),
+    activeTools,
+    sections: buildPromptManifest({ ...input, activeTools }),
+  }
+}
+
+/** Observe Pi's fully assembled per-turn prompt without modifying it. */
+export function createPromptContractObserver(
+  onCompiled: (systemPrompt: string) => void,
+): InlineExtension {
+  return {
+    name: 'vizruna-prompt-contract',
+    hidden: true,
+    factory: (pi) => {
+      pi.on('before_agent_start', (event) => {
+        onCompiled(event.systemPrompt)
+      })
+    },
+  }
 }

@@ -50,8 +50,9 @@ describe('on-demand Skill discovery', () => {
       undefined as never,
       undefined as never,
     )
-    expect(JSON.stringify(response)).toContain('/skills/pdf/SKILL.md')
-    expect(JSON.stringify(response)).not.toContain('/skills/release-notes/SKILL.md')
+    expect(JSON.stringify(response)).toContain('pdf')
+    expect(JSON.stringify(response)).not.toContain('/skills/pdf/SKILL.md')
+    expect(runtime.snapshot()).toMatchObject({ searchCount: 1, loadCount: 0 })
   })
 
   it('does not expose explicitly disabled model-invocation skills to search', async () => {
@@ -127,5 +128,31 @@ describe('on-demand Skill discovery', () => {
 
     expect(result?.skills.map((item) => item.name)).toEqual(['documents'])
     expect(runtime.snapshot().indexedCount).toBe(1)
+  })
+
+  it('loads the selected Skill body fresh and records invocation evidence', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'vizruna-skill-load-'))
+    const filePath = join(root, 'SKILL.md')
+    writeFileSync(filePath, '---\nname: local-test\ndescription: Local test\n---\nFirst instructions')
+    const runtime = createSkillDiscoveryRuntime(null, {})
+    runtime.resourceLoaderOptions.skillsOverride?.({
+      skills: [{ ...skill('local-test', 'Local test'), filePath, baseDir: root }],
+      diagnostics: [],
+    })
+    writeFileSync(filePath, '---\nname: local-test\ndescription: Local test\n---\nUpdated instructions')
+
+    const response = await runtime.customTools[1].execute(
+      'call-load',
+      { name: 'local-test' },
+      undefined,
+      undefined as never,
+      undefined as never,
+    )
+    expect(JSON.stringify(response)).toContain('Updated instructions')
+    expect(JSON.stringify(response)).not.toContain('First instructions')
+    expect(runtime.snapshot()).toMatchObject({
+      loadCount: 1,
+      loadedSkills: ['local-test'],
+    })
   })
 })

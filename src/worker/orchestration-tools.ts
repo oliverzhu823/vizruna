@@ -2,6 +2,7 @@ import { Type } from '@earendil-works/pi-ai'
 import type { ToolDefinition } from '@earendil-works/pi-coding-agent'
 import type { OrchestrationWorkerRequest } from '@shared/orchestration'
 import { requestOrchestration } from './orchestration-rpc.js'
+import { runAgentFactoryLoop } from './agent-factory-loop.js'
 
 function toolResult(result: unknown) {
   return {
@@ -24,6 +25,40 @@ async function executeRequest(
 
 export function createOrchestrationTools(): ToolDefinition[] {
   return [
+    {
+      name: 'run_agent_factory_loop',
+      label: 'Run Agent Factory',
+      description:
+        'Run a bounded Pi-only implement/verify loop for building or evaluating an Agent. Fresh child sessions share the local workspace; deterministic code owns stopping and handoff rules.',
+      promptSnippet: 'Run a bounded Agent Factory loop when the user explicitly asks to build or systematically improve an Agent.',
+      promptGuidelines: [
+        'Use this only for Agent construction, evaluation, or repeatable harness improvement—not ordinary one-step tasks.',
+        'Provide observable acceptance criteria; never treat an unverified report as complete.',
+      ],
+      executionMode: 'sequential',
+      parameters: Type.Object({
+        objective: Type.String({ minLength: 1, maxLength: 20_000 }),
+        acceptanceCriteria: Type.Array(Type.String({ minLength: 1, maxLength: 2_000 }), { minItems: 1, maxItems: 20 }),
+        maxRounds: Type.Optional(Type.Number({ minimum: 1, maximum: 8 })),
+        roundTimeoutMs: Type.Optional(Type.Number({ minimum: 60_000, maximum: 3_600_000 })),
+      }),
+      execute: async (_toolCallId, params, signal) => {
+        const value = params as {
+          objective: string
+          acceptanceCriteria: string[]
+          maxRounds?: number
+          roundTimeoutMs?: number
+        }
+        const result = await runAgentFactoryLoop({
+          objective: value.objective,
+          acceptanceCriteria: value.acceptanceCriteria,
+          maxRounds: Math.floor(value.maxRounds ?? 3),
+          roundTimeoutMs: Math.floor(value.roundTimeoutMs ?? 30 * 60_000),
+          signal,
+        })
+        return toolResult(result)
+      },
+    },
     {
       name: 'create_child_agent',
       label: 'Create child agent',

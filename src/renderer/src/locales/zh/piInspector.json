@@ -101,7 +101,13 @@
       "workspace": "工作目录"
     },
     "budget": "{{chars}} 字符 · 约 {{tokens}} tokens",
-    "skillOnDemand": "通用会话按需检索 {{count}} 个可调用 Skill；目录不会整体占用上下文。",
+    "skillOnDemand": "通用会话按需检索 {{count}} 个可调用 Skill；已搜索 {{searched}} 次、实际加载 {{loaded}} 次，目录不会整体占用上下文。",
+    "contractVersion": "提示词契约 v{{version}}",
+    "stability": {
+      "stable": "稳定",
+      "session": "会话固定",
+      "turn": "逐轮编译"
+    },
     "skillFixed": "当前 Agent 固定加载 {{count}} 个 Skill，以保证运行可复现。",
     "owner": {
       "pi-runtime": "Pi 内核",

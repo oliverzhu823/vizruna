@@ -72,12 +72,13 @@ export function buildAgentResourceLoaderOverrides(
     extensionsOverride: (base) => ({
       ...base,
       extensions: base.extensions.filter((extension) =>
+        extension.path.startsWith('<inline:vizruna-') ||
         [extension.path, extension.resolvedPath, extension.sourceInfo.path].some((path) =>
           pathMatchesSelection(path, paths.extensions),
         ),
       ),
       errors: base.errors.filter((error) =>
-        pathMatchesSelection(error.path, paths.extensions),
+        error.path.startsWith('<inline:vizruna-') || pathMatchesSelection(error.path, paths.extensions),
       ),
     }),
     skillsOverride: (base) => ({

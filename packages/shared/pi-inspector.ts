@@ -47,7 +47,23 @@ export interface PiPromptManifestSection {
   activation: string
   charCount: number
   estimatedTokens: number
+  /** Content digest for the section as compiled into this exact request. */
+  digest?: string
+  /** How often the section is allowed to change. */
+  stability?: 'stable' | 'session' | 'turn'
+  /** Human-readable authoritative source, never prompt text. */
+  source?: string
   details?: string[]
+}
+
+export interface PiPromptContractSnapshot {
+  version: 2
+  capturedAt: number
+  promptDigest: string
+  toolsDigest: string
+  requestDigest: string
+  activeTools: string[]
+  sections: PiPromptManifestSection[]
 }
 
 export interface PiPromptDocumentRequest extends PiInspectorRequest {}
@@ -57,6 +73,7 @@ export interface PiPromptDocumentResponse {
   charCount: number
   estimatedTokens: number
   sections: PiPromptManifestSection[]
+  contract?: PiPromptContractSnapshot
 }
 
 export interface PiInspectorWarning {
@@ -121,11 +138,17 @@ export interface PiInspectorSnapshot {
     systemPromptChars: number
     estimatedTokens: number
     sections: PiPromptManifestSection[]
+    promptContract?: PiPromptContractSnapshot
     skillDiscovery?: {
       mode: 'on-demand' | 'fixed'
       indexedCount: number
       promptSkillCount: number
       searchableCount: number
+      catalogDigest?: string
+      searchCount?: number
+      loadCount?: number
+      loadedSkills?: string[]
+      conflicts?: string[]
     }
   }
   resources: {

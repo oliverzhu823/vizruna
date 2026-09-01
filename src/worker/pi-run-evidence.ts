@@ -4,6 +4,7 @@ import type {
   RunResourceEvidence,
   RunResourceItem,
 } from '@shared/app-events'
+import type { PiPromptContractSnapshot } from '@shared/pi-inspector'
 import { basename } from 'node:path'
 
 type SourceInfo = {
@@ -57,6 +58,8 @@ export function captureRunContextSnapshot(
 export function captureRunResourceEvidence(
   session: AgentSession | null,
   capturedAt = Date.now(),
+  promptContract?: PiPromptContractSnapshot,
+  contextGovernor?: RunResourceEvidence['contextGovernor'],
 ): RunResourceEvidence | undefined {
   if (!session) return undefined
   try {
@@ -108,6 +111,8 @@ export function captureRunResourceEvidence(
       extensions,
       contextFiles,
       systemPromptSources,
+      ...(promptContract ? { promptContract } : {}),
+      ...(contextGovernor ? { contextGovernor } : {}),
     }
   } catch {
     return undefined

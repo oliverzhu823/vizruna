@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildPromptManifest } from '../worker/prompt-manifest'
+import { buildPromptContract, buildPromptManifest } from '../worker/prompt-manifest'
 
 describe('Prompt Manifest', () => {
   it('assigns the complete prompt budget without double counting', () => {
@@ -37,6 +37,11 @@ Current working directory: /workspace`
         indexedCount: 37,
         promptSkillCount: 0,
         searchableCount: 36,
+        catalogDigest: 'sha256:test',
+        searchCount: 0,
+        loadCount: 0,
+        loadedSkills: [],
+        conflicts: [],
       },
     })
 
@@ -48,5 +53,20 @@ Current working directory: /workspace`
     })
     expect(sections.find((section) => section.id === 'skill-router')?.charCount).toBeGreaterThan(0)
     expect(sections.find((section) => section.id === 'skill-catalog')?.charCount).toBeGreaterThan(0)
+  })
+
+  it('creates a stable digest for the exact prompt and active tool set', () => {
+    const input = {
+      text: 'You are Pi.\nCurrent working directory: /workspace',
+      appendParts: [] as string[],
+      activeTools: ['write', 'read', 'read'],
+      profile: null,
+    }
+    const first = buildPromptContract(input)
+    const second = buildPromptContract({ ...input, activeTools: ['read', 'write'] })
+    expect(first.version).toBe(2)
+    expect(first.requestDigest).toBe(second.requestDigest)
+    expect(first.activeTools).toEqual(['read', 'write'])
+    expect(first.sections.every((section) => section.digest?.startsWith('sha256:'))).toBe(true)
   })
 })

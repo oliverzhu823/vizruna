@@ -26,22 +26,23 @@ paused. Avoid mission-critical work while the product is still in Alpha.
 
 ![Vizruna-web workspace](docs/images/vizruna-web.png)
 
-## Highlights in v0.1.0-alpha.9
+## Highlights in v0.1.0-alpha.10
 
-- General conversations now use **on-demand Skill discovery**. Instead of injecting every installed
-  Skill into the System Prompt, a local `skill_search` tool finds and loads only the Skills relevant
-  to the current task, reducing unrelated context overhead.
-- Native `/skill:name` invocation remains available, and disabled Skills are now excluded at Runtime.
-- Fixed Agent Profiles remain deterministic: Skills deliberately bound to an Agent stay in that
-  Agent's effective configuration.
-- Pi Inspector now includes a **Prompt Manifest** with each section's source, owner, activation
-  condition, order, estimated size, and always-on or conditional status. The full effective System
-  Prompt is fetched only when explicitly opened.
-- Desktop Worker and headless Local Web Runtime now share the same prompt-composition and Skill
-  discovery rules.
+- **Prompt Contract v2** records effective-prompt, active-tool, and combined-request digests plus
+  section ownership, activation, stability, and source. Pi Inspector displays the contract while
+  keeping the complete prompt lazy-loaded.
+- Skills now use a two-stage `skill_search → skill_load` flow. Search returns compact metadata;
+  loading revalidates the enabled Skill and reads the current complete `SKILL.md`, with catalogue
+  and actual-load evidence.
+- **Context Governor** stores oversized text tool results in owner-only local files and keeps only a
+  bounded excerpt, digest, and recoverable reference in context. Pi's native compaction remains in
+  charge, with additional transaction evidence.
+- A Pi-native **Agent Factory Loop** uses fresh child sessions and structured handoffs to implement,
+  inspect, and repair Agents. A model claim cannot complete the loop without verification evidence.
+- Desktop Worker and Headless Local Web Runtime share these prompt, Skill, context, and evidence contracts.
 
-All alpha.8 fixes for npm runtime dependencies, native-module ABI handling, and clean-install gates
-remain included.
+The alpha.9 on-demand Skill and Prompt Manifest work, together with the npm clean-install gates,
+remains included.
 
 - Agent Profiles are now a complete Pi-native Agent workspace that composes models,
   thinking levels, System Prompts, tools, Skills, Extensions, Prompt Templates,

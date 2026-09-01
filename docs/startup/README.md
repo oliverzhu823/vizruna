@@ -55,6 +55,7 @@ v0.1 产品名称：Vizruna\
 | [24-Pi-0.84.4-Upgrade-Record.md](./24-Pi-0.84.4-Upgrade-Record.md) | Pi 0.84.4 内核升级范围、兼容策略、自动验证与发布前人工门禁 | Engineering passed; live provider smoke pending |
 | [25-Headless-Runtime-RPC-CLI.md](./25-Headless-Runtime-RPC-CLI.md) | K0–K6 独立 Runtime、RPC v1、权限、CLI、证据与评测实施说明 | Engineering candidate |
 | [26-Node-Web-Npx-Distribution.md](./26-Node-Web-Npx-Distribution.md) | 纯 Node Local Web、npx 包结构、升级与发布门禁 | Engineering passed; publication pending |
+| [27-Prompt-Skills-Context-Factory-v2.md](./27-Prompt-Skills-Context-Factory-v2.md) | Prompt Contract、按需 Skill、上下文治理与 Agent Factory 闭环 | Implemented; validating |
 
 ## 3. 研究基线
 

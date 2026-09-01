@@ -26,6 +26,8 @@ import {
   buildAgentToolsOverride,
 } from '../worker/agent-profile-runtime'
 import { createSkillDiscoveryRuntime } from '../worker/skill-discovery'
+import { createContextGovernor } from '../worker/context-governor'
+import { buildPromptContract, createPromptContractObserver } from '../worker/prompt-manifest'
 import { getRuntimeVersion } from './runtime-paths'
 import { resolveRuntimePermission } from './permission-policy'
 import { RuntimeStore } from './runtime-store'
@@ -173,6 +175,7 @@ export class VizrunaHeadlessRuntime {
   readonly store: RuntimeStore
   private readonly active = new Map<string, ActiveRun>()
   private readonly listeners = new Set<RuntimeEventListener>()
+  private readonly compactionTransactions = new Map<string, { id: string; startedAt: number }>()
   private eventId: number
 
   constructor(store = new RuntimeStore()) {
@@ -264,6 +267,11 @@ export class VizrunaHeadlessRuntime {
         buildAgentResourceLoaderOverrides(snapshot || null),
         { agentDir: baseServices.agentDir },
       )
+      const contextGovernor = createContextGovernor(baseServices.agentDir)
+      let compiledSystemPrompt: string | undefined
+      const promptObserver = createPromptContractObserver((systemPrompt) => {
+        compiledSystemPrompt = systemPrompt
+      })
       const services = snapshot
         ? await pi.createAgentSessionServices({
             cwd: run.workspacePath,
@@ -271,6 +279,7 @@ export class VizrunaHeadlessRuntime {
             modelRuntime: baseServices.modelRuntime,
             settingsManager: baseServices.settingsManager,
             resourceLoaderOptions: {
+              extensionFactories: [contextGovernor.extension, promptObserver],
               ...skillDiscovery.resourceLoaderOptions,
               ...buildAgentPromptLoaderOverrides(snapshot),
             },
@@ -280,7 +289,10 @@ export class VizrunaHeadlessRuntime {
             agentDir: baseServices.agentDir,
             modelRuntime: baseServices.modelRuntime,
             settingsManager: baseServices.settingsManager,
-            resourceLoaderOptions: skillDiscovery.resourceLoaderOptions,
+            resourceLoaderOptions: {
+              extensionFactories: [contextGovernor.extension, promptObserver],
+              ...skillDiscovery.resourceLoaderOptions,
+            },
           })
       let model
       if (run.modelId) {
@@ -303,7 +315,7 @@ export class VizrunaHeadlessRuntime {
         model,
         thinkingLevel: run.thinkingLevel as Parameters<typeof pi.createAgentSession>[0] extends { thinkingLevel?: infer T } ? T : never,
         tools: skillDiscovery.mode === 'on-demand'
-          ? [...new Set([...permission.allowedTools, 'skill_search'])]
+          ? [...new Set([...permission.allowedTools, 'skill_search', 'skill_load'])]
           : permission.allowedTools,
         customTools: skillDiscovery.customTools,
       })
@@ -314,6 +326,25 @@ export class VizrunaHeadlessRuntime {
         sessionId: session.sessionId, sessionFile: session.sessionFile,
         modelId: session.model ? `${session.model.provider}/${session.model.id}` : run.modelId,
         thinkingLevel: session.thinkingLevel,
+        promptContract: buildPromptContract({
+          text: session.systemPrompt || '',
+          appendParts: session.resourceLoader.getAppendSystemPrompt(),
+          activeTools: session.getActiveToolNames(),
+          profile: snapshot || null,
+          skillDiscovery: skillDiscovery.snapshot(),
+        }),
+        skillRuntime: (() => {
+          const value = skillDiscovery.snapshot()
+          return {
+            mode: value.mode,
+            catalogDigest: value.catalogDigest,
+            indexedCount: value.indexedCount,
+            searchCount: value.searchCount,
+            loadCount: value.loadCount,
+            loadedSkills: value.loadedSkills,
+          }
+        })(),
+        contextGovernor: contextGovernor.snapshot(),
       })
       this.emit('run.running', {
         status: run.status, sessionId: run.sessionId, sessionFile: run.sessionFile,
@@ -322,6 +353,18 @@ export class VizrunaHeadlessRuntime {
       }, run.id)
       unsubscribe = session.subscribe((event) => this.consumePiEvent(run.id, event))
       await session.prompt(run.prompt)
+      if (compiledSystemPrompt) {
+        const current = this.store.getRun(run.id) || run
+        run = this.save(current, {
+          promptContract: buildPromptContract({
+            text: compiledSystemPrompt,
+            appendParts: session.resourceLoader.getAppendSystemPrompt(),
+            activeTools: session.getActiveToolNames(),
+            profile: snapshot || null,
+            skillDiscovery: skillDiscovery.snapshot(),
+          }),
+        })
+      }
       await session.waitForIdle()
       const active = this.active.get(run.id)
       if (active?.cancelled) {
@@ -332,6 +375,18 @@ export class VizrunaHeadlessRuntime {
         const outputText = lastAssistant ? extractTextFromPiMessage(lastAssistant) : ''
         run = this.save(this.store.getRun(run.id) || run, {
           status: 'completed', outputText, completedAt: Date.now(),
+          skillRuntime: (() => {
+            const value = skillDiscovery.snapshot()
+            return {
+              mode: value.mode,
+              catalogDigest: value.catalogDigest,
+              indexedCount: value.indexedCount,
+              searchCount: value.searchCount,
+              loadCount: value.loadCount,
+              loadedSkills: value.loadedSkills,
+            }
+          })(),
+          contextGovernor: contextGovernor.snapshot(),
         })
         this.emit('run.completed', { status: run.status, outputText }, run.id)
         this.store.audit({ action: 'run.finish', outcome: 'success', runId: run.id })
@@ -422,8 +477,28 @@ export class VizrunaHeadlessRuntime {
       })
       this.emit('tool.end', { toolCallId: id, toolName: String(raw.toolName || ''), isError, ...(path ? { path } : {}) }, runId)
     }
-    if (event.type === 'compaction_start' || event.type === 'compaction_end') {
-      this.emit(`context.${event.type === 'compaction_start' ? 'compaction_start' : 'compaction_end'}`, {}, runId)
+    if (event.type === 'compaction_start') {
+      const transaction = { id: randomUUID(), startedAt: Date.now() }
+      this.compactionTransactions.set(runId, transaction)
+      this.emit('context.compaction_start', transaction, runId)
+    }
+    if (event.type === 'compaction_end') {
+      const transaction = this.compactionTransactions.get(runId)
+      const completedAt = Date.now()
+      const error = typeof raw.errorMessage === 'string' ? raw.errorMessage : undefined
+      const status = raw.aborted === true ? 'aborted' : error ? 'failed' : 'completed'
+      const data = {
+        transactionId: transaction?.id,
+        startedAt: transaction?.startedAt,
+        completedAt,
+        status,
+        ...(error ? { error } : {}),
+      }
+      try {
+        this.active.get(runId)?.session.sessionManager.appendCustomEntry('vizruna.context.compaction', data)
+      } catch { /* the runtime event store remains authoritative */ }
+      this.compactionTransactions.delete(runId)
+      this.emit('context.compaction_end', data, runId)
     }
   }
 

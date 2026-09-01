@@ -56,6 +56,28 @@
 
 面向仓库的完整版本记录。发版时由 `scripts/generate-release-notes.mjs` 从对应章节生成 **GitHub Release 正文**（用户可读更新说明，应用内「发现新版本」弹窗展示）。发布与应用内更新流程见 [doc/RELEASE.md](doc/RELEASE.md)。
 
+## [0.1.0-alpha.10] — 2026-09-01
+
+### Harness governance and Agent Factory loop
+
+- Added Prompt Contract v2. Every run can now record the exact effective System Prompt digest,
+  active-tool digest, combined request digest, section owner, activation rule, stability, and source
+  without copying the full potentially sensitive prompt into exported evidence.
+- Pi Inspector now exposes the Prompt Contract version and short request digest while keeping the
+  complete System Prompt lazy-loaded.
+- Upgraded on-demand Skills to a two-stage `skill_search` / `skill_load` runtime. Search results are
+  compact and do not expose local file paths; loading rechecks the enabled Skill, reads the current
+  complete `SKILL.md`, validates its identity, and records search/load evidence and catalogue digest.
+- Added Context Governor. Oversized text tool results are stored in an owner-only local file while
+  the model receives a bounded head/tail excerpt, content digest, and recoverable file reference.
+- Added durable compaction transaction evidence for started, completed, failed, and aborted Pi
+  compactions without replacing Pi's native compaction algorithm.
+- Added the Pi-native `run_agent_factory_loop` tool for bounded Agent construction and evaluation.
+  Fresh child sessions share the local workspace, use structured handoffs, and cannot finish from a
+  model claim alone: verified evidence is required.
+- Desktop Worker and Headless Runtime share the same Prompt, Skill, context-governance, and evidence
+  contracts. Added bilingual Inspector UI, architecture documentation, unit tests, and Local Web E2E.
+
 ## [0.1.0-alpha.9] — 2026-09-01
 
 ### On-demand Skills and explainable prompts

@@ -101,7 +101,13 @@
       "workspace": "Working directory"
     },
     "budget": "{{chars}} chars · about {{tokens}} tokens",
-    "skillOnDemand": "General sessions search {{count}} callable Skills on demand; the catalogue does not occupy the prompt.",
+    "skillOnDemand": "General sessions search {{count}} callable Skills on demand; {{searched}} searches and {{loaded}} actual loads. The catalogue does not occupy the prompt.",
+    "contractVersion": "Prompt Contract v{{version}}",
+    "stability": {
+      "stable": "stable",
+      "session": "session-fixed",
+      "turn": "per-turn"
+    },
     "skillFixed": "This Agent loads {{count}} fixed Skills for reproducible runs.",
     "owner": {
       "pi-runtime": "Pi runtime",
